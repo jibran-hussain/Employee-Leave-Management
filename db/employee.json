@@ -1,0 +1,21 @@
+{
+    "employees": [
+      {
+        "id": 1001,
+        "name": "Employee 1",
+        "username": "employee1",
+        "password": "employee1password",
+        "email": "employee1@example.com",
+        "admin_id": 101
+      },
+      {
+        "id": 1002,
+        "name": "Employee 2",
+        "username": "employee2",
+        "password": "employee2password",
+        "email": "employee2@example.com",
+        "admin_id": 101 
+      }
+      
+    ]
+  }
