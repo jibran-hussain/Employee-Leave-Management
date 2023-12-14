@@ -1,0 +1,7 @@
+{
+    "superadmin": {
+        "superadminId": 1,
+        "email": "superadmin@gmail.com",
+        "password": "superadminpassword"
+        }
+}
