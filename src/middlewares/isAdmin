@@ -1,12 +1,8 @@
-import jwt from 'jsonwebtoken'
 import 'dotenv/config'
 
 export const isAdmin=async(req,res,next)=>{
     try{
-        const token=req.cookies.jwt;
-        console.log
-        if(!token) return res.status(401).json({message: "Unauthorized (Token is missing)"})
-        const {role} = jwt.verify(token,process.env.JWT_SECRET_KEY);
+        const {role}=req.auth;
         if(role != 'admin') return res.status(401).json({message:"Unauthorized"})
         next()
     }catch(e){
