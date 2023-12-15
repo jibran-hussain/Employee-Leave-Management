@@ -152,6 +152,7 @@ export const listAllLeaves=async (req,res)=>{
 
 export const updateLeaves=async(req,res)=>{
     try{
+        const {date,reason}=req.body;
         const employeeId=Number(req.params.employeeId);
         const leaveId=Number(req.params.leaveId);
         if(req.auth.id != employeeId) return res.status(403).json({error:'Access denied'});
@@ -164,7 +165,8 @@ export const updateLeaves=async(req,res)=>{
                         let leave=employee.leaves.map((leave)=>{
                             if(leave.leaveId === leaveId){
                                 // upate leave here
-                                leave.date="01-01-2023"
+                                if(date) leave.date=date
+                                if(reason) leave.reason=reason
                             }
                             return leave
                         })
