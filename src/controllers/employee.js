@@ -129,14 +129,19 @@ export const applyForLeave=async (req,res)=>{
 
 export const listAllLeaves=async (req,res)=>{
     try{
-        const {id}=req.auth;
+        const employeeId=Number(req.params.employeeId)
+        console.log(typeof employeeId)
+        if(req.auth.id != employeeId) return res.status(403).json({error:"Access denied"})
         fs.readFile(`${__dirname}/../../db/employee.json`,'utf8',(error,data)=>{
             if(error) return res.status(500).json({error: `Internal Server Error`});
             const fileData=JSON.parse(data);
             const employee=fileData.employees.filter((employee)=>{
-                if(employee.employeeId === id) return employee;
+                if(employee.employeeId === employeeId) {
+                    console.log(typeof employee.employeeId)
+                    return employee;
+                }
             })
-            
+            console.log(employee)
             return res.json({leaves:employee[0].leaves})
         })
     }catch(e){
@@ -145,3 +150,38 @@ export const listAllLeaves=async (req,res)=>{
 
 }
 
+export const updateLeaves=async(req,res)=>{
+    try{
+        const employeeId=Number(req.params.employeeId);
+        const leaveId=Number(req.params.leaveId);
+        if(req.auth.id != employeeId) return res.status(403).json({error:'Access denied'});
+        
+        fs.readFile(`${__dirname}/../../db/employee.json`,'utf8',(error,data)=>{
+            if(error) return res.status(500).json({error:'Internal Server Error'});
+            const fileData=JSON.parse(data);
+            const updatedEmployee= fileData.employees.map((employee)=>{
+                if(employee.employeeId == employeeId){
+                        let leave=employee.leaves.map((leave)=>{
+                            if(leave.leaveId === leaveId){
+                                // upate leave here
+                                leave.date="01-01-2023"
+                            }
+                            return leave
+                        })
+                        employee.leaves=leave;
+                }
+                return employee;
+            })
+
+            const newUpdatedFile=JSON.stringify({employees:updatedEmployee})
+            console.log(updatedEmployee)
+            fs.writeFile(`${__dirname}/../../db/employee.json`,newUpdatedFile,'utf8',(error)=>{
+                if(error) return res.json({error:'Internal Server Error'});
+                return res.json({message:'Employee updated successfully'})
+            })            
+        })
+
+    }catch(e){
+        return res.status(500).json({error:'Internal Server error'})
+    }   
+}

@@ -1,1 +1,1 @@
-{"employees":[{"employeeId":1001,"name":"Employee 1","username":"employee1","password":"employee1password","email":"employee1@example.com"},{"employeeId":1002,"name":"Employee 2","username":"employee2","password":"employee2password","email":"employee2@example.com"},{"adminId":3,"role":"admin"}]}
+{"employees":[{"employeeId":1001,"name":"Employee 1","username":"employee1","password":"employee1password","email":"employee1@example.com","leavesLeft":18,"leaves":[{"date":"19-12-2023","reason":"Sick Leave","leaveId":1},{"date":"20-12-2023","reason":"Holiday","leaveId":2}]}]}
