@@ -15,9 +15,9 @@ const PORT=process.env.port || 8000
 
 app.use(cookieParser())
 app.use(express.json())
-app.use('/api',superadminRoute)
-app.use('/api',adminRoute)
-app.use('/api',employeeRoute)
+app.use(`/api/${process.env.API_VERSION}`,superadminRoute)
+app.use(`/api/${process.env.API_VERSION}`,adminRoute)
+app.use(`/api/${process.env.API_VERSION}`,employeeRoute)
 app.listen(PORT,()=>{
     console.log(`Server is running on port ${PORT}`)
 })
