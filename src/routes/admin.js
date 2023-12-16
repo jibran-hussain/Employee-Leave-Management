@@ -4,7 +4,7 @@ import { isSuperAdmin } from '../middlewares/isSuperAdmin.js';
 import { isAuth } from '../middlewares/isAuth.js';
 const router=express.Router();
 
-router.post('/admins/signup',isAuth,isSuperAdmin,createAdmin);
-router.post('/admins/signin',adminSignin)
+router.post('/auth/admins/signup',isAuth,isSuperAdmin,createAdmin);
+router.post('/auth/admins/signin',adminSignin)
 
 export default router;

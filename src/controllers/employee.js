@@ -4,6 +4,7 @@ import path, { dirname } from 'path';
 import 'dotenv/config'
 import { generateAuthToken } from '../utils/geneateAuthToken.js';
 import { generateId } from '../utils/generateId.js';
+import { validateLeave } from '../utils/validateLeave.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
@@ -83,6 +84,7 @@ export const deleteEmployee=async (req,res)=>{
             if(employee.employeeId == employeeId) return false;
             return employee;
         })
+        console.log(updatedEmployeesList,"ddddddddddddddddddddd")
         fileData.employees=updatedEmployeesList;
         const finalFileData=JSON.stringify(fileData);
         await fs.writeFile(`${__dirname}/../../db/employee.json`,finalFileData,'utf8')
@@ -100,24 +102,28 @@ export const applyForLeave=async (req,res)=>{
         const {date,reason}=req.body;
         
         // Getting the leave id from id.json file
-
         let leaveId=await generateId("leave");
-        console.log(`here is leave id, ${leaveId}`)
         
-
         const data=await fs.readFile(`${__dirname}/../../db/employee.json`,'utf8')
         const fileData=JSON.parse(data);
         const updatedFileData=fileData.employees.map((employee)=>{
+            console.log(id,"here it is")
             if(employee.employeeId == id){
                 if(employee.leavesLeft <= 0){
                     return res.status(400).json({message:"You have exhausted all your leaves"})
                 }
             //    Logic for whether the leave is valid or not
-                employee.leaves.push({...req.body,leaveId});
-                employee.leavesLeft--;
+                try{
+                    validateLeave(date);
+                    employee.leaves.push({...req.body,leaveId});
+                    employee.leavesLeft--;
+                }catch(error){
+                    return res.status(400).json({ error: error.message });
+                }
             }
             return employee;
         })
+        console.log(updatedFileData,"Its updated file data")
         const newFileData=JSON.stringify({employees:updatedFileData})
 
         await fs.writeFile(`${__dirname}/../../db/employee.json`,newFileData,'utf8')

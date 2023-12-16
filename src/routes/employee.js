@@ -7,8 +7,8 @@ const router=express.Router();
 
 router.post('/auth/employees/signup',isAuth,isAdmin,createEmployee);
 router.post('/auth/employees/signin',employeeSingin)
-router.delete('/employees/:employeeId',isAuth,isAdmin,deleteEmployee)
-router.post('/employees/leaves',isAuth,isEmployee,applyForLeave)
+router.delete('/employees/:employeeId',isAuth,deleteEmployee)
+router.post('/employees/:employeeId/leaves',isAuth,isEmployee,applyForLeave)
 router.get('/employees/:employeeId/leaves',isAuth,isEmployee,listAllLeaves);
 router.patch('/employees/:employeeId/leave/:leaveId',isAuth,isEmployee,updateLeaves)
 router.delete('/employees/:employeeId/leaves/:leaveId',isAuth,isEmployee,deleteLeave)

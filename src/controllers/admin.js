@@ -24,7 +24,10 @@ export const createAdmin=async(req,res)=>{
         const data=await fs.readFile(`${__dirname}/../../db/admin.json`,'utf8')
         const fileData=JSON.parse(data);
         const newAdmin={adminId,...req.body,role:"admin"};
+        console.log(fileData,"ollllllllllld")
+
         fileData.admins.push(newAdmin);
+        console.log(fileData,"neeeeeeeeeeew")
         const newFileData=JSON.stringify(fileData)
         await fs.writeFile(`${__dirname}/../../db/admin.json`,newFileData,'utf8')
 

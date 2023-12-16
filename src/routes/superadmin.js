@@ -1,7 +1,7 @@
 import express from 'express'
 const router=express.Router();
-import { SuperadminSignin } from '../controllers/superadmin.js';
+import { superadminSignin } from '../controllers/superadmin.js';
 
-router.post('/signin',SuperadminSignin);
+router.post('/auth/signin',superadminSignin);
 
 export default router;

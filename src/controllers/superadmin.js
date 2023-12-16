@@ -8,7 +8,7 @@ import 'dotenv/config'
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
 
-export const SuperadminSignin=async(req,res)=>{
+export const superadminSignin=async(req,res)=>{
     try{
         const {email,password,role}=req.body;
         if(!email || !password || !role) res.status(400).json({message:`All fields are necassary`})
