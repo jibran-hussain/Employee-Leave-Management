@@ -1,10 +1,8 @@
 import fs from 'fs'
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
-import jwt from 'jsonwebtoken'
 import 'dotenv/config'
-import { error } from 'console';
-
+import { generateAuthToken } from '../utils/geneateAuthToken.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
@@ -12,8 +10,8 @@ const __dirname = dirname(__filename)
 
 export const createEmployee=async(req,res)=>{
     try{
-        const {email,password}=req.body;
-        if(!email || !password) return res.json({message:'All fields are mandatory'})
+        const {name,email,password}=req.body;
+        if(!name ||!email || !password) return res.json({message:'All fields are mandatory'})
 
         let employeeId;
         // Get the employeeId for the new employee
@@ -41,6 +39,10 @@ export const createEmployee=async(req,res)=>{
                 const newFileData=JSON.stringify(fileData)
                 fs.writeFile(`${__dirname}/../../db/employee.json`,newFileData,'utf8',(error)=>{
                     if(error) return res.status(500).json({message:`Internal Server Error`})
+                    const token=generateAuthToken(employeeId,email,"employee")
+                    res.cookie('jwt',token,{
+                        httpOnly:true
+                    })
                     return res.json({message:`Employee created successfully`});
                 })
             })
@@ -55,15 +57,15 @@ export const employeeSingin=async(req,res)=>{
         if(!email || !password || !role) res.status(400).json({message:`All fields are necassary`})
             if(role === "employee"){
                 fs.readFile(`${__dirname}/../../db/employee.json`,'utf8',(error,data)=>{
-                    if(error) return res.status(500).json({error:"Internal Server Error"})
+                    if(error) return res.status(500).json({error:"Internal Server Error"})  
                     const fileData=JSON.parse(data);
-                console.log(fileData)
+                console.log(fileData,`eeeeeeeerrrrrrrrrrrrrrrrr`)
                     const employee=fileData.employees.filter((employee)=>{
                         if(employee.email === email && employee.password === password) return true;
                     })
-                    console.log(employee,`here is the admin`)
+                    console.log(employee,`oooooooooohere is the employee`)
                     if(employee){
-                        const token=jwt.sign({id:employee[0].employeeId,email:employee[0].email,role:"employee"},process.env.JWT_SECRET_KEY);
+                        const token=generateAuthToken(employee[0].employeeId,employee[0].email,role)
                         res.cookie('jwt',token,{
                             httpOnly:true
                         })
@@ -95,7 +97,6 @@ export const deleteEmployee=async (req,res)=>{
                 if(employee.employeeId == employeeId) return false;
                 return employee;
             })
-            console.log(updatedEmployeesList,"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww")
             fileData.employees=updatedEmployeesList;
             const finalFileData=JSON.stringify(fileData);
             fs.writeFile(`${__dirname}/../../db/employee.json`,finalFileData,'utf8',(error)=>{
@@ -111,7 +112,8 @@ export const deleteEmployee=async (req,res)=>{
 export const applyForLeave=async (req,res)=>{
     try{
         const {id}=req.auth;  //we can also get the id from route params, i think that will be the better option
-
+        const {date,reason}=req.body;
+        
         let leaveId;
         // Getting the leave id from id.json file
         fs.readFile(`${__dirname}/../../db/id.json`,'utf8',(error,data)=>{
@@ -136,6 +138,7 @@ export const applyForLeave=async (req,res)=>{
                    if(employee.leavesLeft <= 0){
                         return res.status(400).json({message:"You have exhausted all your leaves"})
                    }
+                //    Logic for whether the leave is valid or not
                         employee.leaves.push({...req.body,leaveId});
                         employee.leavesLeft--;
                 }
