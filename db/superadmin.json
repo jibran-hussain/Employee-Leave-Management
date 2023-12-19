@@ -2,6 +2,6 @@
     "superadmin": {
         "superadminId": 1,
         "email": "superadmin@gmail.com",
-        "password": "superadminpassword"
+        "password": "$2b$10$HLeaIrLYNAKvYYS5r.6k8OYmDIGewqikoXO3qm7jhbRqSQh2Ra.mG"
         }
 } 
