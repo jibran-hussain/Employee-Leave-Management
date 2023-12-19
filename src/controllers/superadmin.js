@@ -3,6 +3,8 @@ import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 import jwt from 'jsonwebtoken'
 import 'dotenv/config'
+import bcrypt from 'bcrypt'
+import { isValidPassword } from '../utils/isValidPassword.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -16,8 +18,10 @@ export const superadminSignin=async(req,res)=>{
             if(role === "superadmin"){
                 fs.readFile(`${__dirname}/../../db/superadmin.json`,'utf8',(error,data)=>{
                     if(error) return res.status(500).json({error:"Internal Server Error"})
-                    const fileData=JSON.parse(data);
-                    if(email === fileData.superadmin.email && password == fileData.superadmin.password){
+                    const fileData=JSON.parse(data);                    
+                    
+                    if(email === fileData.superadmin.email && isValidPassword(password,fileData.superadmin.password)){
+
                         const token=jwt.sign({id:fileData.superadmin.superadminId,email:fileData.superadmin.email,role:"superadmin"},process.env.JWT_SECRET_KEY);
                         res.cookie('jwt',token,{
                             httpOnly:true

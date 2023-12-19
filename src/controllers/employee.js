@@ -5,6 +5,8 @@ import 'dotenv/config'
 import { generateAuthToken } from '../utils/geneateAuthToken.js';
 import { generateId } from '../utils/generateId.js';
 import { validateLeave } from '../utils/validateLeave.js';
+import { generateHashedPassword } from '../utils/generateHashedPassword.js';
+import {isValidPassword} from '../utils/isValidPassword.js'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
@@ -17,11 +19,14 @@ export const createEmployee=async(req,res)=>{
 
         // Get the employeeId for the new employee
         let employeeId=await generateId("employee");
+
+        // Hashing the password
+        const hashedPassword=generateHashedPassword(password);
             
         // Fetching the file and adding new employees
         const data= await fs.readFile(`${__dirname}/../../db/employee.json`,'utf8')
         const fileData=JSON.parse(data);
-        const newEmployee={employeeId,name,email,password,role:"employee",leavesLeft:20,leaves:[]};
+        const newEmployee={employeeId,name,email,hashedPassword,role:"employee",leavesLeft:20,leaves:[]};
         fileData.employees.push(newEmployee);
         const newFileData=JSON.stringify(fileData)
 
@@ -44,12 +49,12 @@ export const createEmployee=async(req,res)=>{
 export const employeeSingin=async(req,res)=>{
     try{
         const {email,password,role}=req.body;
-        if(!email || !password || !role) res.status(400).json({message:`All fields are necassary`})
+        if(!email || !password || !role) return res.status(400).json({message:`All fields are necassary`})
         if(role === "employee"){
         const data= await fs.readFile(`${__dirname}/../../db/employee.json`,'utf8')
         const fileData=JSON.parse(data);
         const employee=fileData.employees.filter((employee)=>{
-             if(employee.email === email && employee.password === password) return true;
+             if(employee.email === email && isValidPassword(password,employee.hashedPassword)) return true;
               })
          if(employee){
                  const token=generateAuthToken(employee[0].employeeId,employee[0].email,role)

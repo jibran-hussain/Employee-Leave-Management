@@ -6,6 +6,8 @@ import 'dotenv/config'
 
 import { generateAuthToken } from '../utils/geneateAuthToken.js';
 import { generateId } from '../utils/generateId.js';
+import { generateHashedPassword } from '../utils/generateHashedPassword.js';
+import { isValidPassword } from '../utils/isValidPassword.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -21,13 +23,14 @@ export const createAdmin=async(req,res)=>{
         // gnereate admin id 
         let adminId= await generateId("admin");
 
+        // Hashing the password
+        const hashedPassword=generateHashedPassword(password);
+
         const data=await fs.readFile(`${__dirname}/../../db/admin.json`,'utf8')
         const fileData=JSON.parse(data);
-        const newAdmin={adminId,...req.body,role:"admin"};
-        console.log(fileData,"ollllllllllld")
+        const newAdmin={adminId,name,email,hashedPassword,role:"admin"};
 
         fileData.admins.push(newAdmin);
-        console.log(fileData,"neeeeeeeeeeew")
         const newFileData=JSON.stringify(fileData)
         await fs.writeFile(`${__dirname}/../../db/admin.json`,newFileData,'utf8')
 
@@ -56,8 +59,9 @@ export const adminSignin=async(req,res)=>{
                 const data=await fs.readFile(`${__dirname}/../../db/admin.json`,'utf8')
                 const fileData=JSON.parse(data);
                 const admin=fileData.admins.filter((admin)=>{
-                        if(admin.email === email && admin.password === password) return true;
+                        if(admin.email === email && isValidPassword(password,admin.hashedPassword)) return true;
                     })
+                    console.log(`here is the admin: `,admin)
                 if(admin.length > 0){
                         const token=jwt.sign({id:admin[0].adminId,email:admin[0].email,role:"admin"},process.env.JWT_SECRET_KEY);
                         res.cookie('jwt',token,{
@@ -76,6 +80,6 @@ export const adminSignin=async(req,res)=>{
             }
         
     }catch(e){
-       return res.json({error:e})
+       return res.json({error:e.message})
     }
 }
