@@ -14,6 +14,7 @@
 
   ```bash
 PORT=3000
+SALT_ROUNDS=10
 JWT_SECRET_KEY='thisisasecretkey'
 API_VERSION=v1
 
