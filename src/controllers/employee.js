@@ -24,15 +24,20 @@ export const createEmployee=async(req,res)=>{
         // Checks whether password is Empty
         if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty`})
 
+        // Fetching the file and adding new employees
+        const data= await fs.readFile(`${__dirname}/../../db/employee.json`,'utf8')
+        const fileData=JSON.parse(data);
+
+        // Check whether employee of this email-id already exists or not
+        const isExisting=fileData.employees.some((employee)=>employee.email === email);
+        if(isExisting) return res.status(500).json({error:"Employee with this email already exists. Please try with another email id"})
+
         // Get the employeeId for the new employee
         let employeeId=await generateId("employee");
 
         // Hashing the password
         const hashedPassword=generateHashedPassword(password);
-            
-        // Fetching the file and adding new employees
-        const data= await fs.readFile(`${__dirname}/../../db/employee.json`,'utf8')
-        const fileData=JSON.parse(data);
+        
         const newEmployee={employeeId,name,email,hashedPassword,role:"employee",leavesLeft:20,leaves:[]};
         fileData.employees.push(newEmployee);
         const newFileData=JSON.stringify(fileData)
