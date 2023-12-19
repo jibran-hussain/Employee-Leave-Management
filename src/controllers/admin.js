@@ -75,7 +75,6 @@ export const adminSignin=async(req,res)=>{
                 const admin=fileData.admins.filter((admin)=>{
                         if(admin.email === email && isValidPassword(password,admin.hashedPassword)) return true;
                     })
-                    console.log(`here is the admin: `,admin)
                 if(admin.length > 0){
                         const token=jwt.sign({id:admin[0].adminId,email:admin[0].email,role:"admin"},process.env.JWT_SECRET_KEY);
                         res.cookie('jwt',token,{
