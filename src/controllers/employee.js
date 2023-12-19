@@ -101,9 +101,9 @@ export const employeeSingin=async(req,res)=>{
 export const deleteEmployee=async (req,res)=>{
     try{
         const employeeId=req.params.employeeId;
-        // if(req.auth.id != employeeId) return res.status(403).json({error:'Unauthorized (Access denied)'});
         const data=await fs.readFile(`${__dirname}/../../db/employee.json`,'utf8')
         const fileData=JSON.parse(data);
+        
         const updatedEmployeesList= fileData.employees.filter((employee)=>{
             if(employee.employeeId == employeeId) return false;
             return employee;
@@ -122,6 +122,7 @@ export const deleteEmployee=async (req,res)=>{
 export const applyForLeave=async (req,res)=>{
     try{
         const {id}=req.auth;  //we can also get the id from route params, i think that will be the better option
+        if(id != req.params.employeeId) return res.status(403).json({error:"Access Denied"})
         const {date,reason}=req.body;
         
         // Getting the leave id from id.json file
@@ -138,7 +139,7 @@ export const applyForLeave=async (req,res)=>{
             //    Logic for whether the leave is valid or not
                 try{
                     validateLeave(date);
-                    employee.leaves.push({...req.body,leaveId});
+                    employee.leaves.push({date,reason,leaveId});
                     employee.leavesLeft--;
                 }catch(error){
                     return res.status(400).json({ error: error.message });
