@@ -100,7 +100,7 @@ export const employeeSingin=async(req,res)=>{
 // It deletes an employee from a JSON Database
 export const deleteEmployee=async (req,res)=>{
     try{
-        const employeeId=req.params.employeeId;
+        const employeeId=req.auth.id;
         const data=await fs.readFile(`${__dirname}/../../db/employee.json`,'utf8')
         const fileData=JSON.parse(data);
         
@@ -121,8 +121,7 @@ export const deleteEmployee=async (req,res)=>{
 // It is used to apply for leave
 export const applyForLeave=async (req,res)=>{
     try{
-        const {id}=req.auth;  //we can also get the id from route params, i think that will be the better option
-        if(id != req.params.employeeId) return res.status(403).json({error:"Access Denied"})
+        const {id}=req.auth;
         const {date,reason}=req.body;
         
         // Getting the leave id from id.json file
@@ -131,30 +130,26 @@ export const applyForLeave=async (req,res)=>{
         const data=await fs.readFile(`${__dirname}/../../db/employee.json`,'utf8')
         const fileData=JSON.parse(data);
         const updatedFileData=fileData.employees.map((employee)=>{
-            console.log(id,"here it is")
             if(employee.employeeId == id){
                 if(employee.leavesLeft <= 0){
                     return res.status(400).json({message:"You have exhausted all your leaves"})
                 }
             //    Logic for whether the leave is valid or not
-                try{
+                
                     validateLeave(date);
                     employee.leaves.push({date,reason,leaveId});
                     employee.leavesLeft--;
-                }catch(error){
-                    return res.status(400).json({ error: error.message });
-                }
+                
             }
             return employee;
         })
-        console.log(updatedFileData,"Its updated file data")
         const newFileData=JSON.stringify({employees:updatedFileData})
 
         await fs.writeFile(`${__dirname}/../../db/employee.json`,newFileData,'utf8')
         return res.status(201).json({message:`Leave created successfully`})
         
     }catch(e){
-        return res.json({error:e})
+        res.json({error:e.message})
     }
 }
 
@@ -162,13 +157,11 @@ export const applyForLeave=async (req,res)=>{
 // Lists all leaves of an employee who is currently logged in
 export const listAllLeaves=async (req,res)=>{
     try{
-        const employeeId=Number(req.params.employeeId)
-        if(req.auth.id != employeeId) return res.status(403).json({error:"Access denied"})
+        const employeeId=req.auth.id
         const data=await fs.readFile(`${__dirname}/../../db/employee.json`,'utf8')
         const fileData=JSON.parse(data);
         const employee=fileData.employees.filter((employee)=>{
             if(employee.employeeId === employeeId) {
-                console.log(typeof employee.employeeId)
                 return employee;
             }
         })
@@ -184,10 +177,8 @@ export const listAllLeaves=async (req,res)=>{
 export const updateLeaves=async(req,res)=>{
     try{
         const {date,reason}=req.body;
-        const employeeId=Number(req.params.employeeId);
-        const leaveId=Number(req.params.leaveId);
-        if(req.auth.id != employeeId) return res.status(403).json({error:'Access denied'});
-        
+        const employeeId=req.auth.id;
+        const leaveId=Number(req.params.leaveId);        
         const data=await fs.readFile(`${__dirname}/../../db/employee.json`,'utf8')
         const fileData=JSON.parse(data);
         const updatedEmployee= fileData.employees.map((employee)=>{
@@ -195,7 +186,10 @@ export const updateLeaves=async(req,res)=>{
                 let leave=employee.leaves.map((leave)=>{
                     if(leave.leaveId === leaveId){
                         // upate leave here
-                        if(date) leave.date=date
+                        if(date){
+                           validateLeave(date)
+                           leave.date=date
+                        }
                         if(reason) leave.reason=reason
                     }
                     return leave
@@ -210,7 +204,7 @@ export const updateLeaves=async(req,res)=>{
         return res.json({message:'Employee updated successfully'})          
 
     }catch(e){
-        return res.status(500).json({error:'Internal Server Error'})
+        return res.status(500).json({error:e.message})
     }   
 }
 
@@ -218,9 +212,8 @@ export const updateLeaves=async(req,res)=>{
 // It is used to delete a specific leave of an employee
 export const deleteLeave=async(req,res)=>{
     try{
-        const employeeId=Number(req.params.employeeId);
+        const employeeId=req.auth.id;
         const leaveId=Number(req.params.leaveId);
-        if(req.auth.id != employeeId) return res.status(403).json({error:'Access denied'});
         
         const data=await fs.readFile(`${__dirname}/../../db/employee.json`,'utf8')
         const fileData=JSON.parse(data);
