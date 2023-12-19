@@ -21,6 +21,6 @@ API_VERSION=v1
   ```
 4 . Run the project using the following command:
 ```bash
-  npm run dev
+  npm start
 ```
       
