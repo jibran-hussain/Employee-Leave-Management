@@ -8,6 +8,7 @@ import { generateAuthToken } from '../utils/geneateAuthToken.js';
 import { generateId } from '../utils/generateId.js';
 import { generateHashedPassword } from '../utils/generateHashedPassword.js';
 import { isValidPassword } from '../utils/isValidPassword.js';
+import { isValidEmail,passwordValidation } from '../utils/validations.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -19,6 +20,12 @@ export const createAdmin=async(req,res)=>{
         const {name,email,password}=req.body;
 
         if(!name || !email || !password) return res.json({error:`All credentials are necassary`})
+
+        // Check if it is a valid email or not
+        if(!isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
+
+        // Checks whether password is Empty
+        if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty`})
 
         // gnereate admin id 
         let adminId= await generateId("admin");
@@ -53,7 +60,14 @@ export const createAdmin=async(req,res)=>{
 export const adminSignin=async(req,res)=>{
     try{
         const {email,password,role}=req.body;
-        if(!email || !password || !role) res.status(400).json({message:`All fields are necassary`})
+        if(!email || !password || !role) return res.status(400).json({message:`All fields are necassary`})
+
+        // Check if it is a valid email or not
+        if(!isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
+
+        // Checks whether password is Empty
+        if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty`})
+
         // If the user is admin
             if(role === "admin"){
                 const data=await fs.readFile(`${__dirname}/../../db/admin.json`,'utf8')

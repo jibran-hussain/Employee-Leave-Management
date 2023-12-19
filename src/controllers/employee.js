@@ -7,6 +7,7 @@ import { generateId } from '../utils/generateId.js';
 import { validateLeave } from '../utils/validateLeave.js';
 import { generateHashedPassword } from '../utils/generateHashedPassword.js';
 import {isValidPassword} from '../utils/isValidPassword.js'
+import { isValidEmail,passwordValidation } from '../utils/validations.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
@@ -16,6 +17,12 @@ export const createEmployee=async(req,res)=>{
     try{
         const {name,email,password}=req.body;
         if(!name ||!email || !password) return res.json({message:'All fields are mandatory'})
+
+        // Check if it is a valid email or not
+        if(!isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
+
+        // Checks whether password is Empty
+        if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty`})
 
         // Get the employeeId for the new employee
         let employeeId=await generateId("employee");
@@ -49,7 +56,14 @@ export const createEmployee=async(req,res)=>{
 export const employeeSingin=async(req,res)=>{
     try{
         const {email,password,role}=req.body;
-        if(!email || !password || !role) return res.status(400).json({message:`All fields are necassary`})
+        if(!email || !password || !role) return res.status(400).json({message:`All fields are necassary`})  
+
+        // Check if it is a valid email or not
+        if(!isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
+
+        // Checks whether password is Empty
+        if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty`})
+
         if(role === "employee"){
         const data= await fs.readFile(`${__dirname}/../../db/employee.json`,'utf8')
         const fileData=JSON.parse(data);
@@ -89,7 +103,6 @@ export const deleteEmployee=async (req,res)=>{
             if(employee.employeeId == employeeId) return false;
             return employee;
         })
-        console.log(updatedEmployeesList,"ddddddddddddddddddddd")
         fileData.employees=updatedEmployeesList;
         const finalFileData=JSON.stringify(fileData);
         await fs.writeFile(`${__dirname}/../../db/employee.json`,finalFileData,'utf8')
