@@ -27,14 +27,19 @@ export const createAdmin=async(req,res)=>{
         // Checks whether password is Empty
         if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty`})
 
+        const data=await fs.readFile(`${__dirname}/../../db/admin.json`,'utf8')
+        const fileData=JSON.parse(data);
+
+        // Check whether admin of this email-id already exists or not
+        const isExisting=fileData.admins.some((admin)=>admin.email === email);
+        if(isExisting) return res.status(500).json({error:"Admin with this email already exists. Please try with another email id"})
+        
         // gnereate admin id 
         let adminId= await generateId("admin");
 
         // Hashing the password
         const hashedPassword=generateHashedPassword(password);
 
-        const data=await fs.readFile(`${__dirname}/../../db/admin.json`,'utf8')
-        const fileData=JSON.parse(data);
         const newAdmin={adminId,name,email,hashedPassword,role:"admin"};
 
         fileData.admins.push(newAdmin);
