@@ -8,6 +8,7 @@ import { validateLeave } from '../utils/validateLeave.js';
 import { generateHashedPassword } from '../utils/generateHashedPassword.js';
 import {isValidPassword} from '../utils/isValidPassword.js'
 import { isValidEmail,passwordValidation } from '../utils/validations.js';
+import { isDateInPast } from '../utils/isDateInPast.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
@@ -38,7 +39,7 @@ export const createEmployee=async(req,res)=>{
         // Hashing the password
         const hashedPassword=generateHashedPassword(password);
         
-        const newEmployee={employeeId,name,email,hashedPassword,role:"employee",leavesLeft:20,leaves:[]};
+        const newEmployee={employeeId,name,email,hashedPassword,role:"employee",leavesLeft:20,leaves:[],createdBy:req.auth.id};
         fileData.employees.push(newEmployee);
         const newFileData=JSON.stringify(fileData)
 
@@ -75,7 +76,7 @@ export const employeeSingin=async(req,res)=>{
         const employee=fileData.employees.filter((employee)=>{
              if(employee.email === email && isValidPassword(password,employee.hashedPassword)) return true;
               })
-         if(employee){
+         if(employee.length > 0){
                  const token=generateAuthToken(employee[0].employeeId,employee[0].email,role)
                  res.cookie('jwt',token,{
                        httpOnly:true
@@ -92,7 +93,8 @@ export const employeeSingin=async(req,res)=>{
             }
         
     }catch(e){
-       return res.json({error:e})
+        console.log(e)
+       return res.json({error:e.message})
     }
 }
 
@@ -100,7 +102,7 @@ export const employeeSingin=async(req,res)=>{
 // It deletes an employee from a JSON Database
 export const deleteEmployee=async (req,res)=>{
     try{
-        const employeeId=req.auth.id;
+        const employeeId=req.params.employeeId
         const data=await fs.readFile(`${__dirname}/../../db/employee.json`,'utf8')
         const fileData=JSON.parse(data);
         
@@ -188,6 +190,7 @@ export const updateLeaves=async(req,res)=>{
                         // upate leave here
                         if(date){
                            validateLeave(date)
+                           isDateInPast(leave.date)
                            leave.date=date
                         }
                         if(reason) leave.reason=reason
@@ -201,7 +204,7 @@ export const updateLeaves=async(req,res)=>{
 
         const newUpdatedFile=JSON.stringify({employees:updatedEmployee})
         await fs.writeFile(`${__dirname}/../../db/employee.json`,newUpdatedFile,'utf8')
-        return res.json({message:'Employee updated successfully'})          
+        return res.json({message:'Leave updated successfully'})          
 
     }catch(e){
         return res.status(500).json({error:e.message})
@@ -219,20 +222,24 @@ export const deleteLeave=async(req,res)=>{
         const fileData=JSON.parse(data);
         const updatedEmployee= fileData.employees.map((employee)=>{
             if(employee.employeeId == employeeId){
-                    let leave=employee.leaves.map((leave)=>{
-                        if(leave.leaveId === leaveId) return false;
+                    let leave=employee.leaves.filter((leave)=>{
+                        console.log(leave)
+                        if(leave.leaveId === leaveId){
+                            isDateInPast(leave.date);
+                            return false
+                        }
                         return leave
                     })
                     employee.leaves=leave;
+                    employee.leavesLeft++;
             }
             return employee;
         })
-
         const newUpdatedFile=JSON.stringify({employees:updatedEmployee})
         await fs.writeFile(`${__dirname}/../../db/employee.json`,newUpdatedFile,'utf8')
         return res.json({message:' Leave deleted successfully'})
 
     }catch(e){
-        return res.status(500).json({error:e})
+        return res.status(500).json({error:e.message})
     }
 }
