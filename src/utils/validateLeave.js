@@ -1,5 +1,7 @@
 export const validateLeave = (date) => {
     try {
+        const dateRegex = /^\d{2}-\d{2}-2023$/;
+        if(!date.match(dateRegex)) throw new Error(`Please enter a valid date. Date should be in DD-MM-2023 format`)
         const [day, month, year] = date.split('-').map(Number);
         const selectedDate = new Date(year, month - 1, day);
         const currentDate = new Date();
