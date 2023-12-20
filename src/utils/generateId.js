@@ -19,14 +19,13 @@ export const generateId = async (entity) => {
             newId = idFileData.newEmployeeId;
             idFileData.newEmployeeId++;
         } else if (entity === 'leave') {
-            newId = idFileData.employeeLeaveId;
-            idFileData.employeeLeaveId++;
+            newId = idFileData.leaveId;
+            idFileData.leaveId++;
         }
 
         const updatedIdFileData = JSON.stringify(idFileData);
         await fs.writeFile(`${__dirname}/../../db/id.json`, updatedIdFileData, 'utf8');
 
-        console.log(newId, "newId");
         return newId;
     } catch (error) {
         throw new Error(error);
