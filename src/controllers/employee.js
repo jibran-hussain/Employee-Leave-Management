@@ -9,6 +9,10 @@ import { generateHashedPassword } from '../utils/generateHashedPassword.js';
 import {isValidPassword} from '../utils/isValidPassword.js'
 import { isValidEmail,passwordValidation } from '../utils/validations.js';
 import { isDateInPast } from '../utils/isDateInPast.js';
+import { getDatesArray } from '../utils/getDatesArray.js';
+import { isValidDate } from '../utils/isValidDate.js';
+import { getDate } from '../utils/getDate.js';
+import { isDate } from 'util/types';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
@@ -23,7 +27,7 @@ export const createEmployee=async(req,res)=>{
         if(!isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
 
         // Checks whether password is Empty
-        if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty`})
+        if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty and should have more than 3 characters`})
 
         // Fetching the file and adding new employees
         const data= await fs.readFile(`${__dirname}/../../db/employee.json`,'utf8')
@@ -39,7 +43,7 @@ export const createEmployee=async(req,res)=>{
         // Hashing the password
         const hashedPassword=generateHashedPassword(password);
         
-        const newEmployee={employeeId,name,email,hashedPassword,role:"employee",leavesLeft:20,leaves:[],createdBy:req.auth.id};
+        const newEmployee={employeeId,name,email,hashedPassword,role:"employee",leavesLeft:20,leaveDetails:[],createdBy:req.auth.id};
         fileData.employees.push(newEmployee);
         const newFileData=JSON.stringify(fileData)
 
@@ -124,7 +128,14 @@ export const deleteEmployee=async (req,res)=>{
 export const applyForLeave=async (req,res)=>{
     try{
         const {id}=req.auth;
-        const {date,reason}=req.body;
+        let {fromDate,toDate,reason}=req.body;
+        fromDate=getDate(fromDate);
+        toDate=getDate(toDate);
+        
+        if(isValidDate(fromDate) || isValidDate(toDate)) return res.json({error:'Please enter valid date'})
+
+        isDateInPast(toDate)
+
         
         // Getting the leave id from id.json file
         let leaveId=await generateId("leave");
@@ -133,14 +144,13 @@ export const applyForLeave=async (req,res)=>{
         const fileData=JSON.parse(data);
         const updatedFileData=fileData.employees.map((employee)=>{
             if(employee.employeeId == id){
+
                 if(employee.leavesLeft <= 0){
                     return res.status(400).json({message:"You have exhausted all your leaves"})
                 }
-            //    Logic for whether the leave is valid or not
-                
-                    validateLeave(date);
-                    employee.leaves.push({date,reason,leaveId});
-                    employee.leavesLeft--;
+                const {dates,leaveDuration}=getDatesArray(fromDate,toDate);
+                employee.leaveDetails.push({leaveId,reason,dates})
+                employee.leavesLeft=employee.leavesLeft-leaveDuration;
                 
             }
             return employee;
@@ -178,26 +188,35 @@ export const listAllLeaves=async (req,res)=>{
 // It is used to modify the leaves of an employee
 export const updateLeaves=async(req,res)=>{
     try{
-        const {date,reason}=req.body;
+        let {fromDate,toDate,reason}=req.body;
+        if(!fromDate|| !toDate) return res.status(400).json({error:'Start date and End date is mandatory'});
+        fromDate=getDate(fromDate);
+        toDate=getDate(toDate);
+
+        isDateInPast(toDate)
+
         const employeeId=req.auth.id;
         const leaveId=Number(req.params.leaveId);        
         const data=await fs.readFile(`${__dirname}/../../db/employee.json`,'utf8')
         const fileData=JSON.parse(data);
         const updatedEmployee= fileData.employees.map((employee)=>{
             if(employee.employeeId == employeeId){
-                let leave=employee.leaves.map((leave)=>{
+                let leave=employee.leaveDetails.map((leave)=>{
                     if(leave.leaveId === leaveId){
+                        if(new Date() > getDate(leave.dates[leave.dates.length-1])) throw new Error('You cannot update this leave')
                         // upate leave here
-                        if(date){
-                           validateLeave(date)
-                           isDateInPast(leave.date)
-                           leave.date=date
-                        }
+                       const newDates= leave.dates.filter((date)=>{
+                            if(getDate(date) < new Date().toUTCString) return true;
+                            return false;
+                        })
+                        const addedLeaveDays=getDatesArray(fromDate,toDate);
+                        console.log(addedLeaveDays,'yehi hai bhaiiiiiiiiiiiiiii')
+                        leave.dates=[...newDates,...addedLeaveDays.dates];
                         if(reason) leave.reason=reason
+
                     }
                     return leave
                 })
-                    employee.leaves=leave;
             }
             return employee;
         })
@@ -207,6 +226,7 @@ export const updateLeaves=async(req,res)=>{
         return res.json({message:'Leave updated successfully'})          
 
     }catch(e){
+        console.log(e)
         return res.status(500).json({error:e.message})
     }   
 }
@@ -222,16 +242,22 @@ export const deleteLeave=async(req,res)=>{
         const fileData=JSON.parse(data);
         const updatedEmployee= fileData.employees.map((employee)=>{
             if(employee.employeeId == employeeId){
-                    let leave=employee.leaves.filter((leave)=>{
-                        console.log(leave)
-                        if(leave.leaveId === leaveId){
-                            isDateInPast(leave.date);
-                            return false
-                        }
-                        return leave
-                    })
-                    employee.leaves=leave;
-                    employee.leavesLeft++;
+                let leave=employee.leaveDetails.filter((leave)=>{
+                    if(leave.leaveId === leaveId){
+                        const newDates=leave.dates.filter((date)=>{
+                            if(getDate(date).getTime() < new Date().getTime()) return true;
+                            return false;
+                        })
+                        console.log('here are the new dates',newDates)
+                        leave.dates=newDates;
+                        if(newDates.length == 0) return false;
+                        
+                    }
+                    return leave
+                })
+                employee.leaveDetails=leave
+                employee.leavesLeft++;
+                return employee;
             }
             return employee;
         })
