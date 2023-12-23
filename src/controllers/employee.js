@@ -177,7 +177,7 @@ export const listAllLeaves=async (req,res)=>{
                 return employee;
             }
         })
-        return res.json({leaves:employee[0].leaves})
+        return res.json({leaves:employee[0].leaveDetails})
     }catch(e){
         return res.status(500).json({message:`Internal Server Error`})
     }
