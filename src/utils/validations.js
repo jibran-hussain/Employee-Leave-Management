@@ -11,6 +11,7 @@ export const isValidEmail=(email)=>{
 
 export const passwordValidation=(password)=>{
     try{
+        if(password.length < 4) return true;
         if(validator.isEmpty(password,{ignore_whitespace:true})) return true;
         return false;
     }catch(e){
