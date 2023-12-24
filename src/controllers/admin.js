@@ -11,105 +11,29 @@ import { isValidPassword } from '../utils/isValidPassword.js';
 import { isValidEmail,passwordValidation } from '../utils/validations.js';
 import { validateLeave } from '../utils/validateLeave.js';
 import { isDateInPast } from '../utils/isDateInPast.js';
+import { getDatesArray } from '../utils/getDatesArray.js';
+import { getDate } from '../utils/getDate.js';
+import { isValidDate } from '../utils/isValidDate.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
 
 
-export const createAdmin=async(req,res)=>{
-    try{
-        const {name,email,password}=req.body;
-
-        if(!name || !email || !password) return res.json({error:`All credentials are necassary`})
-
-        // Check if it is a valid email or not
-        if(!isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
-
-        // Checks whether password is Empty
-        if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty`})
-
-        const data=await fs.readFile(`${__dirname}/../../db/admin.json`,'utf8')
-        const fileData=JSON.parse(data);
-
-        // Check whether admin of this email-id already exists or not
-        const isExisting=fileData.admins.some((admin)=>admin.email === email);
-        if(isExisting) return res.status(500).json({error:"Admin with this email already exists. Please try with another email id"})
-        
-        // gnereate admin id 
-        let adminId= await generateId("admin");
-
-        // Hashing the password
-        const hashedPassword=generateHashedPassword(password);
-
-        const newAdmin={adminId,name,email,hashedPassword,role:"admin",leavesLeft:20,leaves:[]};
-
-        fileData.admins.push(newAdmin);
-        const newFileData=JSON.stringify(fileData)
-        await fs.writeFile(`${__dirname}/../../db/admin.json`,newFileData,'utf8')
-
-        // generate auth token
-        const token=generateAuthToken(adminId,email,"admin")
-
-        // Set cookie
-        res.cookie('jwt',token,{
-            httpOnly:true
-            })
-
-        return res.json({message:`Admin created successfully`});
-                
-            
-    }catch(e){
-        return res.json({error:e.message})
-    }
-}
-
-export const adminSignin=async(req,res)=>{
-    try{
-        const {email,password,role}=req.body;
-        if(!email || !password || !role) return res.status(400).json({message:`All fields are necassary`})
-
-        // Check if it is a valid email or not
-        if(!isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
-
-        // Checks whether password is Empty
-        if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty`})
-
-        // If the user is admin
-            if(role === "admin"){
-                const data=await fs.readFile(`${__dirname}/../../db/admin.json`,'utf8')
-                const fileData=JSON.parse(data);
-                const admin=fileData.admins.filter((admin)=>{
-                        if(admin.email === email && isValidPassword(password,admin.hashedPassword)) return true;
-                    })
-                if(admin.length > 0){
-                        const token=jwt.sign({id:admin[0].adminId,email:admin[0].email,role:"admin"},process.env.JWT_SECRET_KEY);
-                        res.cookie('jwt',token,{
-                            httpOnly:true
-                        })
-                        return res.json({
-                            token
-                        })
-                 }else{
-                        return res.status(400).json({message:`Invalid credentials`})
-                    }
-                 
-            }
-            else{
-                return res.json({error:`Invalid credentials`})
-            }
-        
-    }catch(e){
-       return res.json({error:e.message})
-    }
-}
-
-export const applyForLeave=async(req,res)=>{
+export const applyForLeave=async (req,res)=>{
     try{
         const {id}=req.auth;
-        const {date,reason}=req.body;
+        let {fromDate,toDate,reason}=req.body;
 
-        if(!date || !reason) return res.status(400).json({error:"Both date and reason fields are mandatory"})
+        if(!fromDate || !toDate || !reason) return res.json({error:`All fields are necassary`})
+
+        fromDate=getDate(fromDate);
+        toDate=getDate(toDate);
+        
+        if(isValidDate(fromDate) || isValidDate(toDate)) return res.json({error:'Please enter valid date'})
+
+        isDateInPast(toDate)
+
         
         // Getting the leave id from id.json file
         let leaveId=await generateId("leave");
@@ -118,14 +42,13 @@ export const applyForLeave=async(req,res)=>{
         const fileData=JSON.parse(data);
         const updatedFileData=fileData.admins.map((admin)=>{
             if(admin.adminId == id){
+
                 if(admin.leavesLeft <= 0){
                     return res.status(400).json({message:"You have exhausted all your leaves"})
                 }
-            //    Logic for whether the leave is valid or not
-                
-                    validateLeave(date);
-                    admin.leaves.push({date,reason,leaveId});
-                    admin.leavesLeft--;
+                const {dates,leaveDuration}=getDatesArray(fromDate,toDate);
+                admin.leaveDetails.push({leaveId,reason,dates})
+                admin.leavesLeft=admin.leavesLeft-leaveDuration;
                 
             }
             return admin;
@@ -136,14 +59,18 @@ export const applyForLeave=async(req,res)=>{
         return res.status(201).json({message:`Leave created successfully`})
         
     }catch(e){
+        console.log(e)
         res.json({error:e.message})
     }
 }
 
+
 // Lists all leaves of an admin who is currently logged in
 export const listAllLeaves=async (req,res)=>{
     try{
-        const adminId=req.auth.id
+        let adminId;
+        if(req.auth.role === 'admin') adminId=req.auth.id;
+        else if(req.auth.role === 'superadmin') adminId=Number(req.params.adminId);
         const data=await fs.readFile(`${__dirname}/../../db/admin.json`,'utf8')
         const fileData=JSON.parse(data);
         const admin=fileData.admins.filter((admin)=>{
@@ -151,45 +78,55 @@ export const listAllLeaves=async (req,res)=>{
                 return admin;
             }
         })
-        return res.json({leaves:admin[0].leaves})
+        return res.json({leaves:admin[0]?.leaveDetails})
     }catch(e){
-        return res.status(500).json({error:e.message})
+        console.log(e)
+        return res.status(500).json({message:`Internal Server Error`})
     }
 
 }
-
 // It is used to modify the leaves of an admin
 export const updateLeave=async(req,res)=>{
     try{
-        const {date,reason}=req.body;
+        let {fromDate,toDate,reason}=req.body;
+        if(!fromDate|| !toDate) return res.status(400).json({error:'Start date and End date is mandatory'});
+        fromDate=getDate(fromDate);
+        toDate=getDate(toDate);
+
+        isDateInPast(toDate)
+
         const adminId=req.auth.id;
         const leaveId=Number(req.params.leaveId);        
         const data=await fs.readFile(`${__dirname}/../../db/admin.json`,'utf8')
         const fileData=JSON.parse(data);
-        const updatedEmployee= fileData.admins.map((admin)=>{
+        const updatedAdmin= fileData.admins.map((admin)=>{
             if(admin.adminId == adminId){
-                let leave=admin.leaves.map((leave)=>{
+                let leave=admin.leaveDetails.map((leave)=>{
                     if(leave.leaveId === leaveId){
+                        if(new Date() > getDate(leave.dates[leave.dates.length-1])) throw new Error('You cannot update this leave')
                         // upate leave here
-                        if(date){
-                           validateLeave(date)
-                           isDateInPast(leave.date)
-                           leave.date=date
-                        }
+                       const newDates= leave.dates.filter((date)=>{
+                            if(getDate(date) < new Date().toUTCString) return true;
+                            return false;
+                        })
+                        const addedLeaveDays=getDatesArray(fromDate,toDate);
+                        console.log(addedLeaveDays,'yehi hai bhaiiiiiiiiiiiiiii')
+                        leave.dates=[...newDates,...addedLeaveDays.dates];
                         if(reason) leave.reason=reason
+
                     }
                     return leave
                 })
-                    admin.leaves=leave;
             }
             return admin;
         })
 
-        const newUpdatedFile=JSON.stringify({admins:updatedEmployee})
+        const newUpdatedFile=JSON.stringify({admins:updatedAdmin})
         await fs.writeFile(`${__dirname}/../../db/admin.json`,newUpdatedFile,'utf8')
         return res.json({message:'Leave updated successfully'})          
 
     }catch(e){
+        console.log(e)
         return res.status(500).json({error:e.message})
     }   
 }
@@ -197,7 +134,7 @@ export const updateLeave=async(req,res)=>{
 // It deletes an admin from a JSON Database
 export const deleteAdmin=async (req,res)=>{
     try{
-        const adminId=req.params.adminId
+        const adminId=Number(req.params.adminId)
         const data=await fs.readFile(`${__dirname}/../../db/admin.json`,'utf8')
         const fileData=JSON.parse(data);
         
@@ -214,3 +151,44 @@ export const deleteAdmin=async (req,res)=>{
         return res.json({error:e})
     }
 }
+
+export const deleteLeave=async(req,res)=>{
+    try{
+        console.log(req.auth)
+        const adminId=req.auth.id;
+        const leaveId=Number(req.params.leaveId);
+        
+        const data=await fs.readFile(`${__dirname}/../../db/admin.json`,'utf8')
+        const fileData=JSON.parse(data);
+        const updatedAdmin= fileData.admins.map((admin)=>{
+            if(admin.adminId == adminId){
+                let leave=admin.leaveDetails.filter((leave)=>{
+                    if(leave.leaveId === leaveId){
+                        const newDates=leave.dates.filter((date)=>{
+                            if(getDate(date).getTime() < new Date().getTime()) return true;
+                            return false;
+                        })
+                        console.log('here are the new dates',newDates)
+                        leave.dates=newDates;
+                        if(newDates.length == 0) return false;
+                        
+                    }
+                    return leave
+                })
+                admin.leaveDetails=leave
+                admin.leavesLeft++;
+                return admin;
+            }
+            return admin;
+        })
+        const newUpdatedFile=JSON.stringify({employees:updatedAdmin})
+        await fs.writeFile(`${__dirname}/../../db/admin.json`,newUpdatedFile,'utf8')
+        return res.json({message:' Leave deleted successfully'})
+
+    }catch(e){
+        console.log(e)
+        return res.status(500).json({error:e.message})
+    }
+}
+
+
