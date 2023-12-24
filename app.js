@@ -6,6 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 import 'dotenv/config';
 import cookieParser from 'cookie-parser';
+import authRoute from './src/routes/auth.js'
 import employeeRoute from './src/routes/employee.js'
 import superadminRoute from './src/routes/superadmin.js'
 import adminRoute from './src/routes/admin.js'
@@ -15,6 +16,7 @@ const PORT=process.env.port || 8000
 
 app.use(cookieParser())
 app.use(express.json())
+app.use(`/api/${process.env.API_VERSION}/auth`,authRoute)
 app.use(`/api/${process.env.API_VERSION}`,superadminRoute)
 app.use(`/api/${process.env.API_VERSION}`,adminRoute)
 app.use(`/api/${process.env.API_VERSION}`,employeeRoute)
