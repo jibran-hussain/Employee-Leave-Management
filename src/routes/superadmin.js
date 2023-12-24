@@ -1,7 +1,9 @@
 import express from 'express'
 const router=express.Router();
-import { superadminSignin } from '../controllers/superadmin.js';
+import { isSuperAdmin } from '../middlewares/isSuperAdmin.js';
+import { isAuth } from '../middlewares/isAuth.js';
+import { deleteAdmin } from '../controllers/admin.js';
 
-router.post('/auth/signin',superadminSignin);
+router.delete('/admins/:adminId',isAuth,isSuperAdmin,deleteAdmin)
 
 export default router;
