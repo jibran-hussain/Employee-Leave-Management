@@ -8,9 +8,13 @@ export const getDatesArray=(fromDate,toDate)=>{
         const startDate=fromDate;
         const endDate=toDate;
         const currentDate=new Date();
+        currentDate.setUTCHours(0,0,0)
+        console.log(startDate,'startdate')
+        console.log(currentDate,'currentDate')
+        console.log(startDate <currentDate)
 
         while(startDate <= endDate){
-            if (startDate < currentDate || startDate.getDay() === 0 || startDate.getDay() === 6 ){
+            if (startDate.getDay() === 0 || startDate.getDay() === 6 ){
                 startDate.setDate(startDate.getDate()+1);
                 continue;
             }
