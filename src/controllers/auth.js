@@ -37,7 +37,7 @@ export const createUser=async(req,res)=>{
             // Hashing the password
             const hashedPassword=generateHashedPassword(password);
 
-            const newAdmin={adminId,name,email,hashedPassword,role:"admin",leavesLeft:20,leaves:[]};
+            const newAdmin={adminId,name,email,hashedPassword,role:"admin",leavesLeft:20,leaveDetails:[]};
 
             fileData.admins.push(newAdmin);
             const newFileData=JSON.stringify(fileData)
