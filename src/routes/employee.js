@@ -1,5 +1,5 @@
 import express from 'express'
-import {deleteEmployee,applyForLeave,listAllLeaves,updateLeaves, deleteLeave,getAllLeavesofEmployee} from '../controllers/employee.js'
+import {deleteEmployee,applyForLeave,listAllLeaves,updateLeaves, deleteLeave,getAllLeavesofEmployee,listAllEmployees} from '../controllers/employee.js'
 import { isAuth } from '../middlewares/isAuth.js';
 import { isEmployee } from '../middlewares/isEmployee.js';
 import { isAdminOrSuperadmin } from '../middlewares/isAdminOrSuperadmin.js';
@@ -13,6 +13,7 @@ router.delete('/employees/leaves/:leaveId',isAuth,deleteLeave)
 
 // Routes related to employee details which Admin and Superadmin can access
 router.delete('/employees/:employeeId',isAuth,isAdminOrSuperadmin,deleteEmployee)
-router.get('/employees/:employeeId/leaves',isAuth,isAdminOrSuperadmin,getAllLeavesofEmployee)   
+router.get('/employees/:employeeId/leaves',isAuth,isAdminOrSuperadmin,getAllLeavesofEmployee)
+router.get('/employees',isAuth,isAdminOrSuperadmin,listAllEmployees)
 
 export default router;
