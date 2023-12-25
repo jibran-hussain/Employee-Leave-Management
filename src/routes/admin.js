@@ -1,5 +1,5 @@
 import express from 'express';
-import { applyForLeave,deleteLeave,listAllLeaves,updateLeave,deleteAdmin } from '../controllers/admin.js';
+import { applyForLeave,deleteLeave,listAllLeaves,updateLeave,deleteAdmin,listAllAdmins } from '../controllers/admin.js';
 import { isAuth} from '../middlewares/isAuth.js';
 import { isAdmin } from '../middlewares/isAdmin.js';
 import { isSuperAdmin } from '../middlewares/isSuperAdmin.js';
@@ -12,6 +12,7 @@ router.patch('/admins/leaves/:leaveId',isAuth,isAdmin,updateLeave)
 router.delete('/admins/leaves/:leaveId',isAuth,deleteLeave)
 
 // Routes related to admin but can be accessed by superadmins oly
+router.get('/admins',isAuth,isSuperAdmin,listAllAdmins)
 router.delete('/admins/:adminId',isAuth,isSuperAdmin,deleteAdmin)
 router.get('/admins/:adminId/leaves',isAuth,isSuperAdmin,listAllLeaves)
 
