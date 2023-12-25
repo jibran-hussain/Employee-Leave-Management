@@ -185,4 +185,16 @@ export const deleteLeave=async(req,res)=>{
     }
 }
 
-
+export const listAllAdmins=async(req,res)=>{
+    try{
+        const data=await fs.readFile(`${__dirname}/../../db/admin.json`,'utf8');
+        const fileData=JSON.parse(data);
+        const admins=fileData.admins.map((admin)=>{
+            admin.hashedPassword=undefined
+            return admin;
+        });
+        return res.json({admins})
+    }catch{
+        return res.status(500).json({message:`Internal Server Error`})
+    }
+}
