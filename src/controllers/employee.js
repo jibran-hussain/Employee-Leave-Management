@@ -200,3 +200,17 @@ export const getAllLeavesofEmployee=async (req,res)=>{
     }
 
 }
+
+export const listAllEmployees=async(req,res)=>{
+    try{
+        const data=await fs.readFile(`${__dirname}/../../db/employee.json`,'utf8');
+        const fileData=JSON.parse(data);
+        const employees=fileData.employees.map((employee)=>{
+            employee.hashedPassword=undefined
+            return employee;
+        });
+        return res.json({employees})
+    }catch{
+        return res.status(500).json({message:`Internal Server Error`})
+    }
+}
