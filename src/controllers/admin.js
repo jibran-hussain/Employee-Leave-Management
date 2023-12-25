@@ -4,16 +4,12 @@ import path, { dirname } from 'path';
 import jwt from 'jsonwebtoken'
 import 'dotenv/config'
 
-import { generateAuthToken } from '../utils/geneateAuthToken.js';
 import { generateId } from '../utils/generateId.js';
-import { generateHashedPassword } from '../utils/generateHashedPassword.js';
-import { isValidPassword } from '../utils/isValidPassword.js';
-import { isValidEmail,passwordValidation } from '../utils/validations.js';
-import { validateLeave } from '../utils/validateLeave.js';
 import { isDateInPast } from '../utils/isDateInPast.js';
 import { getDatesArray } from '../utils/getDatesArray.js';
 import { getDate } from '../utils/getDate.js';
 import { isValidDate } from '../utils/isValidDate.js';
+import { runInNewContext } from 'vm';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -71,6 +67,7 @@ export const listAllLeaves=async (req,res)=>{
         let adminId;
         if(req.auth.role === 'admin') adminId=req.auth.id;
         else if(req.auth.role === 'superadmin') adminId=Number(req.params.adminId);
+        else return res.status(403).json({error:'Unauthorized'})
         const data=await fs.readFile(`${__dirname}/../../db/admin.json`,'utf8')
         const fileData=JSON.parse(data);
         const admin=fileData.admins.filter((admin)=>{
@@ -110,7 +107,6 @@ export const updateLeave=async(req,res)=>{
                             return false;
                         })
                         const addedLeaveDays=getDatesArray(fromDate,toDate);
-                        console.log(addedLeaveDays,'yehi hai bhaiiiiiiiiiiiiiii')
                         leave.dates=[...newDates,...addedLeaveDays.dates];
                         if(reason) leave.reason=reason
 
@@ -154,7 +150,6 @@ export const deleteAdmin=async (req,res)=>{
 
 export const deleteLeave=async(req,res)=>{
     try{
-        console.log(req.auth)
         const adminId=req.auth.id;
         const leaveId=Number(req.params.leaveId);
         
@@ -168,7 +163,6 @@ export const deleteLeave=async(req,res)=>{
                             if(getDate(date).getTime() < new Date().getTime()) return true;
                             return false;
                         })
-                        console.log('here are the new dates',newDates)
                         leave.dates=newDates;
                         if(newDates.length == 0) return false;
                         
