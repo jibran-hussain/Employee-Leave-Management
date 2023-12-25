@@ -1,6 +1,6 @@
 import fs from 'fs/promises'
 import { fileURLToPath } from 'url';
-import path, { dirname } from 'path';
+import { dirname } from 'path';
 import 'dotenv/config'
 import { generateId } from '../utils/generateId.js';
 import { isDateInPast } from '../utils/isDateInPast.js';
@@ -11,39 +11,21 @@ import { getDate } from '../utils/getDate.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
 
-// It deletes an employee from a JSON Database
-export const deleteEmployee=async (req,res)=>{
-    try{
-        const employeeId=Number(req.params.employeeId)
-        const data=await fs.readFile(`${__dirname}/../../db/employee.json`,'utf8')
-        const fileData=JSON.parse(data);
-        
-        const updatedEmployeesList= fileData.employees.filter((employee)=>{
-            if(employee.employeeId === employeeId) return false;
-            return employee;
-        })
-        fileData.employees=updatedEmployeesList;
-        const finalFileData=JSON.stringify(fileData);
-        await fs.writeFile(`${__dirname}/../../db/employee.json`,finalFileData,'utf8')
-        return res.json({message:"Employee Deleted Successfully"})
-        
-    }catch(e){
-        return res.json({error:e.message})
-    }
-}
-
-// It is used to apply for leave
+// It is used to apply leave for employee
 export const applyForLeave=async (req,res)=>{
     try{
         const {id}=req.auth;
         let {fromDate,toDate,reason}=req.body;
+
+        if(!fromDate || !toDate || !reason) return res.json({error:'All fields are necassary'})
+
         fromDate=getDate(fromDate);
         toDate=getDate(toDate);
         
         if(isValidDate(fromDate) || isValidDate(toDate)) return res.json({error:'Please enter valid date'})
 
         isDateInPast(fromDate)
-        // isDateInPast(toDate)
+        isDateInPast(toDate)
 
         
         // Getting the leave id from id.json file
@@ -119,13 +101,13 @@ export const updateLeaves=async(req,res)=>{
                             return false;
                         })
                         const addedLeaveDays=getDatesArray(fromDate,toDate);
-                        console.log(addedLeaveDays,'yehi hai bhaiiiiiiiiiiiiiii')
                         leave.dates=[...newDates,...addedLeaveDays.dates];
                         if(reason) leave.reason=reason
 
                     }
                     return leave
                 })
+                employee.leaveDetails=leave;
             }
             return employee;
         })
@@ -157,7 +139,6 @@ export const deleteLeave=async(req,res)=>{
                             if(getDate(date).getTime() < new Date().getTime()) return true;
                             return false;
                         })
-                        console.log('here are the new dates',newDates)
                         leave.dates=newDates;
                         if(newDates.length == 0) return false;
                         
@@ -179,7 +160,28 @@ export const deleteLeave=async(req,res)=>{
     }
 }
 
-// List all leaves of a specific user by admin and superadmin only
+// It deletes an employee from a JSON Database.This can be only done by admin or superadmin
+export const deleteEmployee=async (req,res)=>{
+    try{
+        const employeeId=Number(req.params.employeeId)
+        const data=await fs.readFile(`${__dirname}/../../db/employee.json`,'utf8')
+        const fileData=JSON.parse(data);
+        
+        const updatedEmployeesList= fileData.employees.filter((employee)=>{
+            if(employee.employeeId === employeeId) return false;
+            return employee;
+        })
+        fileData.employees=updatedEmployeesList;
+        const finalFileData=JSON.stringify(fileData);
+        await fs.writeFile(`${__dirname}/../../db/employee.json`,finalFileData,'utf8')
+        return res.json({message:"Employee Deleted Successfully"})
+        
+    }catch(e){
+        return res.json({error:e.message})
+    }
+}
+
+// List all leaves of a specific user. This can be only done by admin and superadmin
 export const getAllLeavesofEmployee=async (req,res)=>{
     try{
         const employeeId=Number(req.params.employeeId)

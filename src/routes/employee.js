@@ -15,6 +15,4 @@ router.delete('/employees/leaves/:leaveId',isAuth,deleteLeave)
 router.delete('/employees/:employeeId',isAuth,isAdminOrSuperadmin,deleteEmployee)
 router.get('/employees/:employeeId/leaves',isAuth,isAdminOrSuperadmin,getAllLeavesofEmployee)   
 
-
-
 export default router;
