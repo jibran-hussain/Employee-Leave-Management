@@ -57,6 +57,28 @@ export const applyForLeave=async (req,res)=>{
     }
 }
 
+// Lists all leaves of an admin who is currently logged in
+export const listAllAdminLeaves=async (req,res)=>{
+    try{
+        let userId;
+        if(req.auth.role === 'admin') userId=req.auth.id;
+        else if(req.auth.role === 'superadmin') userId=Number(req.params.adminId);
+        else return res.status(403).json({error:'Unauthorized'})
+        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
+        const fileData=JSON.parse(data);
+        const user=fileData.users.filter((user)=>{
+            if(user.id === userId) {
+                return user;
+            }
+        })
+        return res.json({leaves:user[0]?.leaveDetails})
+    }catch(e){
+        console.log(e)
+        return res.status(500).json({message:`Internal Server Error`})
+    }
+
+}
+
 // It is used to modify the leaves of an admin/employee
 export const updateLeave=async(req,res)=>{
     try{
