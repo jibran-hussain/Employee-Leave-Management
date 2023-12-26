@@ -1,9 +1,9 @@
 
 ## Installation
 
-1 . Go the src directory.
+1 . Go the project directory.
 ```bash
-  cd path-to-the-project/src
+  cd path-to-the-project
 ```
 
 2 . Install dependencies
