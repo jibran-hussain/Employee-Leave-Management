@@ -129,3 +129,41 @@ export const updateLeave=async(req,res)=>{
         return res.status(500).json({error:e.message})
     }   
 }
+
+// It is used to delete a specific leave of an employee
+export const deleteLeave=async(req,res)=>{
+    try{
+        const userId=req.auth.id;
+        const leaveId=Number(req.params.leaveId);
+        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
+        const fileData=JSON.parse(data);
+        const updatedUsers= fileData.users.map((user)=>{
+            if(user.id == userId){
+                let leave=user.leaveDetails.filter((leave)=>{
+                    if(leave.leaveId === leaveId){
+                        console.log(leave,'before deleting')
+                        const newDates=leave.dates.filter((date)=>{
+                            if(getDate(date).getTime() < new Date().getTime()) return true;
+                            return false;
+                        })
+                        leave.dates=newDates;
+                        if(newDates.length == 0) return false;
+                        
+                    }
+                    return leave
+                })
+                console.log(leave,'after deleting')
+                user.leaveDetails=leave
+                user.leavesLeft++;
+                return user;
+            }
+            return user;
+        })
+        const newUpdatedFile=JSON.stringify({users:updatedUsers})
+        await fs.writeFile(`${__dirname}/../../db/users.json`,newUpdatedFile,'utf8')
+        return res.json({message:'Leave deleted successfully'})
+
+    }catch(e){
+        return res.status(500).json({error:e.message})
+    }
+}
