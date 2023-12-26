@@ -40,6 +40,9 @@ export const applyForLeave=async (req,res)=>{
                     return res.status(400).json({message:"You have exhausted all your leaves"})
                 }
                 const {dates,leaveDuration}=getDatesArray(fromDate,toDate);
+
+                if(dates.length > user.leavesLeft) return res.status(400).json({error: `You have only ${user.leavesLeft} leaves left and you are applying for  ${dates.length} days`})
+
                 user.leaveDetails.push({leaveId,reason,dates})
                 user.leavesLeft=user.leavesLeft-leaveDuration;
                 
@@ -135,15 +138,19 @@ export const deleteLeave=async(req,res)=>{
     try{
         const userId=req.auth.id;
         const leaveId=Number(req.params.leaveId);
+        
         const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
         const fileData=JSON.parse(data);
+        let leaveExists=false;
+        let deletedLevesCount=0
         const updatedUsers= fileData.users.map((user)=>{
             if(user.id == userId){
                 let leave=user.leaveDetails.filter((leave)=>{
                     if(leave.leaveId === leaveId){
-                        console.log(leave,'before deleting')
+                        leaveExists=true;
                         const newDates=leave.dates.filter((date)=>{
                             if(getDate(date).getTime() < new Date().getTime()) return true;
+                            deletedLevesCount++;
                             return false;
                         })
                         leave.dates=newDates;
@@ -152,18 +159,19 @@ export const deleteLeave=async(req,res)=>{
                     }
                     return leave
                 })
-                console.log(leave,'after deleting')
                 user.leaveDetails=leave
-                user.leavesLeft++;
+                user.leavesLeft=user.leavesLeft + deletedLevesCount;
                 return user;
             }
             return user;
         })
+        if(!leaveExists) return res.status(400).json({error:'This leave id does not belong to this user'})
         const newUpdatedFile=JSON.stringify({users:updatedUsers})
         await fs.writeFile(`${__dirname}/../../db/users.json`,newUpdatedFile,'utf8')
-        return res.json({message:'Leave deleted successfully'})
+        return res.json({message:' Leave deleted successfully'})
 
     }catch(e){
+        console.log(e)
         return res.status(500).json({error:e.message})
     }
 }
