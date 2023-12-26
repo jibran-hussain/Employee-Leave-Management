@@ -10,15 +10,13 @@ const router=express.Router();
 router.post('/admins/leaves',isAuth,isAdmin,applyForLeave)
 router.patch('/admins/leaves/:leaveId',isAuth,isAdmin,updateLeave)
 router.delete('/admins/leaves/:leaveId',isAuth,deleteLeave)
+router.get('/admins/leaves',isAuth,isAdmin,listAllLeaves)
 
 // Routes related to admin but can be accessed by superadmins oly
 router.get('/admins',isAuth,isSuperAdmin,listAllAdmins)
 router.delete('/admins/:adminId',isAuth,isSuperAdmin,deleteAdmin)
 router.get('/admins/:adminId/leaves',isAuth,isSuperAdmin,listAllLeaves)
 
-// Routes related to admin but can be accessed by both admin and superadmin. If logged in as an admin,it lists leaves of that admin only and if
-// logged as superadmin it will list leaves of admin whose id has been passed in params
-router.get('/admins/leaves',isAuth,isAdminOrSuperadmin,listAllLeaves)
 
 
 export default router;
