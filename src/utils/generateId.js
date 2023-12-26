@@ -12,12 +12,9 @@ export const generateId = async (entity) => {
         const idFileData = JSON.parse(data);
         let newId;
 
-        if (entity === 'admin') {
-            newId = idFileData.newAdminId;
-            idFileData.newAdminId++;
-        } else if (entity === 'employee') {
-            newId = idFileData.newEmployeeId;
-            idFileData.newEmployeeId++;
+        if (entity === 'user') {
+            newId = idFileData.userId;
+            idFileData.userId++;
         } else if (entity === 'leave') {
             newId = idFileData.leaveId;
             idFileData.leaveId++;
