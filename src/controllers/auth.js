@@ -108,7 +108,7 @@ export const userSignin=async(req,res)=>{
              if(user.email === email && isValidPassword(password,user.hashedPassword)) return true;
               })
          if(user.length > 0){
-                 const token=generateAuthToken(user[0].id,user[0].email,user.role)
+                 const token=generateAuthToken(user[0].id,user[0].email,user[0].role)
                  res.cookie('jwt',token,{
                        httpOnly:true
                     })
