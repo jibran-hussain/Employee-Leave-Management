@@ -23,8 +23,8 @@ export const deleteAdmin=async (req,res)=>{
         const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
         const fileData=JSON.parse(data);
         
-        const updatedUsersList= fileData.users.filter((user)=>{
-            if(user.id == userId) return false;
+        const updatedUsersList= fileData.users.map((user)=>{
+            if(user.id == userId) user.active=false;
             return user;
         })
         fileData.users=updatedUsersList;
@@ -43,8 +43,9 @@ export const listAllAdmins=async(req,res)=>{
         const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
         const fileData=JSON.parse(data);
         const admins=fileData.users.filter((user)=>{
-            if(user.role === 'admin'){
+            if(user.role === 'admin' && user.active === true){
                 user.hashedPassword=undefined;
+                user.active=undefined;
                 return true;
             }
             return false;
