@@ -13,8 +13,8 @@ const __dirname = dirname(__filename)
 
 export const createUser=async(req,res)=>{
     try{
-        const {name,email,password,role}=req.body;
-        if(!name ||!email || !password || !role) return res.json({message:'All fields are mandatory'})
+        const {name,email,password,role,mobileNumber}=req.body;
+        if(!name ||!email || !password || !role || !mobileNumber) return res.json({message:'All fields are mandatory'})
 
         // Check if it is a valid email or not
         if(!isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
@@ -37,7 +37,7 @@ export const createUser=async(req,res)=>{
             // Hashing the password
             const hashedPassword=generateHashedPassword(password);
 
-            const newAdmin={id,role:"admin",name,email,hashedPassword,leavesLeft:20,leaveDetails:[]};
+            const newAdmin={id,role:"admin",name,email,hashedPassword,mobileNumber,leavesLeft:20,leaveDetails:[],active:true};
 
             fileData.users.push(newAdmin);
             const newFileData=JSON.stringify(fileData)
@@ -69,7 +69,7 @@ export const createUser=async(req,res)=>{
             // Hashing the password
             const hashedPassword=generateHashedPassword(password);
             
-            const newEmployee={id,role:"employee",name,email,hashedPassword,leavesLeft:20,leaveDetails:[],createdBy:req.auth.id};
+            const newEmployee={id,role:"employee",name,email,hashedPassword,mobileNumber,leavesLeft:20,leaveDetails:[],active:true,createdBy:req.auth.id};
             fileData.users.push(newEmployee);
             const newFileData=JSON.stringify(fileData)
 
@@ -93,7 +93,7 @@ export const createUser=async(req,res)=>{
 
 export const userSignin=async(req,res)=>{
     try{
-        const {email,password}=req.body;
+        const {email,password}=req.body; 
         if(!email || !password) return res.status(400).json({message:`All fields are necassary`})  
 
         // Check if it is a valid email or not
@@ -104,9 +104,18 @@ export const userSignin=async(req,res)=>{
 
         const data= await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
         const fileData=JSON.parse(data);
+
+        let isDeactivated=false;
+        
         const user=fileData.users.filter((user)=>{
-             if(user.email === email && isValidPassword(password,user.hashedPassword)) return true;
+            if(user.email === email && isValidPassword(password,user.hashedPassword)){
+                if(user.active === false) isDeactivated=true;
+                return true;
+            };
+            return false
               })
+
+        if(isDeactivated) return res.status(403).json({error:'Your account has been deactivated by the admin'})
          if(user.length > 0){
                  const token=generateAuthToken(user[0].id,user[0].email,user[0].role)
                  res.cookie('jwt',token,{
@@ -121,5 +130,23 @@ export const userSignin=async(req,res)=>{
     }catch(e){
         console.log(e)
        return res.json({error:e.message})
+    }
+}
+
+
+export const getLoggedUsersDetails=async(req,res)=>{
+    try{
+        const {id:userId,role}=req.auth;
+        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
+        const fileData=JSON.parse(data);
+
+        const user=fileData.users.filter((user)=>user.id === userId && user.role === role);
+        user[0].hashedPassword=undefined;
+        user[0].leaveDetails=undefined
+        user[0].active=undefined;
+        return res.json({user:user[0]})
+
+    }catch(e){
+        return res.status(500).json({error:`Internal server error`})
     }
 }
