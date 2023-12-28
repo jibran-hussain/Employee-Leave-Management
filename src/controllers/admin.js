@@ -1,16 +1,8 @@
 import fs from 'fs/promises'
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
-import jwt from 'jsonwebtoken'
 import 'dotenv/config'
-
-import { generateId } from '../utils/generateId.js';
-import { isDateInPast } from '../utils/isDateInPast.js';
-import { getDatesArray } from '../utils/getDatesArray.js';
-import { getDate } from '../utils/getDate.js';
-import { isValidDate } from '../utils/isValidDate.js';
-import { runInNewContext } from 'vm';
-
+import { pagination } from '../utils/pagination.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
@@ -40,6 +32,11 @@ export const deleteAdmin=async (req,res)=>{
 
 export const listAllAdmins=async(req,res)=>{
     try{
+        const limit=Number(req.query.limit)
+        const offset=Number(req.query.offset)
+
+        if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
+
         const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
         const fileData=JSON.parse(data);
         const admins=fileData.users.filter((user)=>{
@@ -50,8 +47,16 @@ export const listAllAdmins=async(req,res)=>{
             }
             return false;
         })
-        return res.json({admins})
-    }catch{
-        return res.status(500).json({message:`Internal Server Error`})
+
+        const adminCount=admins.length;
+
+        if(limit && offset){
+            const paginatedArray=pagination(admins,offset,limit);
+            console.log(paginatedArray)
+            return res.json({employees:paginatedArray,records:paginatedArray.length,totalAdmins:adminCount})
+        }
+        return res.json({admins,records:admins.length,totalAdmins:adminCount})
+    }catch(e){
+        return res.status(500).json({message:`Internal server error`})
     }
 }
