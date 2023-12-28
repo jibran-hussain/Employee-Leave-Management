@@ -8,6 +8,7 @@ import { isDateInPast } from '../utils/isDateInPast.js';
 import { getDatesArray } from '../utils/getDatesArray.js';
 import { getDate } from '../utils/getDate.js';
 import { isValidDate } from '../utils/isValidDate.js';
+import { pagination } from '../utils/pagination.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -25,6 +26,7 @@ export const applyForLeave=async (req,res)=>{
         
         if(isValidDate(fromDate) || isValidDate(toDate)) return res.json({error:'Please enter valid date'})
 
+        isDateInPast(fromDate)
         isDateInPast(toDate)
 
         
@@ -63,17 +65,34 @@ export const applyForLeave=async (req,res)=>{
 // Lists all leaves of an admin who is currently logged in
 export const listAllAdminLeaves=async (req,res)=>{
     try{
+
+        const limit=Number(req.query.limit)
+        const offset=Number(req.query.offset)
+
+        if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
+
         let userId;
+        let isAdminExisting=false;
         if(req.auth.role === 'admin') userId=req.auth.id;
         else if(req.auth.role === 'superadmin') userId=Number(req.params.adminId);
         else return res.status(403).json({error:'Unauthorized'})
         const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
         const fileData=JSON.parse(data);
         const user=fileData.users.filter((user)=>{
-            if(user.id === userId) {
+            if(user.id === userId && user.role === 'admin') {
+                isAdminExisting=true;
                 return user;
             }
         })
+
+        if(!isAdminExisting) return res.status(400).json({error:'Admin with this id does not exist'})
+
+        if(limit && offset){
+            const paginatedArray=pagination(user[0]?.leaveDetails,offset,limit);
+            console.log(paginatedArray)
+            return res.json({leaves:paginatedArray})
+        }
+
         return res.json({leaves:user[0]?.leaveDetails})
     }catch(e){
         console.log(e)
@@ -98,29 +117,41 @@ export const updateLeave=async(req,res)=>{
         const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
         const fileData=JSON.parse(data);
         let leaveFound=false;
+        let leavesDeleted=0;
+        let leaveLimitExceeded=false;
         const updatedUsers= fileData.users.map((user)=>{
             if(user.id == userId){
                 let leave=user.leaveDetails.map((leave)=>{
                     if(leave.leaveId === leaveId){
                         leaveFound=true;
-                        if(new Date() > getDate(leave.dates[leave.dates.length-1])) throw new Error('You cannot update this leave')
+                        const currentDate=new Date();
+                        currentDate.setUTCHours(0,0,0,0)
+                        if(currentDate > getDate(leave.dates[leave.dates.length-1])) throw new Error('You cannot update this leave')
                         // upate leave here
+                        
                        const newDates= leave.dates.filter((date)=>{
-                            if(getDate(date) < new Date().toUTCString) return true;
+                            if(getDate(date) < currentDate) return true;
+                            leavesDeleted++;
                             return false;
                         })
                         const addedLeaveDays=getDatesArray(fromDate,toDate);
+                        
+                        if(user.leavesLeft - leavesDeleted + addedLeaveDays.dates.length > 20) leaveLimitExceeded=true;
+
                         leave.dates=[...newDates,...addedLeaveDays.dates];
+                        leavesDeleted=leavesDeleted-addedLeaveDays.dates.length
+
                         if(reason) leave.reason=reason
 
                     }
                     return leave
                 })
                 user.leaveDetails=leave;
+                user.leavesLeft=user.leavesLeft + leavesDeleted;
             }
             return user;
         })
-
+        if(leaveLimitExceeded) return res.status(400).json({error: 'You do not have enough leaves left'})
         if(!leaveFound) return res.status(400).json({error:"This leave id does not exist."})
 
         const newUpdatedFile=JSON.stringify({users:updatedUsers})
