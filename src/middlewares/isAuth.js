@@ -9,7 +9,7 @@ const __dirname = dirname(__filename)
 
 export const isAuth=async(req,res,next)=>{
     try{
-        const jwtToken=req.cookies.jwt;
+        const jwtToken=req.headers.authorization.split(' ')[1];
         if(!jwtToken) return res.status(401).json({message:`Unauthorized (Token missing)`});
         const decodedToken=jwt.verify(jwtToken,process.env.JWT_SECRET_KEY);
         const {id}=decodedToken;
