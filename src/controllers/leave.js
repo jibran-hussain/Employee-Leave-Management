@@ -101,6 +101,39 @@ export const listAllAdminLeaves=async (req,res)=>{
 
 }
 
+export const listAllEmployeeLeaves=async (req,res)=>{
+    try{
+
+        const limit=Number(req.query.limit)
+        const offset=Number(req.query.offset)
+
+        if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
+
+        let employeeId;
+        if(req.auth.role === 'employee') employeeId=req.auth.id;
+        else if(req.auth.role === 'admin' || req.auth.role === 'superadmin') employeeId=Number(req.params.employeeId)
+        else return res.json({error: 'Unauthorized'})
+        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
+        const fileData=JSON.parse(data);
+        const user=fileData.users.filter((user)=>{
+            if(user.id === employeeId && (user.role === 'employee' || user.role === 'admin')) {
+                return user;
+            }
+        })
+        if(user.length == 0) return res.status(400).json({error:'No employee with this id exists'})
+
+        if(limit && offset){
+            const paginatedArray=pagination(user[0].leaveDetails,offset,limit);
+            return res.json({leaves:paginatedArray})
+        }
+
+        return res.json({leaves:user[0].leaveDetails})
+    }catch(e){
+        return res.status(500).json({message:`Internal Server Error`})
+    }
+
+}
+
 // It is used to modify the leaves of an admin/employee
 export const updateLeave=async(req,res)=>{
     try{
