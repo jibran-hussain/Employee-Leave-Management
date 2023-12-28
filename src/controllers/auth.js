@@ -7,14 +7,15 @@ import { generateId } from '../utils/generateId.js';
 import { generateHashedPassword } from '../utils/generateHashedPassword.js';
 import { generateAuthToken } from '../utils/geneateAuthToken.js';
 import { isValidPassword } from '../utils/isValidPassword.js';
+import { isValidNumber } from '../utils/isValidMobile.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
 
 export const createUser=async(req,res)=>{
     try{
-        const {name,email,password,role,mobileNumber}=req.body;
-        if(!name ||!email || !password || !role || !mobileNumber) return res.json({message:'All fields are mandatory'})
+        const {name,email,password,role,mobileNumber,salary}=req.body;
+        if(!name ||!email || !password || !role || !mobileNumber ||!salary) return res.json({message:'All fields are mandatory'})
 
         // Check if it is a valid email or not
         if(!isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
@@ -22,8 +23,10 @@ export const createUser=async(req,res)=>{
         // Checks whether password is Empty
         if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty and should have more than 3 characters`})
 
-        // check if mobile number is of 10 digits or not
-        if(mobileNumber.toString().length != 10) return res.status(400).json({error:'Mobile Number should be of 10 digits only'})
+        // checks if a number is valid or not
+        isValidNumber(mobileNumber);
+
+        if(!Number(salary)) return res.status(400).json("Please enter a valid salary")
 
         if(role === 'admin'){
             if(req.auth.role != 'superadmin') return res.status(403).json({error:'You are not authorized to create an admin. Please login as superadmin'})
