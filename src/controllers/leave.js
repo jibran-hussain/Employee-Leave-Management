@@ -87,13 +87,14 @@ export const listAllAdminLeaves=async (req,res)=>{
 
         if(!isAdminExisting) return res.status(400).json({error:'Admin with this id does not exist'})
 
+        const leavesTaken=20-user[0].leavesLeft;
+
         if(limit && offset){
             const paginatedArray=pagination(user[0]?.leaveDetails,offset,limit);
-            console.log(paginatedArray)
-            return res.json({leaves:paginatedArray})
+            return res.json({leaves:paginatedArray,records:paginatedArray.length,leavesTaken})
         }
-
-        return res.json({leaves:user[0]?.leaveDetails})
+        
+        return res.json({leaves:user[0]?.leaveDetails,records:user[0]?.leaveDetails.length,leavesTaken})
     }catch(e){
         console.log(e)
         return res.status(500).json({message:`Internal Server Error`})
@@ -121,15 +122,16 @@ export const listAllEmployeeLeaves=async (req,res)=>{
             }
         })
         if(user.length == 0) return res.status(400).json({error:'No employee with this id exists'})
+        const leavesTaken=20-user[0].leavesLeft;
 
         if(limit && offset){
             const paginatedArray=pagination(user[0].leaveDetails,offset,limit);
-            return res.json({leaves:paginatedArray})
+            return res.json({leaves:paginatedArray,records:paginatedArray.length,leavesTaken})
         }
 
-        return res.json({leaves:user[0].leaveDetails})
+        return res.json({leaves:user[0].leaveDetails,records:user[0].leaveDetails.length,leavesTaken})
     }catch(e){
-        return res.status(500).json({message:`Internal Server Error`})
+        return res.status(500).json({message:e.message})
     }
 
 }
