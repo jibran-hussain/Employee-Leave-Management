@@ -22,6 +22,9 @@ export const createUser=async(req,res)=>{
         // Checks whether password is Empty
         if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty and should have more than 3 characters`})
 
+        // check if mobile number is of 10 digits or not
+        if(mobileNumber.toString().length != 10) return res.status(400).json({error:'Mobile Number should be of 10 digits only'})
+
         if(role === 'admin'){
             if(req.auth.role != 'superadmin') return res.status(403).json({error:'You are not authorized to create an admin. Please login as superadmin'})
             const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
@@ -45,11 +48,6 @@ export const createUser=async(req,res)=>{
 
             // generate auth token
             const token=generateAuthToken(id,email,"admin")
-
-            // Set cookie
-            res.cookie('jwt',token,{
-                httpOnly:true
-                })
 
             return res.json({message:`Admin created successfully`});
         }
@@ -76,9 +74,6 @@ export const createUser=async(req,res)=>{
             // Saving the new employee in JSON database
             await fs.writeFile(`${__dirname}/../../db/users.json`,newFileData,'utf8')
             const token=generateAuthToken(id,email,"employee")
-            res.cookie('jwt',token,{
-                httpOnly:true
-                })
             return res.json({message:`Employee created successfully`});
         }else{
             return res.status(400).json({error:`Please enter a valid role   `})
@@ -118,9 +113,6 @@ export const userSignin=async(req,res)=>{
         if(isDeactivated) return res.status(403).json({error:'Your account has been deactivated by the admin'})
          if(user.length > 0){
                  const token=generateAuthToken(user[0].id,user[0].email,user[0].role)
-                 res.cookie('jwt',token,{
-                       httpOnly:true
-                    })
                  return res.json({
                          token
                     })
@@ -134,19 +126,3 @@ export const userSignin=async(req,res)=>{
 }
 
 
-export const getLoggedUsersDetails=async(req,res)=>{
-    try{
-        const {id:userId,role}=req.auth;
-        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
-        const fileData=JSON.parse(data);
-
-        const user=fileData.users.filter((user)=>user.id === userId && user.role === role);
-        user[0].hashedPassword=undefined;
-        user[0].leaveDetails=undefined
-        user[0].active=undefined;
-        return res.json({user:user[0]})
-
-    }catch(e){
-        return res.status(500).json({error:`Internal server error`})
-    }
-}
