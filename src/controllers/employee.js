@@ -12,6 +12,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
 
 
+// This method gives the list of all active employees.
+// Can be accessed by only admin and superadmin
+// Can sort them bassed on name, role, salary in ascending and descending order. Can also search them by name.
+
 export const listAllEmployees=async(req,res)=>{
     try{
         const limit=Number(req.query.limit)
@@ -62,6 +66,10 @@ export const listAllEmployees=async(req,res)=>{
     }
 }
 
+// This method gives the list of all deactivated employees.
+// Can be accessed by only admin and superadmin
+// Can sort them bassed on name, role, salary in ascending and descending order. Can also search them by name.
+
 export const listAllDisabledEmployees=async (req,res)=>{
     try{
         const limit=Number(req.query.limit)
@@ -95,20 +103,23 @@ export const listAllDisabledEmployees=async (req,res)=>{
         });
 
         sort(disabedEmployees,sortBy,order);
-        // const totalDisableEmployees=disabedEmployees.length;
+        const totalDisableEmployees=disabedEmployees.length;
 
         if(limit && offset){
             const paginatedArray=pagination(disabedEmployees,offset,limit);
         const totalDisableEmployees=disabedEmployees.length;
             return res.json({leaves:paginatedArray,records:paginatedArray.length,totalDisableEmployees})
         }
-        return res.json({disabedEmployees,records:disabedEmployees.length})
+        return res.json({disabedEmployees,records:totalDisableEmployees.length})
     }catch(e){
         return res.status(500).json({error:e.message})
     }
 }
 
-// It activates the employee account
+// It activates the employee account.
+// Admin and Superadmin can activate employees account and Superadmin can activate admin's account.
+// Admin cannot activate fellow admin's account
+
 export const activateAccount=async (req,res)=>{
     try{
 
@@ -136,8 +147,8 @@ export const activateAccount=async (req,res)=>{
                 return user;
             })
         }
-        if(!userToActivate) return res.status(400).json({error:'Employee with this id does not exist'})
-        if(req.auth.role === 'admin' && userToActivate.role === 'admin') return res.status(500).json({error:`You cannot activate another admins account`})
+        if(!userToActivate) return res.status(404).json({error:'Employee with this id does not exist'})
+        if(req.auth.role === 'admin' && userToActivate.role === 'admin') return res.status(403).json({error:`You cannot activate another admins account`})
 
         fileData.users=updatedUsersList;
         const finalFileData=JSON.stringify(fileData);
@@ -145,10 +156,13 @@ export const activateAccount=async (req,res)=>{
         return res.json({message:"Employee account activated Successfully"})
         
     }catch(e){
-        return res.json({error:e.message})
+        return res.status(500).json({error:e.message})
     }
 }
 
+
+// Give the details of the logged in user.
+// Can be accessed by everyone who is logged in irrespective of role
 
 export const getLoggedUsersDetails=async(req,res)=>{
     try{
@@ -166,7 +180,11 @@ export const getLoggedUsersDetails=async(req,res)=>{
     }
 }
 
-// It deletes an employee from a JSON Database.This can be only done by admin or superadmin
+// It deletes an employee.
+// Admin can delete normal employees account but cannot delete fellow admin's account.
+// Superadmin can delete both admin's and employee's account
+// It does not delete permenantly, it does soft delete so the user can be reactivated.
+
 export const deleteEmployee=async (req,res)=>{
     try{
         const userId=Number(req.params.employeeId)
@@ -210,9 +228,9 @@ export const deleteEmployee=async (req,res)=>{
             })
         }
 
-        if(!userToDelete) return res.status(400).json({error:'Employee with this id does not exist'})
-        if(userToDelete.role === 'superadmin') return res.status(500).json({error:`Nobody is authorized to delete superadmin`})
-        if(req.auth.role === 'admin' && userToDelete.role === 'admin') return res.status(500).json({error:`You cannot delete another admins`})
+        if(!userToDelete) return res.status(404).json({error:'Employee with this id does not exist'})
+        if(userToDelete.role === 'superadmin') return res.status(403).json({error:`Nobody is authorized to delete superadmin`})
+        if(req.auth.role === 'admin' && userToDelete.role === 'admin') return res.status(403).json({error:`You cannot delete another admins`})
 
         fileData.users=updatedUsersList;
         const finalFileData=JSON.stringify(fileData);
@@ -220,9 +238,11 @@ export const deleteEmployee=async (req,res)=>{
         return res.json({message:"Employee Deleted Successfully"})
         
     }catch(e){
-        return res.json({error:e.message})
+        return res.status(500).json({error:e.message})
     }
 }
+
+// Superadmin,Admin,Employees can update their profile
 
 export const updateProfile= async(req,res)=>{
     try{
@@ -254,6 +274,9 @@ export const updateProfile= async(req,res)=>{
     }
 }
 
+// It is used to fetch employee's details by its id.
+// Admin and Superadmin can fetch everyone's detail.
+
 export const getEmployeeDetails= async(req,res)=>{
     try{
         const employeeId=Number(req.params.employeeId);
@@ -267,6 +290,10 @@ export const getEmployeeDetails= async(req,res)=>{
         return res.status(500).json({error:e.message})
     }
 }
+
+
+// It will be used by admin and superadmin to update employees deatils.
+// Admin's cannot update their fellow admin's details.
 
 export const updateEmployeeProfile=async(req,res)=>{
     try{
@@ -295,15 +322,16 @@ export const updateEmployeeProfile=async(req,res)=>{
         await fs.writeFile(`${__dirname}/../../db/users.json`,updatedFile,'utf8')
         return res.json({message: 'Employee updated successfully'})
     }catch(e){
-        return res.status(400).json({error:e.message})
+        return res.status(500).json({error:e.message})
     }
 }
+
 
 export const updateEmployeeProfileByPut=async(req,res)=>{
     try{
         const userId=Number(req.params.employeeId);
         const {name,email,mobileNumber,role,password,salary}=req.body;
-        if(!name || !email || !mobileNumber || !role || !password || !salary) return res.json({error:`All fields are mandatory`}) 
+        if(!name || !email || !mobileNumber || !role || !password || !salary) return res.status(400).json({error:`All fields are mandatory`}) 
         if(email && !isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
         if(mobileNumber) isValidNumber(mobileNumber);
         if(salary && !Number(salary)) return res.status(400).json({error:"Please enter valid salary"})
@@ -327,15 +355,16 @@ export const updateEmployeeProfileByPut=async(req,res)=>{
         await fs.writeFile(`${__dirname}/../../db/users.json`,updatedFile,'utf8')
         return res.json({message: 'Employee updated successfully'})
     }catch(e){
-        return res.status(400).json({error:e.message})
+        return res.status(500).json({error:e.message})
     }
 }
+
 
 export const updatedProfileByPutMethod= async(req,res)=>{
     try{
         const userId=req.auth.id;
         const {name,email,mobileNumber,password}=req.body;
-        if(!name || !email || !mobileNumber || !password) return res.json({error:`All fields are mandatory`})
+        if(!name || !email || !mobileNumber || !password) return res.status(400).json({error:`All fields are mandatory`})
         // Fetching the logged in user
         const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
         const fileData=JSON.parse(data);

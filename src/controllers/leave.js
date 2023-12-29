@@ -19,12 +19,12 @@ export const applyForLeave=async (req,res)=>{
         const {id}=req.auth;
         let {fromDate,toDate,reason}=req.body;
 
-        if(!fromDate || !toDate || !reason) return res.json({error:`All fields are necassary`})
+        if(!fromDate || !toDate || !reason) return res.status(400).json({error:`All fields are necassary`})
 
         fromDate=getDate(fromDate);
         toDate=getDate(toDate);
         
-        if(isValidDate(fromDate) || isValidDate(toDate)) return res.json({error:'Please enter valid date'})
+        if(isValidDate(fromDate) || isValidDate(toDate)) return res.status(400).json({error:'Please enter valid date'})
 
         isDateInPast(fromDate)
         isDateInPast(toDate)
@@ -39,11 +39,11 @@ export const applyForLeave=async (req,res)=>{
             if(user.id == id){
 
                 if(user.leavesLeft <= 0){
-                    return res.status(400).json({message:"You have exhausted all your leaves"})
+                    return res.status(403).json({message:"You have exhausted all your leaves"})
                 }
                 const {dates,leaveDuration}=getDatesArray(fromDate,toDate);
 
-                if(dates.length > user.leavesLeft) return res.status(400).json({error: `You have only ${user.leavesLeft} leaves left and you are applying for  ${dates.length} days`})
+                if(dates.length > user.leavesLeft) return res.status(403).json({error: `You have only ${user.leavesLeft} leaves left and you are applying for  ${dates.length} days`})
 
                 user.leaveDetails.push({leaveId,reason,dates})
                 user.leavesLeft=user.leavesLeft-leaveDuration;
@@ -84,7 +84,7 @@ export const listAllAdminLeaves=async (req,res)=>{
             }
         })
 
-        if(!isAdminExisting) return res.status(400).json({error:'Admin with this id does not exist'})
+        if(!isAdminExisting) return res.status(404).json({error:'Admin with this id does not exist'})
 
         const leavesTaken=20-user[0].leavesLeft;
 
@@ -116,7 +116,7 @@ export const listAllEmployeeLeaves=async (req,res)=>{
                 return user;
             }
         })
-        if(user.length == 0) return res.status(400).json({error:'No employee with this id exists'})
+        if(user.length == 0) return res.status(404).json({error:'No employee with this id exists'})
         const leavesTaken=20-user[0].leavesLeft;
 
         if(limit && offset){
@@ -179,8 +179,8 @@ export const updateLeave=async(req,res)=>{
             }
             return user;
         })
-        if(leaveLimitExceeded) return res.status(400).json({error: 'You do not have enough leaves left'})
-        if(!leaveFound) return res.status(400).json({error:"This leave id does not exist."})
+        if(leaveLimitExceeded) return res.status(403).json({error: 'You do not have enough leaves left'})
+        if(!leaveFound) return res.status(404).json({error:"This leave id does not exist."})
 
         const newUpdatedFile=JSON.stringify({users:updatedUsers})
         await fs.writeFile(`${__dirname}/../../db/users.json`,newUpdatedFile,'utf8')
@@ -238,8 +238,8 @@ export const updateLeaveByPutMethod=async(req,res)=>{
             }
             return user;
         })
-        if(leaveLimitExceeded) return res.status(400).json({error: 'You do not have enough leaves left'})
-        if(!leaveFound) return res.status(400).json({error:"This leave id does not exist."})
+        if(leaveLimitExceeded) return res.status(403).json({error: 'You do not have enough leaves left'})
+        if(!leaveFound) return res.status(404).json({error:"This leave id does not exist."})
 
         const newUpdatedFile=JSON.stringify({users:updatedUsers})
         await fs.writeFile(`${__dirname}/../../db/users.json`,newUpdatedFile,'utf8')
@@ -282,7 +282,7 @@ export const deleteLeave=async(req,res)=>{
             }
             return user;
         })
-        if(!leaveExists) return res.status(400).json({error:'This leave id does not belong to this user'})
+        if(!leaveExists) return res.status(404).json({error:'This leave id does not exist'})
         const newUpdatedFile=JSON.stringify({users:updatedUsers})
         await fs.writeFile(`${__dirname}/../../db/users.json`,newUpdatedFile,'utf8')
         return res.json({message:' Leave deleted successfully'})

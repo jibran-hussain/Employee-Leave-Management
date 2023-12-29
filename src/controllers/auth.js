@@ -12,6 +12,11 @@ import { isValidNumber } from '../utils/isValidMobile.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
 
+
+// Creates an admin/employee wiht name,email,password,role,mobileNumber and salary as mandatory fileds.
+// Admin can only be created by Superadmin.
+// Employee can be created by both Superadmin and Admin.
+
 export const createUser=async(req,res)=>{
     try{
         const {name,email,password,role,mobileNumber,salary}=req.body;
@@ -26,6 +31,7 @@ export const createUser=async(req,res)=>{
         // checks if a number is valid or not
         isValidNumber(mobileNumber);
 
+        // Validatin salary
         if(!Number(salary)) return res.status(400).json("Please enter a valid salary")
 
         if(role === 'admin'){
@@ -49,7 +55,7 @@ export const createUser=async(req,res)=>{
             const newFileData=JSON.stringify(fileData)
             await fs.writeFile(`${__dirname}/../../db/users.json`,newFileData,'utf8')
 
-            // generate auth token
+            // generate auth jwt token
             const token=generateAuthToken(id,email,"admin")
 
             return res.json({message:`Admin created successfully`});
@@ -88,6 +94,9 @@ export const createUser=async(req,res)=>{
         return res.json({error:e.message})
     }
 }
+
+// Superadmin,admin,employees can signin.
+// name and password are mandatory fields.
 
 export const userSignin=async(req,res)=>{
     try{
