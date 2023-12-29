@@ -110,10 +110,7 @@ export const listAllEmployeeLeaves=async (req,res)=>{
 
         if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
 
-        let employeeId;
-        if(req.auth.role === 'employee') employeeId=req.auth.id;
-        else if(req.auth.role === 'admin' || req.auth.role === 'superadmin') employeeId=Number(req.params.employeeId)
-        else return res.json({error: 'Unauthorized'})
+        const employeeId=Number(req.params.employeeId)
         const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
         const fileData=JSON.parse(data);
         const user=fileData.users.filter((user)=>{
@@ -131,6 +128,7 @@ export const listAllEmployeeLeaves=async (req,res)=>{
 
         return res.json({leaves:user[0].leaveDetails,records:user[0].leaveDetails.length,leavesTaken})
     }catch(e){
+        console.log(e)
         return res.status(500).json({message:e.message})
     }
 
@@ -140,7 +138,7 @@ export const listAllEmployeeLeaves=async (req,res)=>{
 export const updateLeave=async(req,res)=>{
     try{
         let {fromDate,toDate,reason}=req.body;
-        if(!fromDate|| !toDate) return res.status(400).json({error:'Start date and End date is mandatory'});
+        if((fromDate && !toDate) || (toDate && ! fromDate)) return res.status(400).json({error:'Start date and End date is mandatory'});
 
         fromDate=getDate(fromDate);
         toDate=getDate(toDate);
@@ -170,11 +168,79 @@ export const updateLeave=async(req,res)=>{
                             return false;
                         })
                         const addedLeaveDays=getDatesArray(fromDate,toDate);
+                        console.log(addedLeaveDays,'dddddddddddddddddddddddvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv')
                         
                         if(user.leavesLeft - leavesDeleted + addedLeaveDays.dates.length > 20) leaveLimitExceeded=true;
 
                         leave.dates=[...newDates,...addedLeaveDays.dates];
                         leavesDeleted=leavesDeleted-addedLeaveDays.dates.length
+
+                        console.log(leave.dates)
+
+                        if(reason) leave.reason=reason
+
+                    }
+                    return leave
+                })
+                user.leaveDetails=leave;
+                user.leavesLeft=user.leavesLeft + leavesDeleted;
+            }
+            return user;
+        })
+        if(leaveLimitExceeded) return res.status(400).json({error: 'You do not have enough leaves left'})
+        if(!leaveFound) return res.status(400).json({error:"This leave id does not exist."})
+
+        const newUpdatedFile=JSON.stringify({users:updatedUsers})
+        await fs.writeFile(`${__dirname}/../../db/users.json`,newUpdatedFile,'utf8')
+        return res.json({message:'Leave updated successfully'})          
+
+    }catch(e){
+        console.log(e)
+        return res.status(500).json({error:e.message})
+    }   
+}
+
+export const updateLeaveByPutMethod=async(req,res)=>{
+    try{
+        let {fromDate,toDate,reason}=req.body;
+        if(!fromDate || !toDate || !reason) return res.status(400).json({error:'All fileds are mandatory'});
+
+        fromDate=getDate(fromDate);
+        toDate=getDate(toDate);
+
+        isDateInPast(toDate)
+
+        const userId=req.auth.id;
+        const leaveId=Number(req.params.leaveId);        
+        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
+        const fileData=JSON.parse(data);
+        let leaveFound=false;
+        let leavesDeleted=0;
+        let leaveLimitExceeded=false;
+        const updatedUsers= fileData.users.map((user)=>{
+            if(user.id == userId){
+                let leave=user.leaveDetails.map((leave)=>{
+                    if(leave.leaveId === leaveId){
+                        leaveFound=true;
+                        const currentDate=new Date();
+                        currentDate.setUTCHours(0,0,0,0)
+                        if(currentDate > getDate(leave.dates[leave.dates.length-1])) throw new Error('You cannot update this leave')
+                        // upate leave here
+                        
+                       const newDates= leave.dates.filter((date)=>{
+                            if(getDate(date) < currentDate) return true;
+                            leavesDeleted++;
+                            return false;
+                        })
+                        const addedLeaveDays=getDatesArray(fromDate,toDate);
+                        console.log(addedLeaveDays,'dddddddddddddddddddddddvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv')
+                        
+                        if(user.leavesLeft - leavesDeleted + addedLeaveDays.dates.length > 20) leaveLimitExceeded=true;
+
+                        leave.dates=[...newDates,...addedLeaveDays.dates];
+                        leavesDeleted=leavesDeleted-addedLeaveDays.dates.length
+
+                        console.log(leave.dates)
 
                         if(reason) leave.reason=reason
 
@@ -239,5 +305,32 @@ export const deleteLeave=async(req,res)=>{
     }catch(e){
         console.log(e)
         return res.status(500).json({error:e.message})
+    }
+}
+
+
+export const listLeaves=async(req,res)=>{
+    try{
+
+        const limit=Number(req.query.limit)
+        const offset=Number(req.query.offset)
+
+        if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
+
+        const userId=req.auth.id;
+        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
+        const fileData=JSON.parse(data);
+
+        const user=fileData.users.filter((user)=>user.id === userId);
+        if(user.length == 0) return res.status(404).json({error:`Employee with this id does not exist`})
+        const leavesTaken=20-user[0].leavesLeft;
+        if(limit && offset){
+            const paginatedArray=pagination(user[0].leaveDetails,offset,limit);
+            return res.json({leaves:paginatedArray,records:paginatedArray.length,leavesTaken})
+        }
+
+        return res.json({leaves:user[0].leaveDetails,leavesTaken});
+    }catch(e){
+        return res.status(500).json({error:'Internal Server Error'});
     }
 }
