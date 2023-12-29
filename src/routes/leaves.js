@@ -1,5 +1,5 @@
 import express from 'express'
-import { applyForLeave,listLeaves,updateLeave,updateLeaveByPutMethod,deleteLeave,getLeaveDetails,listAllEmployeeLeaves } from '../controllers/leave.js';
+import { applyForLeave,listLeaves,updateLeave,updateLeaveByPutMethod,deleteLeave,getLeaveDetails,listAllEmployeeLeaves,getLeaveById,getAllLeaves } from '../controllers/leave.js';
 import { isAuth } from '../middlewares/isAuth.js';
 import { isEmployee } from '../middlewares/isEmployee.js';
 import { isAdminOrSuperadmin } from '../middlewares/isAdminOrSuperadmin.js';
@@ -24,5 +24,11 @@ router.patch('/admins/leaves/:leaveId',isAuth,isAdmin,updateLeave)
 router.put('/admins/leaves/:leaveId',isAuth,isAdmin,updateLeaveByPutMethod)
 router.delete('/admins/leaves/:leaveId',isAuth,isAdmin,deleteLeave)
 router.get('/admins/leaves/:leaveId',isAuth,isAdmin,getLeaveDetails)
+
+// Admins and Superadmin can access this route to get a specific leave with a given id
+router.get('/leaves/:leaveId',isAuth,isAdminOrSuperadmin,getLeaveById)
+
+// Getting all leaves in a system
+router.get('/leaves',isAuth,isAdminOrSuperadmin,getAllLeaves)
 
 export default router;
