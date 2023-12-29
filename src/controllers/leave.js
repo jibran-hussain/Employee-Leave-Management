@@ -14,6 +14,8 @@ import { pagination } from '../utils/pagination.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
 
+// It is used to apply for leave
+
 export const applyForLeave=async (req,res)=>{
     try{
         const {id}=req.auth;
@@ -251,6 +253,7 @@ export const updateLeaveByPutMethod=async(req,res)=>{
 }
 
 // It is used to delete a specific leave of an employee
+
 export const deleteLeave=async(req,res)=>{
     try{
         const userId=req.auth.id;
@@ -292,7 +295,7 @@ export const deleteLeave=async(req,res)=>{
     }
 }
 
-
+// It lists all leaves of a signed in user
 export const listLeaves=async(req,res)=>{
     try{
 
@@ -318,3 +321,102 @@ export const listLeaves=async(req,res)=>{
         return res.status(500).json({error:'Internal Server Error'});
     }
 }
+
+// It list the particular leave of a logged in user
+
+export const getLeaveDetails=async(req,res)=>{
+    try{
+        const employeeId=req.auth.id
+        const leaveId=Number(req.params.leaveId);
+        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
+        const fileData=JSON.parse(data);
+        let leave;
+        await fileData.users.filter((user)=>{
+            if(user.id === employeeId){
+                leave=user.leaveDetails.filter((leave)=>leave.leaveId == leaveId)
+            }
+            return false;
+        })
+        if(leave.length == 0) return res.status(404).json({error:'Leave with this id does not exist'})
+        return res.json({...leave[0]})
+    }catch(e){
+        return res.status(500).json({error:e.message})
+    }
+}
+
+
+// It can be used by admin and superadmin
+// It is used to fetch leave by leaveId
+
+export const getLeaveById = async (req, res) => {
+    try {
+        const leaveId = Number(req.params.leavId);
+        const data = await fs.readFile(`${__dirname}/../../db/users.json`, 'utf8');
+        const fileData = JSON.parse(data);
+
+        let foundLeave;
+        let leave;
+        fileData.users.forEach((user) => {
+            console.log(user)
+            if (user.leaveDetails && user.leaveDetails.length > 0) {
+                const leave = user.leaveDetails.find((l) => l.leaveId === leaveId);
+                if (leave) {
+                    foundLeave = leave;
+                }
+            }
+        });
+
+        if (foundLeave) {
+            return res.json(foundLeave);
+        } else {
+            return res.status(404).json({ error: 'Leave not found' });
+        }
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({ error: e.message });
+    }
+};
+
+// It is used to get all leaves in a system
+
+export const getAllLeaves = async (req, res) => {
+    try {
+        
+        const limit=Number(req.query.limit)
+        const offset=Number(req.query.offset)
+
+        if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
+
+        const data = await fs.readFile(`${__dirname}/../../db/users.json`, 'utf8');
+        const fileData = JSON.parse(data);
+
+        let totalLeaves=0;
+        const allLeavesWithUsers = [];
+        fileData.users.forEach((user) => {
+            if (user.leaveDetails && user.leaveDetails.length > 0) {
+                user.leaveDetails.forEach((leave) => {
+                    const leaveWithUser = {
+                        id: user.id,
+                        name: user.name,
+                        role:user.role,
+                        leaveDetails: leave,
+                    };
+                    totalLeaves++;
+                    allLeavesWithUsers.push(leaveWithUser);
+                });
+            }
+        });
+        if(limit && offset){
+            const paginatedArray=pagination(allLeavesWithUsers,offset,limit);
+            return res.json({leaves:paginatedArray,records:paginatedArray.length,totalLeaves})
+        }
+
+        return res.json({leaves:allLeavesWithUsers,totalLeaves});
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({ error: e.message });
+    }
+};
+
+
+
