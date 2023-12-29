@@ -2,10 +2,11 @@ import fs from 'fs/promises'
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import 'dotenv/config'
+import bcrypt from 'bcrypt';
 import { generateHashedPassword } from '../utils/generateHashedPassword.js';
 import { pagination } from '../utils/pagination.js';
 import { isValidNumber } from '../utils/isValidMobile.js';
-import { isValidEmail } from '../utils/validations.js';
+import { isValidEmail, passwordValidation } from '../utils/validations.js';
 import { sort } from '../utils/sort.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -83,7 +84,7 @@ export const listAllDisabledEmployees=async (req,res)=>{
 
         const data=await fs.readFile('./db/users.json','utf8');
         const fileData=JSON.parse(data);
-        const disabedEmployees=fileData.users.filter(user=>{
+        const disabledEmployees=fileData.users.filter(user=>{
             if(user.active === false){
                 if(name){
                     const userName = user.name.toLowerCase();
@@ -102,16 +103,17 @@ export const listAllDisabledEmployees=async (req,res)=>{
             return false;
         });
 
-        sort(disabedEmployees,sortBy,order);
-        const totalDisableEmployees=disabedEmployees.length;
+        sort(disabledEmployees,sortBy,order);
+        const totalDisableEmployees=disabledEmployees.length;
 
         if(limit && offset){
-            const paginatedArray=pagination(disabedEmployees,offset,limit);
-        const totalDisableEmployees=disabedEmployees.length;
+            const paginatedArray=pagination(disabledEmployees,offset,limit);
+        const totalDisableEmployees=disabledEmployees.length;
             return res.json({leaves:paginatedArray,records:paginatedArray.length,totalDisableEmployees})
         }
-        return res.json({disabedEmployees,records:totalDisableEmployees.length})
+        return res.json({disabledEmployees,records:totalDisableEmployees})
     }catch(e){
+        console.log(e)
         return res.status(500).json({error:e.message})
     }
 }
@@ -387,6 +389,44 @@ export const updatedProfileByPutMethod= async(req,res)=>{
         await fs.writeFile(`${__dirname}/../../db/users.json`,updatedFile,'utf8')
         return res.json({message:"User updated Successfully"})
     }catch(e){
+        return res.status(500).json({error:e.message})
+    }
+}
+
+// It resets the password of currently logged in user
+
+export const resetPassword=async(req,res)=>{
+    try{
+        const userId=req.auth.id;
+        const {oldPassword,newPassword,confirmPassword}=req.body
+        if(!oldPassword || !newPassword || !confirmPassword) return res.status(400).json({error:`All fields are necassary`});
+        if(newPassword.toString() !== confirmPassword.toString()) return res.status(400).json({error:`New Password and confirm password should be same`})
+        
+        if(passwordValidation(newPassword) || passwordValidation(confirmPassword)) return res.status(400).json({error:`Password cannot be empty and should have more than 3 characters`})
+
+
+        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
+        const fileData=JSON.parse(data);
+
+        // check if the old password is correct or not
+        const user=fileData.users.find((user)=>user.id === userId)
+        const isValidPassword=await bcrypt.compare(oldPassword,user.hashedPassword);
+        if(!isValidPassword)    return res.status(400).json({error:`You have entered incorrect old password`});
+        const newHashedPassword= generateHashedPassword(newPassword)
+
+        const updatedUsers=fileData.users.map((user)=>{
+            if(user.id === userId){
+                user.hashedPassword=newHashedPassword
+            }
+            return user;
+        })
+
+        fileData.users=updatedUsers;
+        const updatedFile=JSON.stringify(fileData);
+        await fs.writeFile(`${__dirname}/../../db/users.json`,updatedFile,'utf8');
+        return res.json({message:"Password changed successfully"})
+    }catch(e){
+        console.log(e)
         return res.status(500).json({error:e.message})
     }
 }
