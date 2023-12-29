@@ -57,7 +57,6 @@ export const applyForLeave=async (req,res)=>{
         return res.status(201).json({message:`Leave created successfully`})
         
     }catch(e){
-        console.log(e)
         res.json({error:e.message})
     }
 }
@@ -96,7 +95,6 @@ export const listAllAdminLeaves=async (req,res)=>{
         
         return res.json({leaves:user[0]?.leaveDetails,records:user[0]?.leaveDetails.length,leavesTaken})
     }catch(e){
-        console.log(e)
         return res.status(500).json({message:`Internal Server Error`})
     }
 
@@ -128,7 +126,6 @@ export const listAllEmployeeLeaves=async (req,res)=>{
 
         return res.json({leaves:user[0].leaveDetails,records:user[0].leaveDetails.length,leavesTaken})
     }catch(e){
-        console.log(e)
         return res.status(500).json({message:e.message})
     }
 
@@ -168,18 +165,13 @@ export const updateLeave=async(req,res)=>{
                             return false;
                         })
                         const addedLeaveDays=getDatesArray(fromDate,toDate);
-                        console.log(addedLeaveDays,'dddddddddddddddddddddddvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv')
                         
                         if(user.leavesLeft - leavesDeleted + addedLeaveDays.dates.length > 20) leaveLimitExceeded=true;
 
                         leave.dates=[...newDates,...addedLeaveDays.dates];
                         leavesDeleted=leavesDeleted-addedLeaveDays.dates.length
-
-                        console.log(leave.dates)
-
                         if(reason) leave.reason=reason
-
-                    }
+                }
                     return leave
                 })
                 user.leaveDetails=leave;
@@ -195,7 +187,6 @@ export const updateLeave=async(req,res)=>{
         return res.json({message:'Leave updated successfully'})          
 
     }catch(e){
-        console.log(e)
         return res.status(500).json({error:e.message})
     }   
 }
@@ -233,17 +224,12 @@ export const updateLeaveByPutMethod=async(req,res)=>{
                             return false;
                         })
                         const addedLeaveDays=getDatesArray(fromDate,toDate);
-                        console.log(addedLeaveDays,'dddddddddddddddddddddddvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv')
                         
                         if(user.leavesLeft - leavesDeleted + addedLeaveDays.dates.length > 20) leaveLimitExceeded=true;
 
                         leave.dates=[...newDates,...addedLeaveDays.dates];
                         leavesDeleted=leavesDeleted-addedLeaveDays.dates.length
-
-                        console.log(leave.dates)
-
                         if(reason) leave.reason=reason
-
                     }
                     return leave
                 })
@@ -260,7 +246,6 @@ export const updateLeaveByPutMethod=async(req,res)=>{
         return res.json({message:'Leave updated successfully'})          
 
     }catch(e){
-        console.log(e)
         return res.status(500).json({error:e.message})
     }   
 }
@@ -303,7 +288,6 @@ export const deleteLeave=async(req,res)=>{
         return res.json({message:' Leave deleted successfully'})
 
     }catch(e){
-        console.log(e)
         return res.status(500).json({error:e.message})
     }
 }
