@@ -26,7 +26,7 @@ export const createUser=async(req,res)=>{
         if(!isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
 
         // Checks whether password is Empty
-        if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty and should have more than 3 characters`})
+        if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty and should have less than 3 characters`})
 
         // checks if a number is valid or not
         isValidNumber(mobileNumber);
@@ -58,7 +58,7 @@ export const createUser=async(req,res)=>{
             // generate auth jwt token
             const token=generateAuthToken(id,email,"admin")
 
-            return res.json({message:`Admin created successfully`});
+            return res.status(201).json({message:`Admin created successfully`});
         }
         else if(role === "employee"){
             // Fetching the file and adding new employees
@@ -85,10 +85,8 @@ export const createUser=async(req,res)=>{
             const token=generateAuthToken(id,email,"employee")
             return res.json({message:`Employee created successfully`});
         }else{
-            return res.status(400).json({error:`Please enter a valid role   `})
+            return res.status(201).status(400).json({error:`Please enter a valid role`})
         }
-                
-            
     }catch(e){
         console.log(e)
         return res.json({error:e.message})
@@ -136,5 +134,6 @@ export const userSignin=async(req,res)=>{
        return res.json({error:e.message})
     }
 }
+
 
 
