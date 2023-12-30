@@ -26,7 +26,7 @@ export const createUser=async(req,res)=>{
         if(!isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
 
         // Checks whether password is Empty
-        if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty and should have less than 3 characters`})
+        if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty and should have more than 3 characters`})
 
         // checks if a number is valid or not
         isValidNumber(mobileNumber);

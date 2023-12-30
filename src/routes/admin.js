@@ -7,13 +7,7 @@ import { isSuperAdmin } from '../middlewares/isSuperAdmin.js';
 const router=express.Router();
 
 // Routes related to admin and can be accessed by admin only.
-router.post('/admins/leaves',isAuth,isAdmin,applyForLeave)
-router.patch('/admins/leaves/:leaveId',isAuth,isAdmin,updateLeave)
-router.put('/admins/leaves/:leaveId',isAuth,isAdmin,updateLeaveByPutMethod)
-router.delete('/admins/leaves/:leaveId',isAuth,isAdmin,deleteLeave)
-router.get('/admins/leaves',isAuth,listLeaves)
-router.get('admins/leaves/:leaveId',isAuth,getLeaveDetails)
-router.get('/admins/leaves/:leaveId',isAuth,isAdmin,getLeaveDetails)
+
 
 
 

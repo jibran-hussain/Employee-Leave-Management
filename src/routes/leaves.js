@@ -8,27 +8,17 @@ import { isAdmin } from '../middlewares/isAdmin.js';
 const router= express.Router();
 
 
-// Leave routes related to normal employees
-router.post('/employees/leaves',isAuth,isEmployee,applyForLeave)
-router.get('/employees/leaves',isAuth,listLeaves);
-router.patch('/employees/leave/:leaveId',isAuth,isEmployee,updateLeave)
-router.put('/employees/leave/:leaveId',isAuth,isEmployee,updateLeaveByPutMethod)
-router.delete('/employees/leaves/:leaveId',isAuth,isEmployee,deleteLeave)
+// Routes which logged in users can access
+router.post('me/leaves',isAuth,isEmployee,applyForLeave)
+router.get('me/leaves',isAuth,listLeaves);
+router.patch('me/leave/:leaveId',isAuth,isEmployee,updateLeave)
+router.put('me/leave/:leaveId',isAuth,isEmployee,updateLeaveByPutMethod)
+router.delete('me/leaves/:leaveId',isAuth,isEmployee,deleteLeave)
+router.get('/me/leaves/:leaveId',isAuth,getLeaveDetails)
+
+// Routes which superadmin and admin can access
 router.get('/employees/:employeeId/leaves',isAuth,isAdminOrSuperadmin,listAllEmployeeLeaves)
-router.get('/employees/leaves/:leaveId',isAuth,isEmployee,getLeaveDetails)
-
-// Leave routes related to admins
-router.post('/admins/leaves',isAuth,isAdmin,applyForLeave)
-router.get('/admins/leaves',isAuth,listLeaves)
-router.patch('/admins/leaves/:leaveId',isAuth,isAdmin,updateLeave)
-router.put('/admins/leaves/:leaveId',isAuth,isAdmin,updateLeaveByPutMethod)
-router.delete('/admins/leaves/:leaveId',isAuth,isAdmin,deleteLeave)
-router.get('/admins/leaves/:leaveId',isAuth,isAdmin,getLeaveDetails)
-
-// Admins and Superadmin can access this route to get a specific leave with a given id
-router.get('/leaves/:leaveId',isAuth,isAdminOrSuperadmin,getLeaveById)
-
-// Getting all leaves in a system
+router.get('employees/leaves/:leaveId',isAuth,isAdminOrSuperadmin,getLeaveById)
 router.get('/leaves',isAuth,isAdminOrSuperadmin,getAllLeaves)
 
 export default router;
