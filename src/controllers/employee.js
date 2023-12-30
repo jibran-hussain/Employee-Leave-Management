@@ -24,6 +24,7 @@ export const listAllEmployees=async(req,res)=>{
         const sortBy=req.query.sortBy;
         const order=req.query.order === 'desc' ? -1 : 1;
         const name=req.query.name
+        const number=req.query.number;
 
         if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
 
@@ -37,6 +38,15 @@ export const listAllEmployees=async(req,res)=>{
                     const userName = user.name.toLowerCase();
                     const queryName = name.toLowerCase();
                     if (userName.includes(queryName)) {
+                        user.hashedPassword = undefined;
+                        user.active = undefined;
+                        return true;
+                    }
+                }
+            }else if(number){
+                if (user.role === 'employee' || user.role === 'admin'){
+                    const mobileNumber=user.mobileNumber.toString();
+                    if(mobileNumber.includes(number)){
                         user.hashedPassword = undefined;
                         user.active = undefined;
                         return true;
@@ -78,6 +88,7 @@ export const listAllDisabledEmployees=async (req,res)=>{
         const sortBy=req.query.sortBy;
         const order=req.query.order === 'desc' ? -1 : 1;
         const name=req.query.name
+        const number = req.query.number;
 
     
         if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
@@ -94,10 +105,19 @@ export const listAllDisabledEmployees=async (req,res)=>{
                         user.active = undefined;
                         return true;
                     }
+                }else if(number){
+                    if(user.role === 'employee' || user.role === 'admin'){
+                        const mobileNumber=user.mobileNumber.toString();
+                        if(mobileNumber.includes(number)){
+                            user.hashedPassword = undefined;
+                            user.active = undefined;
+                            return true;
+                        }
+                    }
                 }else{
                     user.hashedPassword=undefined;
-                user.active=undefined;
-                return true;
+                    user.active=undefined;
+                    return true;
                 }
             }
             return false;
