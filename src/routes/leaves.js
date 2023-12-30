@@ -9,16 +9,16 @@ const router= express.Router();
 
 
 // Routes which logged in users can access
-router.post('me/leaves',isAuth,isEmployee,applyForLeave)
-router.get('me/leaves',isAuth,listLeaves);
-router.patch('me/leave/:leaveId',isAuth,isEmployee,updateLeave)
-router.put('me/leave/:leaveId',isAuth,isEmployee,updateLeaveByPutMethod)
-router.delete('me/leaves/:leaveId',isAuth,isEmployee,deleteLeave)
+router.post('me/leaves',isAuth,applyForLeave)
+router.get('/me/leaves',isAuth,listLeaves);
+router.patch('me/leave/:leaveId',isAuth,updateLeave)
+router.put('/me/leave/:leaveId',isAuth,updateLeaveByPutMethod)
+router.delete('/me/leaves/:leaveId',isAuth,deleteLeave)
 router.get('/me/leaves/:leaveId',isAuth,getLeaveDetails)
 
 // Routes which superadmin and admin can access
 router.get('/employees/:employeeId/leaves',isAuth,isAdminOrSuperadmin,listAllEmployeeLeaves)
-router.get('employees/leaves/:leaveId',isAuth,isAdminOrSuperadmin,getLeaveById)
+router.get('/employees/leaves/:leaveId',isAuth,isAdminOrSuperadmin,getLeaveById)
 router.get('/leaves',isAuth,isAdminOrSuperadmin,getAllLeaves)
 
 export default router;
