@@ -9,6 +9,7 @@ import { getDatesArray } from '../utils/getDatesArray.js';
 import { getDate } from '../utils/getDate.js';
 import { isValidDate } from '../utils/isValidDate.js';
 import { pagination } from '../utils/pagination.js';
+import { sort } from '../utils/sort.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -384,6 +385,7 @@ export const getAllLeaves = async (req, res) => {
         
         const limit=Number(req.query.limit)
         const offset=Number(req.query.offset)
+        const name=req.query.name;
 
         if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
 
@@ -393,6 +395,7 @@ export const getAllLeaves = async (req, res) => {
         let totalLeaves=0;
         const allLeavesWithUsers = [];
         fileData.users.forEach((user) => {
+            if(name && !user.name.toLowerCase().includes(name.toLowerCase())) return ;
             if (user.leaveDetails && user.leaveDetails.length > 0) {
                 user.leaveDetails.forEach((leave) => {
                     const leaveWithUser = {
@@ -406,6 +409,7 @@ export const getAllLeaves = async (req, res) => {
                 });
             }
         });
+
         if(limit && offset){
             const paginatedArray=pagination(allLeavesWithUsers,offset,limit);
             return res.json({leaves:paginatedArray,records:paginatedArray.length,totalLeaves})
