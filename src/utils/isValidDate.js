@@ -1,4 +1,4 @@
-export const isValidDate=(startDate)=>{
-    if(startDate instanceof Date || startDate != 'Invalid Date') return false;
+export const isValidDate=(date)=>{
+    if(date instanceof Date || date != 'Invalid Date') return false;
     return true;
 }
