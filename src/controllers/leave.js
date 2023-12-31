@@ -3,7 +3,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import 'dotenv/config'
 
-import { generateId } from '../utils/Auth/generateId.js';
+import { generateId } from '../utils/generateId.js';
 import { isDateInPast } from '../utils/Date/isDateInPast.js';
 import { getDatesArray } from '../utils/Date/getDatesArray.js';
 import { getDate } from '../utils/Date/getDate.js';
@@ -60,6 +60,7 @@ export const applyForLeave=async (req,res)=>{
         return res.status(201).json({message:`Leave created successfully`})
         
     }catch(e){
+        console.log(e)
         res.json({error:e.message})
     }
 }
@@ -401,12 +402,11 @@ export const getAllLeaves = async (req, res) => {
             if (user.leaveDetails && user.leaveDetails.length > 0) {
                 user.leaveDetails.forEach((leave) => {
                     if(date){
-                        const leavesMatchingDate = filterLeavesByDate(user, date);
-                        console.log(leavesMatchingDate)
+                        const leavesMatchingDate = filterLeavesByDate(user,leave, date);
                         allLeavesWithUsers.push(...leavesMatchingDate);
                         totalLeaves += leavesMatchingDate.length;
                     }else if(month){
-                        const leavesMatchingMonth=filterLeavesByMonth(user,month-1);
+                        const leavesMatchingMonth=filterLeavesByMonth(user,leave,month-1);
                         allLeavesWithUsers.push(...leavesMatchingMonth);
                         totalLeaves += leavesMatchingMonth.length;
                     }else{
