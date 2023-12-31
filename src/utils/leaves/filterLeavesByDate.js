@@ -1,12 +1,11 @@
 import { isValidDate } from "../Date/isValidDate.js";
 import { getDate } from "../Date/getDate.js";
 
-export const filterLeavesByDate = (user, date) => {
+export const filterLeavesByDate = (user,leave, date) => {
     const leavesMatchingDate = [];
     const selectedDate = getDate(date);
     if (isValidDate(selectedDate)) return leavesMatchingDate;
   
-    user.leaveDetails.forEach((leave) => {
       leave.dates.forEach((ld) => {
         const leaveDate = getDate(ld);
         if (leaveDate.getTime() === selectedDate.getTime()) {
@@ -19,7 +18,7 @@ export const filterLeavesByDate = (user, date) => {
           leavesMatchingDate.push(leaveWithUser);
         }
       });
-    });
+   
   
     return leavesMatchingDate;
   };
