@@ -2,12 +2,12 @@ import fs from 'fs/promises'
 import { fileURLToPath } from 'url';
 import {dirname} from 'path';
 import jwt from 'jsonwebtoken';
-import { isValidEmail,passwordValidation } from "../utils/validations.js";
-import { generateId } from '../utils/generateId.js';
-import { generateHashedPassword } from '../utils/generateHashedPassword.js';
-import { generateAuthToken } from '../utils/geneateAuthToken.js';
-import { isValidPassword } from '../utils/isValidPassword.js';
-import { isValidNumber } from '../utils/isValidMobile.js';
+import { isValidEmail,passwordValidation } from "../utils/Validation/validations.js";
+import { generateId } from '../utils/Auth/generateId.js';
+import { generateHashedPassword } from '../utils/Auth/generateHashedPassword.js';
+import { generateAuthToken } from '../utils/Auth/geneateAuthToken.js';
+import { isValidPassword } from '../utils/Validation/isValidPassword.js'
+import { isValidNumber } from '../utils/Validation/isValidMobile.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
