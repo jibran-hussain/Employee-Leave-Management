@@ -3,14 +3,14 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import 'dotenv/config'
 
-import { generateId } from '../utils/generateId.js';
-import { isDateInPast } from '../utils/isDateInPast.js';
-import { getDatesArray } from '../utils/getDatesArray.js';
-import { getDate } from '../utils/getDate.js';
-import { isValidDate } from '../utils/isValidDate.js';
+import { generateId } from '../utils/Auth/generateId.js';
+import { isDateInPast } from '../utils/Date/isDateInPast.js';
+import { getDatesArray } from '../utils/Date/getDatesArray.js';
+import { getDate } from '../utils/Date/getDate.js';
+import { isValidDate } from '../utils/Date/isValidDate.js';
 import { pagination } from '../utils/pagination.js';
-import { sort } from '../utils/sort.js';
-
+import { filterLeavesByDate } from '../utils/leaves/filterLeavesByDate.js';
+import { filterLeavesByMonth } from '../utils/leaves/filterLeavesByMonth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
@@ -386,6 +386,8 @@ export const getAllLeaves = async (req, res) => {
         const limit=Number(req.query.limit)
         const offset=Number(req.query.offset)
         const name=req.query.name;
+        const date = req.query.date;
+        const month=Number(req.query.month);
 
         if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
 
@@ -398,14 +400,25 @@ export const getAllLeaves = async (req, res) => {
             if(name && !user.name.toLowerCase().includes(name.toLowerCase())) return ;
             if (user.leaveDetails && user.leaveDetails.length > 0) {
                 user.leaveDetails.forEach((leave) => {
-                    const leaveWithUser = {
-                        id: user.id,
-                        name: user.name,
-                        role:user.role,
-                        leaveDetails: leave,
-                    };
-                    totalLeaves++;
-                    allLeavesWithUsers.push(leaveWithUser);
+                    if(date){
+                        const leavesMatchingDate = filterLeavesByDate(user, date);
+                        console.log(leavesMatchingDate)
+                        allLeavesWithUsers.push(...leavesMatchingDate);
+                        totalLeaves += leavesMatchingDate.length;
+                    }else if(month){
+                        const leavesMatchingMonth=filterLeavesByMonth(user,month-1);
+                        allLeavesWithUsers.push(...leavesMatchingMonth);
+                        totalLeaves += leavesMatchingMonth.length;
+                    }else{
+                        const leaveWithUser = {
+                            id: user.id,
+                            name: user.name,
+                            role:user.role,
+                            leaveDetails: leave,
+                        };
+                        totalLeaves++;
+                        allLeavesWithUsers.push(leaveWithUser);
+                    }
                 });
             }
         });
