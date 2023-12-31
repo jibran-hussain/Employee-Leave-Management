@@ -3,10 +3,10 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import 'dotenv/config'
 import bcrypt from 'bcrypt';
-import { generateHashedPassword } from '../utils/generateHashedPassword.js';
+import { generateHashedPassword } from '../utils/Auth/generateHashedPassword.js';
 import { pagination } from '../utils/pagination.js';
-import { isValidNumber } from '../utils/isValidMobile.js';
-import { isValidEmail, passwordValidation } from '../utils/validations.js';
+import { isValidNumber } from '../utils/Validation/isValidMobile.js';
+import { isValidEmail, passwordValidation } from '../utils/Validation/validations.js';
 import { sort } from '../utils/sort.js';
 
 const __filename = fileURLToPath(import.meta.url);
