@@ -9,7 +9,7 @@ const router= express.Router();
 
 
 // Routes which logged in users can access
-router.post('me/leaves',isAuth,applyForLeave)
+router.post('/me/leaves',isAuth,applyForLeave)
 router.get('/me/leaves',isAuth,listLeaves);
 router.patch('/me/leaves/:leaveId',isAuth,updateLeave)
 router.put('/me/leaves/:leaveId',isAuth,updateLeaveByPutMethod)
