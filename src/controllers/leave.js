@@ -13,6 +13,7 @@ import { filterLeavesByDate } from '../utils/leaves/filterLeavesByDate.js';
 import { filterLeavesByMonth } from '../utils/leaves/filterLeavesByMonth.js';
 import { filterLeavesByYear } from '../utils/leaves/filterLeavesByYear.js';
 import { filterLeavesByMonthAndYear } from '../utils/leaves/filterLeavesByYearAndMonth.js';
+import { sort } from '../utils/sort.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
@@ -113,27 +114,56 @@ export const listAllEmployeeLeaves=async (req,res)=>{
 
         const limit=Number(req.query.limit)
         const offset=Number(req.query.offset)
+        const date = req.query.date;
+        const month=Number(req.query.month);
+        const year=Number(req.query.year)
 
         if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
 
         const employeeId=Number(req.params.employeeId)
         const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
         const fileData=JSON.parse(data);
-        const user=fileData.users.filter((user)=>{
-            if(user.id === employeeId && (user.role === 'employee' || user.role === 'admin')) {
-                return user;
+
+        let totalLeaves=0;
+        const allLeavesWithUsers = [];
+
+        const user=fileData.users.find(user=>user.id === employeeId)
+
+        user.leaveDetails.forEach((leave)=>{
+            if(month && year){
+                const leavesMatchingMonthAndYear= filterLeavesByMonthAndYear(user,leave,month-1,year);
+                allLeavesWithUsers.push(...leavesMatchingMonthAndYear);
+                totalLeaves += leavesMatchingMonthAndYear.length;
+            }
+            else if(date){
+                const leavesMatchingDate = filterLeavesByDate(user,leave, date);
+                allLeavesWithUsers.push(...leavesMatchingDate);
+                totalLeaves += leavesMatchingDate.length;
+            }else if(month){
+                const leavesMatchingMonth=filterLeavesByMonth(user,leave,month-1);
+                allLeavesWithUsers.push(...leavesMatchingMonth);
+                totalLeaves += leavesMatchingMonth.length;
+            }else if(year){
+                const leavesMatchingYear = filterLeavesByYear(user,leave, year);
+                allLeavesWithUsers.push(...leavesMatchingYear);
+                totalLeaves += leavesMatchingYear.length;
+            }else{
+                allLeavesWithUsers.push(leave);
+                totalLeaves += user.leaveDetails.length;
             }
         })
-        if(user.length == 0) return res.status(404).json({error:'No employee with this id exists'})
-        const leavesTaken=20-user[0].leavesLeft;
+
+        if(!user) return res.status(404).json({error:'No employee with this id exists'})
+        const leavesTaken=20-user.leavesLeft;
 
         if(limit && offset){
-            const paginatedArray=pagination(user[0].leaveDetails,offset,limit);
-            return res.json({leaves:paginatedArray,records:paginatedArray.length,leavesTaken})
+            const paginatedArray=pagination(allLeavesWithUsers,offset,limit);
+            return res.json({leaves:paginatedArray,records:paginatedArray.length,leavesTaken,page:offset})
         }
 
-        return res.json({leaves:user[0].leaveDetails,records:user[0].leaveDetails.length,leavesTaken})
+        return res.json({leaves:allLeavesWithUsers,records:allLeavesWithUsers.length,leavesTaken})
     }catch(e){
+        console.log(e)
         return res.status(500).json({message:e.message})
     }
 
@@ -363,7 +393,6 @@ export const getLeaveById = async (req, res) => {
         let foundLeave;
         let leave;
         fileData.users.forEach((user) => {
-            console.log(user)
             if (user.leaveDetails && user.leaveDetails.length > 0) {
                 const leave = user.leaveDetails.find((l) => l.leaveId === leaveId);
                 if (leave) {
@@ -393,6 +422,8 @@ export const getAllLeaves = async (req, res) => {
         const date = req.query.date;
         const month=Number(req.query.month);
         const year=Number(req.query.year)
+        const sortBy=req.query.sortBy
+        const order=req.query.order === 'desc' ? -1 : 1;
 
         if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
 
@@ -407,40 +438,53 @@ export const getAllLeaves = async (req, res) => {
                 user.leaveDetails.forEach((leave) => {
                     if(year && month){
                         const leavesMatchingMonthAndYear= filterLeavesByMonthAndYear(user,leave,month-1,year);
+                        leavesMatchingMonthAndYear.map(leaves=>{
+                            leaves.userId=user.id
+                            leaves.name=user.name
+                        })
                         allLeavesWithUsers.push(...leavesMatchingMonthAndYear);
                         totalLeaves += leavesMatchingMonthAndYear.length;
                     }else if(date){
                         const leavesMatchingDate = filterLeavesByDate(user,leave, date);
                         allLeavesWithUsers.push(...leavesMatchingDate);
+                        leavesMatchingDate.map(leaves=>{
+                            leaves.userId=user.id
+                            leaves.name=user.name
+                        })
                         totalLeaves += leavesMatchingDate.length;
+                        
                     }else if(year){
                         const leavesMatchingYear = filterLeavesByYear(user,leave, year);
                         allLeavesWithUsers.push(...leavesMatchingYear);
                         totalLeaves += leavesMatchingYear.length;
                     }else if(month){
                         const leavesMatchingMonth=filterLeavesByMonth(user,leave,month-1);
+                        leavesMatchingMonth.map(leaves=>{
+                            leaves.userId=user.id
+                            leaves.name=user.name
+                        })
                         allLeavesWithUsers.push(...leavesMatchingMonth);
                         totalLeaves += leavesMatchingMonth.length;
                     }else{
-                        const leaveWithUser = {
+                            const leaveWithUser = {
                             id: user.id,
                             name: user.name,
                             role:user.role,
                             leaveDetails: leave,
                         };
-                        totalLeaves++;
+                        totalLeaves=totalLeaves+leave.dates.length;
                         allLeavesWithUsers.push(leaveWithUser);
                     }
                 });
             }
         });
-
+        sort(allLeavesWithUsers,sortBy,order);
         if(limit && offset){
             const paginatedArray=pagination(allLeavesWithUsers,offset,limit);
-            return res.json({leaves:paginatedArray,records:paginatedArray.length,totalLeaves})
+            return res.json({leaves:paginatedArray,records:paginatedArray.length,totalLeaves:totalLeaves,page:offset})
         }
 
-        return res.json({leaves:allLeavesWithUsers,totalLeaves});
+        return res.json({leaves:allLeavesWithUsers,records:totalLeaves});
     } catch (e) {
         console.log(e);
         return res.status(500).json({ error: e.message });
