@@ -5,15 +5,14 @@ export const filterLeavesByDate = (user,leave, date) => {
     const leavesMatchingDate = [];
     const selectedDate = getDate(date);
     if (isValidDate(selectedDate)) return leavesMatchingDate;
-  
+
       leave.dates.forEach((ld) => {
         const leaveDate = getDate(ld);
         if (leaveDate.getTime() === selectedDate.getTime()) {
           const leaveWithUser = {
-            id: user.id,
-            name: user.name,
-            role: user.role,
-            leaveDetails: leave,
+            date:ld,
+            reason:leave.reason,
+            leaveId:leave.leaveId
           };
           leavesMatchingDate.push(leaveWithUser);
         }

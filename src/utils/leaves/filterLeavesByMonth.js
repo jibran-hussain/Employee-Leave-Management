@@ -7,13 +7,11 @@ export const filterLeavesByMonth = (user,leave, month) => {
         const leaveDate = getDate(ld);
         if (leaveDate.getMonth() === month) {
           const leaveWithUser = {
-            id: user.id,
-            name: user.name,
-            role: user.role,
-            leaveDetails: leave,
+            date:ld,
+            reason:leave.reason,
+            leaveId:leave.leaveId
           };
           leavesMatchingMonth.push(leaveWithUser);
-          break;
         }
       }
   
