@@ -3,7 +3,7 @@ import { fileURLToPath } from 'url';
 import {dirname} from 'path';
 import jwt from 'jsonwebtoken';
 import { isValidEmail,passwordValidation } from "../utils/Validation/validations.js";
-import { generateId } from '../utils/Auth/generateId.js';
+import { generateId } from '../utils/generateId.js';
 import { generateHashedPassword } from '../utils/Auth/generateHashedPassword.js';
 import { generateAuthToken } from '../utils/Auth/geneateAuthToken.js';
 import { isValidPassword } from '../utils/Validation/isValidPassword.js'
