@@ -38,13 +38,13 @@ export const applyForLeave=async (req,res)=>{
         
         const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
         const fileData=JSON.parse(data);
-        const updatedFileData=fileData.users.map((user)=>{
+        const promises=fileData.users.map(async(user)=>{
             if(user.id == id){
 
                 if(user.leavesLeft <= 0){
                     return res.status(403).json({message:"You have exhausted all your leaves"})
                 }
-                const {dates,leaveDuration}=getDatesArray(fromDate,toDate);
+                const {dates,leaveDuration}=await getDatesArray(id,fromDate,toDate);
 
                 if(dates.length > user.leavesLeft) return res.status(403).json({error: `You have only ${user.leavesLeft} leaves left and you are applying for  ${dates.length} days`})
 
@@ -54,6 +54,8 @@ export const applyForLeave=async (req,res)=>{
             }
             return user;
         })
+
+        const updatedFileData=await Promise.all(promises)
         const newFileData=JSON.stringify({users:updatedFileData})
 
         await fs.writeFile(`${__dirname}/../../db/users.json`,newFileData,'utf8')
