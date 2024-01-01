@@ -68,7 +68,7 @@ export const listAllEmployees=async(req,res)=>{
 
         if(limit && offset){
             const paginatedArray=pagination(employees,offset,limit);
-            return res.json({employees:paginatedArray,records:paginatedArray.length,totalEmployees})
+            return res.json({employees:paginatedArray,records:paginatedArray.length,totalEmployees,page:offset})
         }
 
         return res.json({employees,totalEmployees})
@@ -129,7 +129,7 @@ export const listAllDisabledEmployees=async (req,res)=>{
         if(limit && offset){
             const paginatedArray=pagination(disabledEmployees,offset,limit);
         const totalDisableEmployees=disabledEmployees.length;
-            return res.json({leaves:paginatedArray,records:paginatedArray.length,totalDisableEmployees})
+            return res.json({leaves:paginatedArray,records:paginatedArray.length,totalDisableEmployees,page:offset})
         }
         return res.json({disabledEmployees,records:totalDisableEmployees})
     }catch(e){
@@ -269,7 +269,7 @@ export const deleteEmployee=async (req,res)=>{
 export const updateProfile= async(req,res)=>{
     try{
         const userId=req.auth.id;
-        const {name,email,mobileNumber,password}=req.body;
+        const {name,email,mobileNumber}=req.body;
         // Fetching the logged in user
         const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
         const fileData=JSON.parse(data);
@@ -277,7 +277,6 @@ export const updateProfile= async(req,res)=>{
             if(user.id === userId){
                 if(name) user.name=name;
                 if(email) user.email=email;
-                if(password) user.hashedPassword=generateHashedPassword(password)
                 if(mobileNumber) {
                     isValidNumber(mobileNumber)
                     user.mobileNumber=mobileNumber
@@ -385,7 +384,7 @@ export const updateEmployeeProfileByPut=async(req,res)=>{
 export const updatedProfileByPutMethod= async(req,res)=>{
     try{
         const userId=req.auth.id;
-        const {name,email,mobileNumber,password}=req.body;
+        const {name,email,mobileNumber}=req.body;
         if(!name || !email || !mobileNumber || !password) return res.status(400).json({error:`All fields are mandatory`})
         // Fetching the logged in user
         const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
@@ -394,7 +393,6 @@ export const updatedProfileByPutMethod= async(req,res)=>{
             if(user.id === userId){
                 if(name) user.name=name;
                 if(email) user.email=email;
-                if(password) user.hashedPassword=generateHashedPassword(password)
                 if(mobileNumber) {
                     isValidNumber(mobileNumber)
                     user.mobileNumber=mobileNumber
