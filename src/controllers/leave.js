@@ -11,6 +11,8 @@ import { isValidDate } from '../utils/Date/isValidDate.js';
 import { pagination } from '../utils/pagination.js';
 import { filterLeavesByDate } from '../utils/leaves/filterLeavesByDate.js';
 import { filterLeavesByMonth } from '../utils/leaves/filterLeavesByMonth.js';
+import { filterLeavesByYear } from '../utils/leaves/filterLeavesByYear.js';
+import { filterLeavesByMonthAndYear } from '../utils/leaves/filterLeavesByYearAndMonth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
@@ -385,12 +387,12 @@ export const getLeaveById = async (req, res) => {
 
 export const getAllLeaves = async (req, res) => {
     try {
-        
         const limit=Number(req.query.limit)
         const offset=Number(req.query.offset)
         const name=req.query.name;
         const date = req.query.date;
         const month=Number(req.query.month);
+        const year=Number(req.query.year)
 
         if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
 
@@ -403,10 +405,18 @@ export const getAllLeaves = async (req, res) => {
             if(name && !user.name.toLowerCase().includes(name.toLowerCase())) return ;
             if (user.leaveDetails && user.leaveDetails.length > 0) {
                 user.leaveDetails.forEach((leave) => {
-                    if(date){
+                    if(year && month){
+                        const leavesMatchingMonthAndYear= filterLeavesByMonthAndYear(user,leave,month-1,year);
+                        allLeavesWithUsers.push(...leavesMatchingMonthAndYear);
+                        totalLeaves += leavesMatchingMonthAndYear.length;
+                    }else if(date){
                         const leavesMatchingDate = filterLeavesByDate(user,leave, date);
                         allLeavesWithUsers.push(...leavesMatchingDate);
                         totalLeaves += leavesMatchingDate.length;
+                    }else if(year){
+                        const leavesMatchingYear = filterLeavesByYear(user,leave, year);
+                        allLeavesWithUsers.push(...leavesMatchingYear);
+                        totalLeaves += leavesMatchingYear.length;
                     }else if(month){
                         const leavesMatchingMonth=filterLeavesByMonth(user,leave,month-1);
                         allLeavesWithUsers.push(...leavesMatchingMonth);
