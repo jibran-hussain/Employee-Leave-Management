@@ -10,14 +10,12 @@ export const filterLeavesByMonthAndYear = (user,leave,month, year) => {
         for (const ld of leave.dates) {
             const leaveDate = getDate(ld);
             if (leaveDate.getFullYear() === year && leaveDate.getMonth() === month) {
-            const leaveWithUser = {
-                id: user.id,
-                name: user.name,
-                role: user.role,
-                leaveDetails: leave,
-            };
-            leavesMatchingYearAndMonth.push(leaveWithUser);
-            break;
+                const leaveWithUser = {
+                    date:ld,
+                    reason:leave.reason,
+                    leaveId:leave.leaveId
+                  };
+                  leavesMatchingYearAndMonth.push(leaveWithUser);
             }
       }
        return leavesMatchingYearAndMonth;

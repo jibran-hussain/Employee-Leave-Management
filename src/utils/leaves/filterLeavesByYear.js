@@ -5,6 +5,7 @@ export const filterLeavesByYear = (user,leave, year) => {
         const leavesMatchingYear = [];
         const currentDate=new Date() ;
         currentDate.setUTCHours(0,0,0,0);
+        const matchingLeaves=[]
         if(year > currentDate.getFullYear()) throw new Error(`You can only see current and previous year's leave`);
         for (const ld of leave.dates) {
             const leaveDate = getDate(ld);
