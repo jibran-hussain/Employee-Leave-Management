@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 import 'dotenv/config'
 
+
+// Generates jwt token
 export const generateAuthToken=(id,email,role)=>{
     try{
         const token=jwt.sign({id,email,role},process.env.JWT_SECRET_KEY,{

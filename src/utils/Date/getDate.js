@@ -1,3 +1,5 @@
+// Take date as input in dd-mm-yyyy fomrat and then create its date object
+
 export const getDate=(date)=>{
     
     const [day, month, year] = date.split('-').map(date=>Number(date));

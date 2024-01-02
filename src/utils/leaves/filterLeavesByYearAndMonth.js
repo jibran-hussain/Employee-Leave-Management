@@ -1,5 +1,7 @@
 import { getDate } from "../Date/getDate.js";
 
+// It returns all those leaves applied in a particular year and particular month.
+
 export const filterLeavesByMonthAndYear = (user,leave,month, year) => {
     try{
         const leavesMatchingYearAndMonth = [];

@@ -6,6 +6,9 @@ import path, { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+
+// Generates the unique id when an employee is created and apllies for leave.
+
 export const generateId = async (entity) => {
     try {
         const data = await fs.readFile(`${__dirname}/../../db/id.json`, 'utf8');

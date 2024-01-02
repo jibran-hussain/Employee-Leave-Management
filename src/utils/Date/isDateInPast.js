@@ -1,3 +1,5 @@
+// Takes date as input and checks if this date is of past or not
+
 export const isDateInPast=(date)=>{
     try{
         const selectedDate=date ;

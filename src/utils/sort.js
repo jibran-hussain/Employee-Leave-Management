@@ -1,5 +1,7 @@
 import { getDate } from "./Date/getDate.js";
 
+// Sorts the data bassed on name,role,salary,id,date
+
 export const sort= (arr,sortBy,order)=>{
     if (sortBy === 'name' || sortBy === 'role' || sortBy === 'salary' || sortBy === 'id' || sortBy === 'date') {
         arr.sort((a, b) => {

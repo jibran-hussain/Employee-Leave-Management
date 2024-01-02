@@ -1,5 +1,7 @@
 import validator from 'validator';
 
+// Checks if email entered is valid or not
+
 export const isValidEmail=(email)=>{
     try{
         if(!validator.isEmail(email)) return false
@@ -8,6 +10,8 @@ export const isValidEmail=(email)=>{
         throw(e.message)
     }
 }
+
+// Checks if password entered is valid or not
 
 export const passwordValidation=(password)=>{
     try{

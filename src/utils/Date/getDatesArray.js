@@ -1,5 +1,7 @@
 import { isAlreadyLeave } from "../leaves/isAlreadyLeave.js";
 
+// Genrates the dates between the range of dates for applying leave excluding the day if it is a weekend or on this day user has already applied for leave
+
 export const getDatesArray= async (userId,fromDate,toDate)=>{
     try{
         let dates=[]

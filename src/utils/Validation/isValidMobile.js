@@ -1,3 +1,5 @@
+// Checks if a mobile number is valid or not
+
 export const isValidNumber=(mobileNumber)=>{
     if(!Number(mobileNumber)) throw new Error('Please enter a valid mobile Number')
 

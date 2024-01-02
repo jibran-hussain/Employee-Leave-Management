@@ -1,6 +1,8 @@
 import { isValidDate } from "../Date/isValidDate.js";
 import { getDate } from "../Date/getDate.js";
 
+// It returns all those leaves applied on a particular date by employees
+
 export const filterLeavesByDate = (user,leave, date) => {
     const leavesMatchingDate = [];
     const selectedDate = getDate(date);
