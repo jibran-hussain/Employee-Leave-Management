@@ -270,9 +270,21 @@ export const updateProfile= async(req,res)=>{
     try{
         const userId=req.auth.id;
         const {name,email,mobileNumber}=req.body;
+
+        if(email && !isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
+        if(mobileNumber) isValidNumber(mobileNumber);
+
         // Fetching the logged in user
         const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
         const fileData=JSON.parse(data);
+
+        // Checking if this email already exists or not
+        if(email){
+            const emailAlreadyExists=fileData.users.find(user=>user.email === email && user.id != userId);
+            if(emailAlreadyExists) return res.status(500).json({error:'Email already exists. Please try with another email'});
+        }
+
+
         const updatedUsers=fileData.users.map((user)=>{
             if(user.id === userId){
                 if(name) user.name=name;
@@ -325,6 +337,13 @@ export const updateEmployeeProfile=async(req,res)=>{
         if(salary && !Number(salary)) return res.status(400).json({error:"Please enter valid salary"})
         const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
         const fileData=JSON.parse(data);
+
+        // Checking if this email already exists or not
+        if(email){
+            const emailAlreadyExists=fileData.users.find(user=>user.email === email && user.id != userId);
+            if(emailAlreadyExists) return res.status(500).json({error:'Email already exists. Please try with another email'});
+        }
+
         const updatedUsers=fileData.users.map((user)=>{
             if(user.id === userId){
                 if(user.role === 'admin' && req.auth.role === 'admin') throw new Error('Admin cannot update other admins')
@@ -358,6 +377,13 @@ export const updateEmployeeProfileByPut=async(req,res)=>{
         if(salary && !Number(salary)) return res.status(400).json({error:"Please enter valid salary"})
         const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
         const fileData=JSON.parse(data);
+
+        // Checking if this email already exists or not
+        if(email){
+            const emailAlreadyExists=fileData.users.find(user=>user.email === email && user.id != userId);
+            if(emailAlreadyExists) return res.status(500).json({error:'Email already exists. Please try with another email'});
+        }
+
         const updatedUsers=fileData.users.map((user)=>{
             if(user.id === userId){
                 if(user.role === 'admin' && req.auth.role === 'admin') throw new Error('Admin cannot update other admins')
@@ -386,9 +412,20 @@ export const updatedProfileByPutMethod= async(req,res)=>{
         const userId=req.auth.id;
         const {name,email,mobileNumber}=req.body;
         if(!name || !email || !mobileNumber || !password) return res.status(400).json({error:`All fields are mandatory`})
+
+        if(email && !isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
+        if(mobileNumber) isValidNumber(mobileNumber);
+
         // Fetching the logged in user
         const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
         const fileData=JSON.parse(data);
+
+        // Checking if this email already exists or not
+        if(email){
+            const emailAlreadyExists=fileData.users.find(user=>user.email === email && user.id != userId);
+            if(emailAlreadyExists) return res.status(500).json({error:'Email already exists. Please try with another email'});
+        }
+
         const updatedUsers=fileData.users.map((user)=>{
             if(user.id === userId){
                 if(name) user.name=name;
