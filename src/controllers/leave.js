@@ -98,8 +98,8 @@ export const listAllAdminLeaves=async (req,res)=>{
         const leavesTaken=20-user[0].leavesLeft;
 
         if(limit && offset){
-            const paginatedArray=pagination(user[0]?.leaveDetails,offset,limit);
-            return res.json({leaves:paginatedArray,records:paginatedArray.length,leavesTaken})
+            const {paginatedArray,currentPage,totalPages}=pagination(user[0]?.leaveDetails,offset,limit);
+            return res.json({leaves:paginatedArray,records:paginatedArray.length,leavesTaken,currentPage,totalPages})
         }
         
         return res.json({leaves:user[0]?.leaveDetails,records:user[0]?.leaveDetails.length,leavesTaken})
@@ -157,8 +157,8 @@ export const listAllEmployeeLeaves=async (req,res)=>{
         const leavesTaken=20-user.leavesLeft;
 
         if(limit && offset){
-            const paginatedArray=pagination(allLeavesWithUsers,offset,limit);
-            return res.json({leaves:paginatedArray,records:paginatedArray.length,leavesTaken,page:offset})
+            const {paginatedArray,currentPage,totalPages}=pagination(allLeavesWithUsers,offset,limit);
+            return res.json({leaves:paginatedArray,records:paginatedArray.length,totalLeavesTaken:leavesTaken,currentPage,totalPages})
         }
 
         return res.json({leaves:allLeavesWithUsers,records:allLeavesWithUsers.length,leavesTaken})
@@ -348,8 +348,8 @@ export const listLeaves=async(req,res)=>{
         if(user.length == 0) return res.status(404).json({error:`Employee with this id does not exist`})
         const leavesTaken=20-user[0].leavesLeft;
         if(limit && offset){
-            const paginatedArray=pagination(user[0].leaveDetails,offset,limit);
-            return res.json({leaves:paginatedArray,records:paginatedArray.length,leavesTaken})
+            const {paginatedArray,currentPage,totalPages}=pagination(user[0].leaveDetails,offset,limit);
+            return res.json({leaves:paginatedArray,records:paginatedArray.length,leavesTaken,currentPage,totalPages})
         }
 
         return res.json({leaves:user[0].leaveDetails,leavesTaken});
@@ -480,8 +480,8 @@ export const getAllLeaves = async (req, res) => {
         });
         sort(allLeavesWithUsers,sortBy,order);
         if(limit && offset){
-            const paginatedArray=pagination(allLeavesWithUsers,offset,limit);
-            return res.json({leaves:paginatedArray,records:paginatedArray.length,totalLeaves:totalLeaves,page:offset})
+            const {paginatedArray,currentPage,totalPages}=pagination(allLeavesWithUsers,offset,limit);
+            return res.json({leaves:paginatedArray,records:paginatedArray.length,totalLeaves:totalLeaves,currentPage,totalPages})
         }
 
         return res.json({leaves:allLeavesWithUsers,records:totalLeaves});

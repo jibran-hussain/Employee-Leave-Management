@@ -67,13 +67,13 @@ export const listAllEmployees=async(req,res)=>{
         
 
         if(limit && offset){
-            const paginatedArray=pagination(employees,offset,limit);
-            return res.json({employees:paginatedArray,records:paginatedArray.length,totalEmployees,page:offset})
+            const {paginatedArray,totalPages,currentPage}=pagination(employees,offset,limit);
+            return res.json({employees:paginatedArray,records:paginatedArray.length,totalEmployees,currentPage,totalPages})
         }
 
         return res.json({employees,totalEmployees})
     }catch(e){
-        return res.status(500).json({message:e.message})
+        return res.status(500).json({error:e.message})
     }
 }
 
@@ -127,9 +127,9 @@ export const listAllDisabledEmployees=async (req,res)=>{
         const totalDisableEmployees=disabledEmployees.length;
 
         if(limit && offset){
-            const paginatedArray=pagination(disabledEmployees,offset,limit);
+            const {paginatedArray,totalPages,currentPage}=pagination(disabledEmployees,offset,limit);
         const totalDisableEmployees=disabledEmployees.length;
-            return res.json({leaves:paginatedArray,records:paginatedArray.length,totalDisableEmployees,page:offset})
+            return res.json({leaves:paginatedArray,records:paginatedArray.length,totalDisableEmployees,currentPage,totalPages})
         }
         return res.json({disabledEmployees,records:totalDisableEmployees})
     }catch(e){
