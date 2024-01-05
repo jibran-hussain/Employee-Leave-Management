@@ -34,6 +34,17 @@ export const createUser=async(req,res)=>{
         // Validatin salary
         if(!Number(salary)) return res.status(400).json("Please enter a valid salary")
 
+        // Fetching the data from users.json file
+        const data= await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
+        const fileData=JSON.parse(data);
+
+        // Check whether employee of this email-id already exists or not
+        const isExisting=fileData.users.some((user)=>user.email === email);
+        if(isExisting) return res.status(500).json({error:"Employee with this email already exists. Please try with another email id"})
+
+        // gnereate admin id 
+        let id= await generateId("user");
+
         if(role === 'admin'){
             if(req.auth.role != 'superadmin') return res.status(403).json({error:'You are not authorized to create an admin. Please login as superadmin'})
             const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
@@ -42,9 +53,6 @@ export const createUser=async(req,res)=>{
             // Check whether admin of this email-id already exists or not
             const isExisting=fileData.users.some((user)=>user.email === email);
             if(isExisting) return res.status(500).json({error:"Admin with this email already exists. Please try with another email id"})
-            
-            // gnereate admin id 
-            let id= await generateId("user");
 
             // Hashing the password
             const hashedPassword=generateHashedPassword(password);
@@ -63,12 +71,6 @@ export const createUser=async(req,res)=>{
         else if(role === "employee"){
             // Fetching the file and adding new employees
             if(req.auth.role != 'superadmin' &&  req.auth.role != 'admin') return res.status(403).json({error:'You are not authorized to create an employee. Please login as admin or superadmin'})
-            const data= await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
-            const fileData=JSON.parse(data);
-
-            // Check whether employee of this email-id already exists or not
-            const isExisting=fileData.users.some((user)=>user.email === email);
-            if(isExisting) return res.status(500).json({error:"Employee with this email already exists. Please try with another email id"})
 
             // Get the employeeId for the new employee
             let id=await generateId("user");
