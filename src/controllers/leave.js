@@ -484,7 +484,7 @@ export const getAllLeaves = async (req, res) => {
             return res.json({leaves:paginatedArray,records:paginatedArray.length,totalLeaves:totalLeaves,currentPage,totalPages})
         }
 
-        return res.json({leaves:allLeavesWithUsers,records:totalLeaves});
+        return res.json({leaves:allLeavesWithUsers,records:allLeavesWithUsers.length,totalLeaves});
     } catch (e) {
         console.log(e);
         return res.status(500).json({ error: e.message });
