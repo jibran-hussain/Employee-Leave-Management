@@ -386,7 +386,7 @@ export const getLeaveDetails=async(req,res)=>{
 
 export const getLeaveById = async (req, res) => {
     try {
-        const leaveId = Number(req.params.leavId);
+        const leaveId = Number(req.params.leaveId);
         const data = await fs.readFile(`${__dirname}/../../db/users.json`, 'utf8');
         const fileData = JSON.parse(data);
 
@@ -394,7 +394,7 @@ export const getLeaveById = async (req, res) => {
         let leave;
         fileData.users.forEach((user) => {
             if (user.leaveDetails && user.leaveDetails.length > 0) {
-                const leave = user.leaveDetails.find((l) => l.leaveId === leaveId);
+                leave = user.leaveDetails.find((l) => l.leaveId == leaveId);
                 if (leave) {
                     foundLeave = leave;
                 }
