@@ -280,15 +280,15 @@ export const updateProfile= async(req,res)=>{
 
         // Checking if this email already exists or not
         if(email){
-            const emailAlreadyExists=fileData.users.find(user=>user.email === email && user.id != userId);
-            if(emailAlreadyExists) return res.status(500).json({error:'Email already exists. Please try with another email'});
+            const emailAlreadyExists=fileData.users.find(user=>user.email === email.toLowerCase() && user.id != userId);
+            if(emailAlreadyExists) return res.status(409).json({error:'Email already exists. Please try with another email'});
         }
 
 
         const updatedUsers=fileData.users.map((user)=>{
             if(user.id === userId){
                 if(name) user.name=name;
-                if(email) user.email=email;
+                if(email) user.email=email.toLowerCase();
                 if(mobileNumber) {
                     isValidNumber(mobileNumber)
                     user.mobileNumber=mobileNumber
@@ -340,16 +340,17 @@ export const updateEmployeeProfile=async(req,res)=>{
 
         // Checking if this email already exists or not
         if(email){
-            const emailAlreadyExists=fileData.users.find(user=>user.email === email && user.id != userId);
-            if(emailAlreadyExists) return res.status(500).json({error:'Email already exists. Please try with another email'});
+            const emailAlreadyExists=fileData.users.find(user=>user.email === email.toLowerCase() && user.id != userId);
+            if(emailAlreadyExists) return res.status(409).json({error:'Email already exists. Please try with another email'});
         }
-
+        
+        let isAdmin=false;
         const updatedUsers=fileData.users.map((user)=>{
             if(user.id === userId){
-                if(user.role === 'admin' && req.auth.role === 'admin') throw new Error('Admin cannot update other admins')
+                if(user.role === 'admin' && req.auth.role === 'admin') isAdmin=true;
                 
                 if(name) user.name=name;
-                if(email) user.email=email;
+                if(email) user.email=email.toLowerCase();
                 if(mobileNumber) user.mobileNumber=mobileNumber;
                 if(role) user.role=role
                 if(password) user.hashedPassword=generateHashedPassword(password);
@@ -357,6 +358,7 @@ export const updateEmployeeProfile=async(req,res)=>{
             }
             return user;
         })
+        if(isAdmin) return res.status(403).json({error:'Admin cannot update other admins'})
         fileData.users=updatedUsers;
         const updatedFile=JSON.stringify(fileData)
         await fs.writeFile(`${__dirname}/../../db/users.json`,updatedFile,'utf8')
@@ -380,16 +382,18 @@ export const updateEmployeeProfileByPut=async(req,res)=>{
 
         // Checking if this email already exists or not
         if(email){
-            const emailAlreadyExists=fileData.users.find(user=>user.email === email && user.id != userId);
+            const emailAlreadyExists=fileData.users.find(user=>user.email === email.toLowerCase() && user.id != userId);
             if(emailAlreadyExists) return res.status(500).json({error:'Email already exists. Please try with another email'});
         }
 
+        let isAdmin=false;
+
         const updatedUsers=fileData.users.map((user)=>{
             if(user.id === userId){
-                if(user.role === 'admin' && req.auth.role === 'admin') throw new Error('Admin cannot update other admins')
+                if(user.role === 'admin' && req.auth.role === 'admin') isAdmin=true;
                 
                 if(name) user.name=name;
-                if(email) user.email=email;
+                if(email) user.email=email.toLowerCase();
                 if(mobileNumber) user.mobileNumber=mobileNumber;
                 if(role) user.role=role
                 if(password) user.hashedPassword=generateHashedPassword(password);
@@ -397,6 +401,7 @@ export const updateEmployeeProfileByPut=async(req,res)=>{
             }
             return user;
         })
+        if(isAdmin) return res.status(403).json({error:'Admin cannot update other admins'})
         fileData.users=updatedUsers;
         const updatedFile=JSON.stringify(fileData)
         await fs.writeFile(`${__dirname}/../../db/users.json`,updatedFile,'utf8')
