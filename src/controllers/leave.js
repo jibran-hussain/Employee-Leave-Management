@@ -14,6 +14,7 @@ import { filterLeavesByMonth } from '../utils/leaves/filterLeavesByMonth.js';
 import { filterLeavesByYear } from '../utils/leaves/filterLeavesByYear.js';
 import { filterLeavesByMonthAndYear } from '../utils/leaves/filterLeavesByYearAndMonth.js';
 import { sort } from '../utils/sort.js';
+import { promises } from 'dns';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
@@ -128,6 +129,7 @@ export const listAllEmployeeLeaves=async (req,res)=>{
         const allLeavesWithUsers = [];
 
         const user=fileData.users.find(user=>user.id === employeeId)
+        if(!user) return res.status(404).json({error:'No employee with this id exists'})
 
         user.leaveDetails.forEach((leave)=>{
             if(month && year){
@@ -153,7 +155,6 @@ export const listAllEmployeeLeaves=async (req,res)=>{
             }
         })
 
-        if(!user) return res.status(404).json({error:'No employee with this id exists'})
         const leavesTaken=20-user.leavesLeft;
 
         if(limit && offset){
@@ -161,9 +162,8 @@ export const listAllEmployeeLeaves=async (req,res)=>{
             return res.json({leaves:paginatedArray,records:paginatedArray.length,totalLeavesTaken:leavesTaken,currentPage,totalPages})
         }
 
-        return res.json({leaves:allLeavesWithUsers,records:allLeavesWithUsers.length,leavesTaken})
+        return res.json({leaves:allLeavesWithUsers,records:allLeavesWithUsers.length,totalLeavesTaken:leavesTaken})
     }catch(e){
-        console.log(e)
         return res.status(500).json({message:e.message})
     }
 
@@ -187,9 +187,9 @@ export const updateLeave=async(req,res)=>{
         let leaveFound=false;
         let leavesDeleted=0;
         let leaveLimitExceeded=false;
-        const updatedUsers= fileData.users.map((user)=>{
+        const promises= await fileData.users.map(async(user)=>{
             if(user.id == userId){
-                let leave=user.leaveDetails.map((leave)=>{
+                let leave=await Promise.all(user.leaveDetails.map(async(leave)=>{
                     if(leave.leaveId === leaveId){
                         leaveFound=true;
                         const currentDate=new Date();
@@ -202,7 +202,7 @@ export const updateLeave=async(req,res)=>{
                             leavesDeleted++;
                             return false;
                         })
-                        const addedLeaveDays=getDatesArray(fromDate,toDate);
+                        const addedLeaveDays=await getDatesArray(userId,fromDate,toDate);
                         
                         if(user.leavesLeft - leavesDeleted + addedLeaveDays.dates.length > 20) leaveLimitExceeded=true;
 
@@ -211,12 +211,13 @@ export const updateLeave=async(req,res)=>{
                         if(reason) leave.reason=reason
                 }
                     return leave
-                })
+                }))
                 user.leaveDetails=leave;
                 user.leavesLeft=user.leavesLeft + leavesDeleted;
             }
             return user;
         })
+        const updatedUsers=await Promise.all(promises)
         if(leaveLimitExceeded) return res.status(403).json({error: 'You do not have enough leaves left'})
         if(!leaveFound) return res.status(404).json({error:"This leave id does not exist."})
 
@@ -225,6 +226,7 @@ export const updateLeave=async(req,res)=>{
         return res.json({message:'Leave updated successfully'})          
 
     }catch(e){
+        console.log(e)
         return res.status(500).json({error:e.message})
     }   
 }
@@ -246,9 +248,9 @@ export const updateLeaveByPutMethod=async(req,res)=>{
         let leaveFound=false;
         let leavesDeleted=0;
         let leaveLimitExceeded=false;
-        const updatedUsers= fileData.users.map((user)=>{
+        const promises= fileData.users.map(async (user)=>{
             if(user.id == userId){
-                let leave=user.leaveDetails.map((leave)=>{
+                let leave=await Promise.all(user.leaveDetails.map(async(leave)=>{
                     if(leave.leaveId === leaveId){
                         leaveFound=true;
                         const currentDate=new Date();
@@ -261,8 +263,9 @@ export const updateLeaveByPutMethod=async(req,res)=>{
                             leavesDeleted++;
                             return false;
                         })
-                        const addedLeaveDays=getDatesArray(fromDate,toDate);
-                        
+                        const addedLeaveDays=await getDatesArray(userId,fromDate,toDate);
+                        console.log(addedLeaveDays,'qqqqqqqqqqqqqqqq')
+
                         if(user.leavesLeft - leavesDeleted + addedLeaveDays.dates.length > 20) leaveLimitExceeded=true;
 
                         leave.dates=[...newDates,...addedLeaveDays.dates];
@@ -270,12 +273,14 @@ export const updateLeaveByPutMethod=async(req,res)=>{
                         if(reason) leave.reason=reason
                     }
                     return leave
-                })
+                }))
                 user.leaveDetails=leave;
                 user.leavesLeft=user.leavesLeft + leavesDeleted;
             }
             return user;
         })
+        const updatedUsers=await Promise.all(promises)
+
         if(leaveLimitExceeded) return res.status(403).json({error: 'You do not have enough leaves left'})
         if(!leaveFound) return res.status(404).json({error:"This leave id does not exist."})
 
@@ -337,6 +342,9 @@ export const listLeaves=async(req,res)=>{
 
         const limit=Number(req.query.limit)
         const offset=Number(req.query.offset)
+        const date = req.query.date;
+        const month=Number(req.query.month);
+        const year=Number(req.query.year)
 
         if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
 
@@ -344,17 +352,44 @@ export const listLeaves=async(req,res)=>{
         const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
         const fileData=JSON.parse(data);
 
-        const user=fileData.users.filter((user)=>user.id === userId);
+        const user=fileData.users.find((user)=>user.id === userId);
         if(user.length == 0) return res.status(404).json({error:`Employee with this id does not exist`})
-        const leavesTaken=20-user[0].leavesLeft;
+
+        const allLeavesWithUsers = [];
+        let totalLeaves=0;
+        user.leaveDetails.forEach((leave)=>{
+            if(month && year){
+                const leavesMatchingMonthAndYear= filterLeavesByMonthAndYear(user,leave,month-1,year);
+                allLeavesWithUsers.push(...leavesMatchingMonthAndYear);
+                totalLeaves += leavesMatchingMonthAndYear.length;
+            }
+            else if(date){
+                const leavesMatchingDate = filterLeavesByDate(user,leave, date);
+                allLeavesWithUsers.push(...leavesMatchingDate);
+                totalLeaves += leavesMatchingDate.length;
+            }else if(month){
+                const leavesMatchingMonth=filterLeavesByMonth(user,leave,month-1);
+                allLeavesWithUsers.push(...leavesMatchingMonth);
+                totalLeaves += leavesMatchingMonth.length;
+            }else if(year){
+                const leavesMatchingYear = filterLeavesByYear(user,leave, year);
+                allLeavesWithUsers.push(...leavesMatchingYear);
+                totalLeaves += leavesMatchingYear.length;
+            }else{
+                allLeavesWithUsers.push(leave);
+                totalLeaves += user.leaveDetails.length;
+            }
+        })
+        const leavesTaken=20-user.leavesLeft;
         if(limit && offset){
-            const {paginatedArray,currentPage,totalPages}=pagination(user[0].leaveDetails,offset,limit);
-            return res.json({leaves:paginatedArray,records:paginatedArray.length,leavesTaken,currentPage,totalPages})
+            const {paginatedArray,currentPage,totalPages}=pagination(allLeavesWithUsers,offset,limit);
+            return res.json({leaves:paginatedArray,records:paginatedArray.length,totalLeavesTaken:leavesTaken,currentPage,totalPages})
         }
 
-        return res.json({leaves:user[0].leaveDetails,leavesTaken});
+        return res.json({leaves:allLeavesWithUsers,records:allLeavesWithUsers.length,totalLeavesTaken:leavesTaken})
     }catch(e){
-        return res.status(500).json({error:'Internal Server Error'});
+        console.log(e)
+        return res.status(500).json({error:e.message});
     }
 }
 
