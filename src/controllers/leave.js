@@ -15,6 +15,7 @@ import { filterLeavesByYear } from '../utils/leaves/filterLeavesByYear.js';
 import { filterLeavesByMonthAndYear } from '../utils/leaves/filterLeavesByYearAndMonth.js';
 import { sort } from '../utils/sort.js';
 import { promises } from 'dns';
+import { get } from 'http';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
@@ -346,6 +347,49 @@ export const deleteLeave=async(req,res)=>{
         return res.json({message:' Leave deleted successfully'})
 
     }catch(e){
+        return res.status(500).json({error:e.message})
+    }
+}
+
+export const deleteLeaveByDate=async(req,res)=>{
+    try{
+        const userId=req.auth.id;
+        const dateToDelete=req.params.date;
+
+        if(isValidDate(getDate(dateToDelete))) return res.status(400).json({error:`Please enter a valid date`}); 
+        if(isDateInPast(getDate(dateToDelete))) return res.status(403).json({error:`This date is of past. You cannot delete it`}); 
+
+        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
+        const fileData=JSON.parse(data);
+
+        let isApplied=false;
+
+        const updatedUsers=fileData.users.map((user)=>{
+            if(user.id === userId){
+                const updatedLeaveDetails=user.leaveDetails.map((leave)=>{
+                    const newDates=leave.dates.filter(date=>{
+                        if(getDate(date).getTime() === getDate(dateToDelete).getTime()){
+                            isApplied=true;
+                            return false;
+                        }
+                        return true;
+                    })
+                    leave.dates=newDates;
+                    return leave;
+                })
+                user.leaveDetails=updatedLeaveDetails;
+            }
+            return user;
+        })
+
+        if(!isApplied) return res.status(404).json({error:'You have not applied for leave on this date'});
+
+        const newUpdatedFile=JSON.stringify({users:updatedUsers})
+        await fs.writeFile(`${__dirname}/../../db/users.json`,newUpdatedFile,'utf8')
+        return res.json({message:' Leave deleted successfully'})
+
+    }catch(e){
+        console.log(e);
         return res.status(500).json({error:e.message})
     }
 }
