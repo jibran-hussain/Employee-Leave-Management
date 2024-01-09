@@ -192,12 +192,13 @@ export const getLoggedUsersDetails=async(req,res)=>{
         const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
         const fileData=JSON.parse(data);
 
-        const user=fileData.users.filter((user)=>user.id === userId && user.role === role);
-        user[0].hashedPassword=undefined;
-        user[0].active=undefined;
-        return res.json({user:user[0]})
+        const user=fileData.users.find((user)=>user.id === userId);
+        if(user.hashedPassword) user.hashedPassword=undefined;
+        if(user) user.active=undefined;
+        return res.json({user})
 
     }catch(e){
+        console.log(e)
         return res.status(500).json({error:e.message})
     }
 }
@@ -284,6 +285,9 @@ export const updateProfile= async(req,res)=>{
             if(emailAlreadyExists) return res.status(409).json({error:'Email already exists. Please try with another email'});
         }
 
+        // Generating the timestamp
+        const currentDate=new Date();
+        const timestamp=currentDate.getTime();
 
         const updatedUsers=fileData.users.map((user)=>{
             if(user.id === userId){
@@ -293,6 +297,7 @@ export const updateProfile= async(req,res)=>{
                     isValidNumber(mobileNumber)
                     user.mobileNumber=mobileNumber
                 }
+                user.lastModified=timestamp;
             }
             return user;
         })
@@ -345,6 +350,11 @@ export const updateEmployeeProfile=async(req,res)=>{
         }
         
         let isAdmin=false;
+
+        // Generating the timestamp
+        const currentDate=new Date();
+        const timestamp=currentDate.getTime();
+
         const updatedUsers=fileData.users.map((user)=>{
             if(user.id === userId){
                 if(user.role === 'admin' && req.auth.role === 'admin') isAdmin=true;
@@ -355,6 +365,8 @@ export const updateEmployeeProfile=async(req,res)=>{
                 if(role) user.role=role
                 if(password) user.hashedPassword=generateHashedPassword(password);
                 if(salary) user.salary=salary
+
+                user.lastModified=timestamp;
             }
             return user;
         })
@@ -373,7 +385,6 @@ export const updateEmployeeProfileByPut=async(req,res)=>{
     try{
         const userId=Number(req.params.employeeId);
         const {name,email,mobileNumber,role,password,salary}=req.body;
-        if(!name || !email || !mobileNumber || !role || !password || !salary) return res.status(400).json({error:`All fields are mandatory`}) 
         if(email && !isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
         if(mobileNumber) isValidNumber(mobileNumber);
         if(salary && !Number(salary)) return res.status(400).json({error:"Please enter valid salary"})
@@ -388,16 +399,27 @@ export const updateEmployeeProfileByPut=async(req,res)=>{
 
         let isAdmin=false;
 
+        // Generating the timestamp
+        const currentDate=new Date();
+        const timestamp=currentDate.getTime();
+
         const updatedUsers=fileData.users.map((user)=>{
             if(user.id === userId){
                 if(user.role === 'admin' && req.auth.role === 'admin') isAdmin=true;
-                
-                if(name) user.name=name;
-                if(email) user.email=email.toLowerCase();
-                if(mobileNumber) user.mobileNumber=mobileNumber;
-                if(role) user.role=role
-                if(password) user.hashedPassword=generateHashedPassword(password);
-                if(salary) user.salary=salary
+                const updatedUser={
+                    id:user.id,
+                    active:user.active
+                }
+                if(name) updatedUser.name=name;
+                if(email) updatedUser.email=email.toLowerCase();
+                if(mobileNumber) updatedUser.mobileNumber=mobileNumber;
+                if(role) updatedUser.role=role
+                if(password) updatedUser.hashedPassword=generateHashedPassword(password);
+                if(salary) updatedUser.salary=salary
+
+                updatedUser.lastModified=timestamp
+
+                return updatedUser;
             }
             return user;
         })
@@ -416,8 +438,6 @@ export const updatedProfileByPutMethod= async(req,res)=>{
     try{
         const userId=req.auth.id;
         const {name,email,mobileNumber}=req.body;
-        if(!name || !email || !mobileNumber || !password) return res.status(400).json({error:`All fields are mandatory`})
-
         if(email && !isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
         if(mobileNumber) isValidNumber(mobileNumber);
 
@@ -431,14 +451,24 @@ export const updatedProfileByPutMethod= async(req,res)=>{
             if(emailAlreadyExists) return res.status(500).json({error:'Email already exists. Please try with another email'});
         }
 
+        // Generating the timestamp
+        const currentDate=new Date();
+        const timestamp=currentDate.getTime();
+
         const updatedUsers=fileData.users.map((user)=>{
             if(user.id === userId){
-                if(name) user.name=name;
-                if(email) user.email=email;
+                const updatedUser={
+                    id:user.id,
+                    active:user.active
+                }
+                if(name) updatedUser.name=name;
+                if(email) updatedUser.email=email;
                 if(mobileNumber) {
                     isValidNumber(mobileNumber)
-                    user.mobileNumber=mobileNumber
+                    updatedUser.mobileNumber=mobileNumber
                 }
+                updatedUser.lastModified=timestamp
+                return updatedUser;
             }
             return user;
         })
