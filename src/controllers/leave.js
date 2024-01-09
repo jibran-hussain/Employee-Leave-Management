@@ -14,8 +14,8 @@ import { filterLeavesByMonth } from '../utils/leaves/filterLeavesByMonth.js';
 import { filterLeavesByYear } from '../utils/leaves/filterLeavesByYear.js';
 import { filterLeavesByMonthAndYear } from '../utils/leaves/filterLeavesByYearAndMonth.js';
 import { sort } from '../utils/sort.js';
-import { promises } from 'dns';
-import { get } from 'http';
+import { generateTimestamp } from '../utils/Date/generateTimestamp.js';
+import { time } from 'console';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
@@ -189,10 +189,6 @@ export const updateLeave=async(req,res)=>{
         let leavesDeleted=0;
         let leaveLimitExceeded=false;
 
-        // Generating the timestamp
-        const currentDate=new Date();
-        const timestamp=currentDate.getTime();
-
         const promises= await fileData.users.map(async(user)=>{
             if(user.id == userId){
                 let leave=await Promise.all(user.leaveDetails.map(async(leave)=>{
@@ -216,6 +212,9 @@ export const updateLeave=async(req,res)=>{
                         leavesDeleted=leavesDeleted-addedLeaveDays.dates.length
                         if(reason) leave.reason=reason
 
+                        // Generating the timestamp
+
+                        const timestamp=generateTimestamp();
                         leave.lastModified=timestamp;
                 }
                     return leave
@@ -277,7 +276,6 @@ export const updateLeaveByPutMethod=async(req,res)=>{
                             return false;
                         })
                         const addedLeaveDays=await getDatesArray(userId,fromDate,toDate);
-                        console.log(addedLeaveDays,'qqqqqqqqqqqqqqqq')
 
                         if(user.leavesLeft - leavesDeleted + addedLeaveDays.dates.length > 20) leaveLimitExceeded=true;
 
@@ -337,6 +335,9 @@ export const deleteLeave=async(req,res)=>{
                 })
                 user.leaveDetails=leave
                 user.leavesLeft=user.leavesLeft + deletedLevesCount;
+                const timestamp=generateTimestamp();
+                user.lastModified=timestamp;
+
                 return user;
             }
             return user;
@@ -370,6 +371,8 @@ export const deleteLeaveByDate=async(req,res)=>{
                     const newDates=leave.dates.filter(date=>{
                         if(getDate(date).getTime() === getDate(dateToDelete).getTime()){
                             isApplied=true;
+                            const timestamp=generateTimestamp();
+                            leave.lastModified=timestamp;
                             return false;
                         }
                         return true;
