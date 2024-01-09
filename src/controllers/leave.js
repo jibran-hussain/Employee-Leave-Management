@@ -187,6 +187,11 @@ export const updateLeave=async(req,res)=>{
         let leaveFound=false;
         let leavesDeleted=0;
         let leaveLimitExceeded=false;
+
+        // Generating the timestamp
+        const currentDate=new Date();
+        const timestamp=currentDate.getTime();
+
         const promises= await fileData.users.map(async(user)=>{
             if(user.id == userId){
                 let leave=await Promise.all(user.leaveDetails.map(async(leave)=>{
@@ -209,6 +214,8 @@ export const updateLeave=async(req,res)=>{
                         leave.dates=[...newDates,...addedLeaveDays.dates];
                         leavesDeleted=leavesDeleted-addedLeaveDays.dates.length
                         if(reason) leave.reason=reason
+
+                        leave.lastModified=timestamp;
                 }
                     return leave
                 }))
@@ -248,6 +255,11 @@ export const updateLeaveByPutMethod=async(req,res)=>{
         let leaveFound=false;
         let leavesDeleted=0;
         let leaveLimitExceeded=false;
+
+        // Generating the timestamp
+        const currentDate=new Date();
+        const timestamp=currentDate.getTime();
+
         const promises= fileData.users.map(async (user)=>{
             if(user.id == userId){
                 let leave=await Promise.all(user.leaveDetails.map(async(leave)=>{
@@ -271,6 +283,8 @@ export const updateLeaveByPutMethod=async(req,res)=>{
                         leave.dates=[...newDates,...addedLeaveDays.dates];
                         leavesDeleted=leavesDeleted-addedLeaveDays.dates.length
                         if(reason) leave.reason=reason
+
+                        leave.lastModified=timestamp;
                     }
                     return leave
                 }))
