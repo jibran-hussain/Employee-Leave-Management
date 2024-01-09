@@ -1,5 +1,5 @@
 import express from 'express'
-import { applyForLeave,listLeaves,updateLeave,updateLeaveByPutMethod,deleteLeave,getLeaveDetails,listAllEmployeeLeaves,getLeaveById,getAllLeaves } from '../controllers/leave.js';
+import { applyForLeave,listLeaves,updateLeave,updateLeaveByPutMethod,deleteLeave,getLeaveDetails,listAllEmployeeLeaves,getLeaveById,getAllLeaves,deleteLeaveByDate } from '../controllers/leave.js';
 import { isAuth } from '../middlewares/isAuth.js';
 import { isEmployee } from '../middlewares/isEmployee.js';
 import { isAdminOrSuperadmin } from '../middlewares/isAdminOrSuperadmin.js';
@@ -14,6 +14,7 @@ router.get('/me/leaves',isAuth,listLeaves);
 router.patch('/me/leaves/:leaveId',isAuth,updateLeave)
 router.put('/me/leaves/:leaveId',isAuth,updateLeaveByPutMethod)
 router.delete('/me/leaves/:leaveId',isAuth,deleteLeave)
+router.delete('/me/leave/:date',isAuth,deleteLeaveByDate)
 router.get('/me/leaves/:leaveId',isAuth,getLeaveDetails)
 
 // Routes which superadmin and admin can access
