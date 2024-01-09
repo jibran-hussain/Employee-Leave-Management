@@ -8,6 +8,7 @@ import { pagination } from '../utils/pagination.js';
 import { isValidNumber } from '../utils/Validation/isValidMobile.js';
 import { isValidEmail, passwordValidation } from '../utils/Validation/validations.js';
 import { sort } from '../utils/sort.js';
+import {generateTimestamp} from '../utils/Date/generateTimestamp.js'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
@@ -148,6 +149,9 @@ export const activateAccount=async (req,res)=>{
         const userId=Number(req.params.employeeId)
         const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
         const fileData=JSON.parse(data);
+
+        // Generating the timestamp
+        const timestamp=generateTimestamp();
         
         let userToActivate;
         let updatedUsersList;
@@ -155,6 +159,7 @@ export const activateAccount=async (req,res)=>{
                 updatedUsersList= fileData.users.map((user)=>{
                 if(user.id === userId){
                     user.active=true;
+                    user.lastModified=timestamp
                     userToActivate=user;
                 };
                 return user;
@@ -164,6 +169,7 @@ export const activateAccount=async (req,res)=>{
                 if(user.id === userId && user.role === 'admin') userToActivate=user;
                 if(user.id === userId && user.role === 'employee'){
                     user.active=true;
+                    user.lastModified=timestamp
                     userToActivate=user;
                 };
                 return user;
@@ -216,10 +222,15 @@ export const deleteEmployee=async (req,res)=>{
         
         let userToDelete;
         let updatedUsersList;
+
+        // Generating the timestamp
+        const timestamp=generateTimestamp();
+
         if(req.auth.role === 'superadmin'){
                 updatedUsersList= fileData.users.map((user)=>{
                 if(user.id === userId){
                     user.active=false;
+                    user.lastModified=timestamp
                     userToDelete=user;
                 }
                 else if(user.id === req.auth.id) userToDelete=user;
@@ -228,14 +239,16 @@ export const deleteEmployee=async (req,res)=>{
         }
         else if(req.auth.role === 'admin'){
                 updatedUsersList= fileData.users.map((user)=>{
-                if(user.id === req.auth.id){
+                if(user.id === userId){
                     user.active=false;
+                    user.lastModified=timestamp
                     userToDelete={...user};
                     userToDelete.role='me';
                 }
                 else if(user.id === userId && user.role === 'admin') userToDelete=user;
                 else if(user.id === userId && user.role === 'employee'){
                     user.active=false;
+                    user.lastModified=timestamp
                     userToDelete=user;
                 };
                 return user;
@@ -246,6 +259,7 @@ export const deleteEmployee=async (req,res)=>{
                 if(user.id === req.auth.id){
                     userToDelete=user;
                     user.active=false;
+                    user.lastModified=timestamp
                 }
                 return user;
             })
@@ -286,8 +300,7 @@ export const updateProfile= async(req,res)=>{
         }
 
         // Generating the timestamp
-        const currentDate=new Date();
-        const timestamp=currentDate.getTime();
+        const timestamp=generateTimestamp();
 
         const updatedUsers=fileData.users.map((user)=>{
             if(user.id === userId){
@@ -352,8 +365,7 @@ export const updateEmployeeProfile=async(req,res)=>{
         let isAdmin=false;
 
         // Generating the timestamp
-        const currentDate=new Date();
-        const timestamp=currentDate.getTime();
+        const timestamp=generateTimestamp();
 
         const updatedUsers=fileData.users.map((user)=>{
             if(user.id === userId){
@@ -400,8 +412,7 @@ export const updateEmployeeProfileByPut=async(req,res)=>{
         let isAdmin=false;
 
         // Generating the timestamp
-        const currentDate=new Date();
-        const timestamp=currentDate.getTime();
+        const timestamp=generateTimestamp();
 
         const updatedUsers=fileData.users.map((user)=>{
             if(user.id === userId){
@@ -452,8 +463,7 @@ export const updatedProfileByPutMethod= async(req,res)=>{
         }
 
         // Generating the timestamp
-        const currentDate=new Date();
-        const timestamp=currentDate.getTime();
+        const timestamp=generateTimestamp();
 
         const updatedUsers=fileData.users.map((user)=>{
             if(user.id === userId){
