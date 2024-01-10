@@ -99,7 +99,7 @@ export const userSignin=async(req,res)=>{
         if(!isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
 
         // Checks whether password is Empty
-        if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty`})
+        if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty and should have more than 3 characters`})
 
         const data= await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
         const fileData=JSON.parse(data);
