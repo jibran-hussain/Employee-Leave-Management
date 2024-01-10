@@ -9,10 +9,10 @@ const router=express.Router();
 router.get('/employees',isAuth,isAdminOrSuperadmin,listAllEmployees)
 router.delete('/employees/:employeeId',isAuth,isAdminOrSuperadmin,deleteEmployee)
 router.get('/employees/disabled',isAuth,isAdminOrSuperadmin,listAllDisabledEmployees)
-router.post('/employee/:employeeId/activate',isAuth,isAdminOrSuperadmin,activateAccount)
+router.post('/employees/:employeeId/activate',isAuth,isAdminOrSuperadmin,activateAccount)
 router.get('/employees/:employeeId',isAuth,isAdminOrSuperadmin,getEmployeeDetails)
-router.patch("/employee/:employeeId",isAuth,isAdminOrSuperadmin,updateEmployeeProfile)
-router.put("/employee/:employeeId",isAuth,isAdminOrSuperadmin,updateEmployeeProfileByPut)
+router.patch("/employees/:employeeId",isAuth,isAdminOrSuperadmin,updateEmployeeProfile)
+router.put("/employees/:employeeId",isAuth,isAdminOrSuperadmin,updateEmployeeProfileByPut)
 
 // Route which everyone can access
 router.get('/me',isAuth,getLoggedUsersDetails)
