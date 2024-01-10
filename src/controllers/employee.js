@@ -145,7 +145,7 @@ export const listAllDisabledEmployees=async (req,res)=>{
 
 export const activateAccount=async (req,res)=>{
     try{
-
+        
         const userId=Number(req.params.employeeId)
         const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
         const fileData=JSON.parse(data);
@@ -517,6 +517,8 @@ export const resetPassword=async(req,res)=>{
         const updatedUsers=fileData.users.map((user)=>{
             if(user.id === userId){
                 user.hashedPassword=newHashedPassword
+                // Generate Timestamp
+                user.lastModified=generateTimestamp();
             }
             return user;
         })
