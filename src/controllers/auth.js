@@ -2,11 +2,11 @@ import fs from 'fs/promises'
 import { fileURLToPath } from 'url';
 import {dirname} from 'path';
 import { isValidEmail,passwordValidation } from "../utils/Validation/validations.js";
-import { generateId } from '../utils/generateId.js';
 import { generateHashedPassword } from '../utils/Auth/generateHashedPassword.js';
 import { generateAuthToken } from '../utils/Auth/geneateAuthToken.js';
 import { isValidPassword } from '../utils/Validation/isValidPassword.js'
 import { isValidNumber } from '../utils/Validation/isValidMobile.js';
+import Employee from '../models/employee.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename)
@@ -19,7 +19,13 @@ const __dirname = dirname(__filename)
 export const createUser=async(req,res)=>{
     try{
         const {name,email,password,role,mobileNumber,salary}=req.body;
+
         if(!name ||!email || !password || !role || !mobileNumber ||!salary) return res.json({message:'All fields are mandatory'})
+
+        if(role != 'admin' && role != 'employee') return res.status(400).json({error:`Please enter a valid role`})
+
+        if(role === 'admin' && req.auth.role != 'superadmin') return res.status(403).json({error:'You are not authorized to create an admin. Please login as superadmin'});
+        if(role === "employee" && (req.auth.role != 'superadmin' ||  req.auth.role != 'admin')) return res.status(403).json({error:'You are not authorized to create an employee. Please login as admin or superadmin'})
 
         // Check if it is a valid email or not
         if(!isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
@@ -31,59 +37,24 @@ export const createUser=async(req,res)=>{
         isValidNumber(mobileNumber);
 
         // Validatin salary
-        if(!Number(salary)) return res.status(400).json("Please enter a valid salary")
+        if(!Number(salary) && salary < 0) return res.status(400).json("Please enter a valid salary")
 
-        if(role === 'admin'){
-            if(req.auth.role != 'superadmin') return res.status(403).json({error:'You are not authorized to create an admin. Please login as superadmin'})
-            const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
-            const fileData=JSON.parse(data);
+        // Check whether employee of this email-id already exists or not
+        const isEmailExisting=await Employee.findOne({where:{
+            email:email.toLowerCase()
+        }})
 
-            // Check whether admin of this email-id already exists or not
-            const isExisting=fileData.users.some((user)=>user.email === email.toLowerCase());
-            if(isExisting) return res.status(409).json({error:"Admin with this email already exists. Please try with another email id"})
+        if(isEmailExisting) return res.status(409).json({error:"Admin with this email already exists. Please try with another email id"})
             
-            // gnereate admin id 
-            let id= await generateId("user");
+        // Hashing the password
+        const hashedPassword=generateHashedPassword(password);
 
-            // Hashing the password
-            const hashedPassword=generateHashedPassword(password);
+        await Employee.create({name,email:email.toLowerCase(),hashedPassword,mobileNumber,salary,role});
 
-            const newAdmin={id,role:"admin",name,email:email.toLowerCase(),hashedPassword,mobileNumber,leavesLeft:20,leaveDetails:[],active:true};
-
-            fileData.users.push(newAdmin);
-            const newFileData=JSON.stringify(fileData)
-            await fs.writeFile(`${__dirname}/../../db/users.json`,newFileData,'utf8')
-
-            return res.status(201).json({message:`Admin created successfully`});
-        }
-        else if(role === "employee"){
-            // Fetching the file and adding new employees
-            if(req.auth.role != 'superadmin' &&  req.auth.role != 'admin') return res.status(403).json({error:'You are not authorized to create an employee. Please login as admin or superadmin'})
-            const data= await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
-            const fileData=JSON.parse(data);
-
-            // Check whether employee of this email-id already exists or not
-            const isExisting=fileData.users.some((user)=>user.email === email.toLowerCase());
-            if(isExisting) return res.status(409).json({error:"Employee with this email already exists. Please try with another email id"})
-
-            // Get the employeeId for the new employee
-            let id=await generateId("user");
-
-            // Hashing the password
-            const hashedPassword=generateHashedPassword(password);
-            
-            const newEmployee={id,role:"employee",name,email:email.toLowerCase(),hashedPassword,mobileNumber,leavesLeft:20,leaveDetails:[],active:true,createdBy:req.auth.id};
-            fileData.users.push(newEmployee);
-            const newFileData=JSON.stringify(fileData)
-
-            // Saving the new employee in JSON database
-            await fs.writeFile(`${__dirname}/../../db/users.json`,newFileData,'utf8')
-            return res.status(201).json({message:`Employee created successfully`});
-        }else{
-            return res.status(400).json({error:`Please enter a valid role`})
-        }
+        return res.status(201).json({message:`Employee created successfully`});
+        
     }catch(e){
-        return res.status(500).json({error:e.message})
+        return res.status(500).json({error:`Internal Server Error`})
     }
 }
 
@@ -101,28 +72,17 @@ export const userSignin=async(req,res)=>{
         // Checks whether password is Empty
         if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty and should have more than 3 characters`})
 
-        const data= await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
-        const fileData=JSON.parse(data);
-
-        let isDeactivated=false;
+        const employee=await Employee.findOne({where:{email:email.toLowerCase()}})
         
-        const user=fileData.users.filter((user)=>{
-            if(user.email === email.toLowerCase() && isValidPassword(password,user.hashedPassword)){
-                if(user.active === false) isDeactivated=true;
-                return true;
-            };
-            return false
-              })
+        if(!employee) return res.status(401).json({error:`Invalid credentials`});
 
-        if(isDeactivated) return res.status(403).json({error:'Your account has been deactivated by the admin'})
-         if(user.length > 0){
-                 const token=generateAuthToken(user[0].id,user[0].email.toLowerCase(),user[0].role)
+        if(isValidPassword(password,employee.hashedPassword)){
+            if(employee.active === false) return res.status(403).json({error:'Your account has been deactivated'})
+            const token=generateAuthToken(employee.id,employee.email.toLowerCase(),employee.role)
                  return res.json({
                          token
                     })
-          }else{
-                return res.status(401).json({error:`Invalid credentials`})
-            }
+        }else return res.status(401).json({error:`Invalid credentials`})
     }catch(e){
        return res.status(500).json({error:`Internal Server Error`})
     }
