@@ -13,7 +13,7 @@ export const createUser=async(req,res)=>{
     try{
         const {name,email,password,role,mobileNumber,salary}=req.body;
 
-        if(!name ||!email || !password || !role || !mobileNumber ||!salary) return res.status(400).json({error:'All fields are mandatory'})
+        if(!name ||!email || !password || !role) return res.status(400).json({error:'All fields are mandatory'})
 
         if(name.length < 3) return res.status(400).json({error:'Name should be of atleast 3 characters'})
 
