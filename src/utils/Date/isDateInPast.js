@@ -5,6 +5,8 @@ export const isDateInPast=(date)=>{
         const selectedDate=date ;
         const currentDate=new Date();
         currentDate.setUTCHours(0,0,0,0)
+        console.log(selectedDate, currentDate)
+        console.log(selectedDate < currentDate,'ttttttttttttttttttttttttttttttt')
         if(selectedDate < currentDate) throw new Error("This operation could not be performed as it is of past")
         return false;
     }catch(error){
