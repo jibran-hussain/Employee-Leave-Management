@@ -1,82 +1,82 @@
-import fs from 'fs/promises'
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import Employee from '../models/employee.js';
+import Leave from '../models/leaves.js';
+import { Op } from 'sequelize';
 import 'dotenv/config'
 import bcrypt from 'bcrypt';
 import { generateHashedPassword } from '../utils/Auth/generateHashedPassword.js';
-import { pagination } from '../utils/pagination.js';
 import { isValidNumber } from '../utils/Validation/isValidMobile.js';
 import { isValidEmail, passwordValidation } from '../utils/Validation/validations.js';
-import { sort } from '../utils/sort.js';
 import {generateTimestamp} from '../utils/Date/generateTimestamp.js'
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename)
+import sequelize from '../../index.js';
 
 
 // This method gives the list of all active employees.
 // Can be accessed by only admin and superadmin
 // Can sort them bassed on name, role, salary in ascending and descending order. Can also search them by name.
 
-export const listAllEmployees=async(req,res)=>{
-    try{
-        const limit=Number(req.query.limit)
-        const offset=Number(req.query.offset)
-        const sortBy=req.query.sortBy;
-        const order=req.query.order === 'desc' ? -1 : 1;
-        const name=req.query.name
-        const number=req.query.number;
-
-        if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
-
-        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
-        const fileData=JSON.parse(data);
+export const listAllEmployees = async (req, res) => {
+    try {
+        let defaultOffset=1;
         
-        const employees=fileData.users.filter((user)=>{
-            if(user.active === false) return false;
-            if(name){
-                if (user.role === 'employee' || user.role === 'admin') {
-                    const userName = user.name.toLowerCase();
-                    const queryName = name.toLowerCase();
-                    if (userName.includes(queryName)) {
-                        user.hashedPassword = undefined;
-                        user.active = undefined;
-                        return true;
-                    }
-                }
-            }else if(number){
-                if (user.role === 'employee' || user.role === 'admin'){
-                    const mobileNumber=user.mobileNumber.toString();
-                    if(mobileNumber.includes(number)){
-                        user.hashedPassword = undefined;
-                        user.active = undefined;
-                        return true;
-                    }
-                }
-            }else{
-                if(user.role === 'employee' || user.role === 'admin'){
-                    user.hashedPassword=undefined;
-                    user.active=undefined
-                    return user;
-                }
-            }
-            return false;
-        })
-        const totalEmployees=employees.length;
+        const limit = Number(req.query.limit) || 10;
+        const offset = Number(req.query.offset) || defaultOffset;
+        const sortBy = req.query.sortBy;
+        const order = req.query.order === 'desc' ? 'DESC' : 'ASC';
+        const search = req.query.search;
 
-        sort(employees,sortBy,order)
-        
-
-        if(limit && offset){
-            const {paginatedArray,totalPages,currentPage}=pagination(employees,offset,limit);
-            return res.json({employees:paginatedArray,records:paginatedArray.length,totalEmployees,currentPage,totalPages})
+        if ((limit && !offset) || (!limit && offset)) {
+            return res.status(400).json({ error: 'Either limit or offset is necessary' });
         }
 
-        return res.json({employees,totalEmployees})
-    }catch(e){
-        return res.status(500).json({error:e.message})
+        defaultOffset=0;
+
+        const startIndex = (offset - 1)*limit;
+
+        const whereClause={
+            active:true,
+            role:['admin','employee']
+        }
+        
+        if(search){
+            whereClause[Op.or]=[
+                {name:{[Op.iLike]:`%${search}`}},
+                {email:{[Op.iLike]:`%${search}`}},
+                {role:{[Op.iLike]:`%${search}`}},
+                sequelize.literal(`CAST ("id" AS TEXT) ILIKE '%${search}%'`),
+                sequelize.literal(`CAST ("mobileNumber" AS TEXT) ILIKE '%${search}%'`),
+                sequelize.literal(`CAST ("salary" AS TEXT) ILIKE '%${search}%'`),
+            ]
+        }
+
+        const {count,rows:employees}=await Employee.findAndCountAll({
+            where:whereClause,
+            order:sortBy?[[sortBy,order]]:[],
+            offset:startIndex || undefined,
+            limit:limit || undefined,
+            attributes:{exclude:['hashedPassword','active']}
+        }
+        )
+
+
+        if(limit && offset){
+            const totalPages = Math.ceil(count/limit);
+            if(offset > totalPages) return res.status(404).json({error:`This page does not exist`})
+            return res.json({
+                data:employees,
+                metadata:{
+                    totalEmployees:count,
+                    currentPage:offset,
+                    totalPages
+                }
+            })
+        }
+
+        return res.json({ data:employees});
+    } catch (e) {
+        console.log(e)
+        return res.status(500).json({ error:`Internal Server Error` });
     }
-}
+};
 
 // This method gives the list of all deactivated employees.
 // Can be accessed by only admin and superadmin
@@ -84,55 +84,63 @@ export const listAllEmployees=async(req,res)=>{
 
 export const listAllDisabledEmployees=async (req,res)=>{
     try{
-        const limit=Number(req.query.limit)
-        const offset=Number(req.query.offset)
-        const sortBy=req.query.sortBy;
-        const order=req.query.order === 'desc' ? -1 : 1;
-        const name=req.query.name
-        const number = req.query.number;
+        let defaultOffset=1;
 
-    
-        if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
+        const limit = Number(req.query.limit) || 10;
+        const offset = Number(req.query.offset) || defaultOffset;
+        const sortBy = req.query.sortBy;
+        const order = req.query.order === 'desc' ? 'DESC' : 'ASC';
+        const search = req.query.search;
 
-        const data=await fs.readFile('./db/users.json','utf8');
-        const fileData=JSON.parse(data);
-        const disabledEmployees=fileData.users.filter(user=>{
-            if(user.active === false){
-                if(name){
-                    const userName = user.name.toLowerCase();
-                    const queryName = name.toLowerCase();
-                    if (userName.includes(queryName)) {
-                        user.hashedPassword = undefined;
-                        user.active = undefined;
-                        return true;
-                    }
-                }else if(number){
-                    if(user.role === 'employee' || user.role === 'admin'){
-                        const mobileNumber=user.mobileNumber.toString();
-                        if(mobileNumber.includes(number)){
-                            user.hashedPassword = undefined;
-                            user.active = undefined;
-                            return true;
-                        }
-                    }
-                }else{
-                    user.hashedPassword=undefined;
-                    user.active=undefined;
-                    return true;
-                }
-            }
-            return false;
-        });
+        if ((limit && !offset) || (!limit && offset)) {
+            return res.status(400).json({ error: 'Either limit or offset is necessary' });
+        }
 
-        sort(disabledEmployees,sortBy,order);
-        const totalDisableEmployees=disabledEmployees.length;
+        defaultOffset=0;
+
+        const startIndex = (offset - 1)*limit;
+
+        const whereClause={
+            active:false,
+            role:['admin','employee']
+        }
+        
+        if(search){
+            whereClause[Op.or]=[
+                {name:{[Op.iLike]:`%${search}`}},
+                {email:{[Op.iLike]:`%${search}`}},
+                {role:{[Op.iLike]:`%${search}`}},
+                sequelize.literal(`CAST ("id" AS TEXT) ILIKE '%${search}%'`),
+                sequelize.literal(`CAST ("mobileNumber" AS TEXT) ILIKE '%${search}%'`),
+                sequelize.literal(`CAST ("salary" AS TEXT) ILIKE '%${search}%'`),
+            ]
+        }
+
+        const {count,rows:employees}=await Employee.findAndCountAll({
+            where:whereClause,
+            order:sortBy?[[sortBy,order]]:[],
+            offset:startIndex || undefined,
+            limit:limit || undefined,
+            attributes:{exclude:['hashedPassword','active']}
+        }
+        )
+
 
         if(limit && offset){
-            const {paginatedArray,totalPages,currentPage}=pagination(disabledEmployees,offset,limit);
-        const totalDisableEmployees=disabledEmployees.length;
-            return res.json({leaves:paginatedArray,records:paginatedArray.length,totalDisableEmployees,currentPage,totalPages})
+            const totalPages = Math.ceil(count/limit);
+            if(offset > totalPages) return res.status(404).json({error:`This page does not exist`})
+
+            return res.json({
+                data:employees,
+                metadata:{
+                    totalEmployees:count,
+                    currentPage:offset,
+                    totalPages
+                }
+            })
         }
-        return res.json({disabledEmployees,records:totalDisableEmployees})
+
+        return res.json({ data:employees});
     }catch(e){
         console.log(e)
         return res.status(500).json({error:e.message})
@@ -145,42 +153,28 @@ export const listAllDisabledEmployees=async (req,res)=>{
 
 export const activateAccount=async (req,res)=>{
     try{
-        
-        const userId=Number(req.params.employeeId)
-        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
-        const fileData=JSON.parse(data);
+        const employeeId=Number(req.params.employeeId)
+        const employeeToActivate=await Employee.findByPk(employeeId);
 
-        // Generating the timestamp
-        const timestamp=generateTimestamp();
-        
-        let userToActivate;
-        let updatedUsersList;
+        if(!employeeToActivate) return res.status(404).json({error:'Employee with this id does not exist'});
+
         if(req.auth.role === 'superadmin'){
-                updatedUsersList= fileData.users.map((user)=>{
-                if(user.id === userId){
-                    user.active=true;
-                    user.lastModified=timestamp
-                    userToActivate=user;
-                };
-                return user;
-            })
-        }else if(req.auth.role === 'admin'){
-                updatedUsersList= fileData.users.map((user)=>{
-                if(user.id === userId && user.role === 'admin') userToActivate=user;
-                if(user.id === userId && user.role === 'employee'){
-                    user.active=true;
-                    user.lastModified=timestamp
-                    userToActivate=user;
-                };
-                return user;
+            await Employee.update({active:true},{
+                where:{
+                    id:employeeId
+                }
             })
         }
-        if(!userToActivate) return res.status(404).json({error:'Employee with this id does not exist'})
-        if(req.auth.role === 'admin' && userToActivate.role === 'admin') return res.status(403).json({error:`You cannot activate another admins account`})
 
-        fileData.users=updatedUsersList;
-        const finalFileData=JSON.stringify(fileData);
-        await fs.writeFile(`${__dirname}/../../db/users.json`,finalFileData,'utf8')
+        else if(req.auth.role === 'admin' && (employeeToActivate.role === 'admin' || employeeToActivate.role === 'superadmin' )) return res.status(403).json({error:`You are not authorized to activate this employee's account`})
+
+        else if(req.auth.role === 'admin' && employeeToActivate.role === 'employee'){
+            await Employee.update({active:true},{
+                where:{
+                    id:employeeId
+                }
+            })
+        }
         return res.json({message:"Employee account activated Successfully"})
         
     }catch(e){
@@ -194,17 +188,20 @@ export const activateAccount=async (req,res)=>{
 
 export const getLoggedUsersDetails=async(req,res)=>{
     try{
-        const {id:userId,role}=req.auth;
-        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
-        const fileData=JSON.parse(data);
+        const {id}=req.auth;
 
-        const user=fileData.users.find((user)=>user.id === userId);
-        if(user.hashedPassword) user.hashedPassword=undefined;
-        if(user) user.active=undefined;
-        return res.json({user})
+        const employee= await Employee.findByPk(id,{
+            attributes:{exclude:['hashedPassword','active']},
+            include:[
+                {
+                    model:Leave,
+                    attributes:{exclude:['employeeId']},
+                }
+            ]
+        });
 
+        return res.json({user:employee})
     }catch(e){
-        console.log(e)
         return res.status(500).json({error:e.message})
     }
 }
@@ -216,66 +213,46 @@ export const getLoggedUsersDetails=async(req,res)=>{
 
 export const deleteEmployee=async (req,res)=>{
     try{
-        const userId=Number(req.params.employeeId)
-        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
-        const fileData=JSON.parse(data);
-        
-        let userToDelete;
-        let updatedUsersList;
-
-        // Generating the timestamp
-        const timestamp=generateTimestamp();
+        const employeeId=Number(req.params.employeeId)
+        const employeeToDelete=await Employee.findByPk(employeeId);
+        if(!employeeToDelete) return res.status(404).json({error:'Employee with this id does not exist'});
 
         if(req.auth.role === 'superadmin'){
-                updatedUsersList= fileData.users.map((user)=>{
-                if(user.id === userId){
-                    user.active=false;
-                    user.lastModified=timestamp
-                    userToDelete=user;
+            await Employee.update({active:false},{
+                where:{
+                    id:employeeId
                 }
-                else if(user.id === req.auth.id) userToDelete=user;
-                return user;
             })
         }
-        else if(req.auth.role === 'admin'){
-                updatedUsersList= fileData.users.map((user)=>{
-                if(user.id === userId){
-                    user.active=false;
-                    user.lastModified=timestamp
-                    userToDelete={...user};
-                    userToDelete.role='me';
+        else if(req.auth.role === 'admin' && (employeeToDelete.role === 'admin' || employeeToDelete.role === 'superadmin' )) return res.status(403).json({error:`You are not authorized to delete this employee`})
+
+        else if(req.auth.role === 'admin' && employeeToDelete.role === 'employee'){
+            await Employee.update({active:false},{
+                where:{
+                    id:employeeId
                 }
-                else if(user.id === userId && user.role === 'admin') userToDelete=user;
-                else if(user.id === userId && user.role === 'employee'){
-                    user.active=false;
-                    user.lastModified=timestamp
-                    userToDelete=user;
-                };
-                return user;
-            })
-        }
-        else if(req.auth.role === 'employee'){
-            updatedUsersList = fileData.users.map((user)=>{
-                if(user.id === req.auth.id){
-                    userToDelete=user;
-                    user.active=false;
-                    user.lastModified=timestamp
-                }
-                return user;
             })
         }
 
-        if(!userToDelete) return res.status(404).json({error:'Employee with this id does not exist'})
-        if(userToDelete.role === 'superadmin') return res.status(403).json({error:`Nobody is authorized to delete superadmin`})
-        if(req.auth.role === 'admin' && userToDelete.role === 'admin') return res.status(403).json({error:`You cannot delete another admins`})
-
-        fileData.users=updatedUsersList;
-        const finalFileData=JSON.stringify(fileData);
-        await fs.writeFile(`${__dirname}/../../db/users.json`,finalFileData,'utf8')
-        return res.json({message:"Employee Deleted Successfully"})
-        
+        return res.json({message:`Employee's account has been deactivated succesfully`})
     }catch(e){
         return res.status(500).json({error:e.message})
+    }
+}
+
+
+// Soft deletes a user which is currently logged in
+
+export const deleteMe= async(req,res)=>{
+    try{
+        await Employee.update({active:false},{
+            where:{
+                id:req.auth.id
+            }
+        })
+        return res.json({message:`Your account has been deactivated successfully`});
+    }catch(e){
+        return res.status(500).json({error:`Internal Server Error`});
     }
 }
 
@@ -283,42 +260,27 @@ export const deleteEmployee=async (req,res)=>{
 
 export const updateProfile= async(req,res)=>{
     try{
-        const userId=req.auth.id;
-        const {name,email,mobileNumber}=req.body;
+        const employeeId=req.auth.id;
+        if(Object.keys(req.body).length == 0) return res.
+        status(401).json({error:`You have not provided any details to update`})
+        const {name,mobileNumber}=req.body;
 
-        if(email && !isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
+        if(name.length < 3) return res.status(400).json({error:'Name should be of atleast 3 characters'})
+
         if(mobileNumber) isValidNumber(mobileNumber);
 
-        // Fetching the logged in user
-        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
-        const fileData=JSON.parse(data);
+        const updatedObject={};
+        if(name) updatedObject.name=name;
+        if(mobileNumber) updatedObject.mobileNumber=mobileNumber;
 
-        // Checking if this email already exists or not
-        if(email){
-            const emailAlreadyExists=fileData.users.find(user=>user.email === email.toLowerCase() && user.id != userId);
-            if(emailAlreadyExists) return res.status(409).json({error:'Email already exists. Please try with another email'});
-        }
-
-        // Generating the timestamp
-        const timestamp=generateTimestamp();
-
-        const updatedUsers=fileData.users.map((user)=>{
-            if(user.id === userId){
-                if(name) user.name=name;
-                if(email) user.email=email.toLowerCase();
-                if(mobileNumber) {
-                    isValidNumber(mobileNumber)
-                    user.mobileNumber=mobileNumber
-                }
-                user.lastModified=timestamp;
+        const updatedEmployee=await Employee.update(updatedObject,{
+            where:{
+                id:employeeId
             }
-            return user;
         })
-        fileData.users=updatedUsers;
-        const updatedFile=JSON.stringify(fileData)
 
-        // Writing the changes in the file with updated user data
-        await fs.writeFile(`${__dirname}/../../db/users.json`,updatedFile,'utf8')
+        if(updatedEmployee[0] === 0) return res.status(403).json({error:`Employee did not udpate`});
+
         return res.json({message:"User updated Successfully"})
     }catch(e){
         return res.status(500).json({error:e.message})
@@ -331,12 +293,19 @@ export const updateProfile= async(req,res)=>{
 export const getEmployeeDetails= async(req,res)=>{
     try{
         const employeeId=Number(req.params.employeeId);
-        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
-        const fileData=JSON.parse(data);
-        const user=fileData.users.filter((user)=>user.id == employeeId)
-        if(user.length == 0) return res.status(404).json({error:`Employee with id does not exist`});
-        user[0].hashedPassword=undefined
-        return res.json({employee:user[0]})
+        const employee=await Employee.findByPk(employeeId,{
+            include:[
+                {
+                    model:Leave,
+                    attributes:{
+                        exclude:['employeeId']
+                    }
+                }
+            ]
+        });
+        if(!employee) return res.status(404).json({error:`Employee with this id does not exist`});
+        employee.hashedPassword=undefined;
+        return res.json({data:employee});
     }catch(e){
         return res.status(500).json({error:e.message})
     }
@@ -348,44 +317,39 @@ export const getEmployeeDetails= async(req,res)=>{
 
 export const updateEmployeeProfile=async(req,res)=>{
     try{
-        const userId=Number(req.params.employeeId);
-        const {name,email,mobileNumber,role,password,salary}=req.body;
-        if(email && !isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
-        if(mobileNumber) isValidNumber(mobileNumber);
-        if(salary && !Number(salary)) return res.status(400).json({error:"Please enter valid salary"})
-        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
-        const fileData=JSON.parse(data);
+        const employeeId=Number(req.params.employeeId);
 
-        // Checking if this email already exists or not
-        if(email){
-            const emailAlreadyExists=fileData.users.find(user=>user.email === email.toLowerCase() && user.id != userId);
-            if(emailAlreadyExists) return res.status(409).json({error:'Email already exists. Please try with another email'});
-        }
+        if(Object.keys(req.body).length === 0) return res.status(400).json({error:`You have not provided any details to update`});
         
-        let isAdmin=false;
+        const {name,mobileNumber,role,password,salary}=req.body;
 
-        // Generating the timestamp
-        const timestamp=generateTimestamp();
+        if(mobileNumber) isValidNumber(mobileNumber);
 
-        const updatedUsers=fileData.users.map((user)=>{
-            if(user.id === userId){
-                if(user.role === 'admin' && req.auth.role === 'admin') isAdmin=true;
-                
-                if(name) user.name=name;
-                if(email) user.email=email.toLowerCase();
-                if(mobileNumber) user.mobileNumber=mobileNumber;
-                if(role) user.role=role
-                if(password) user.hashedPassword=generateHashedPassword(password);
-                if(salary) user.salary=salary
+        if(salary && !Number(salary)) return res.status(400).json({error:"Please enter valid salary"})
+    
+        const employeeToUpdate=await Employee.findByPk(employeeId);
 
-                user.lastModified=timestamp;
+        if(!employeeToUpdate) return res.status(404).json({error:`Employee with this id does not exist`});
+
+
+        if(req.auth.role === 'admin' && (employeeToUpdate.role === 'admin' || employeeToUpdate.role === 'superadmin')) return res.status(403).json({error:'You are not authorized to update the details of this employee (Forbidden)'})
+
+        const updatedObject={}
+
+        if(name) updatedObject.name=name;
+        if(mobileNumber) updatedObject.mobileNumber=mobileNumber;
+        if(role) updatedObject.role=role
+        if(password) updatedObject.hashedPassword=generateHashedPassword(password);
+        if(salary) updatedObject.salary=salary
+
+        const updatedEmployee=await Employee.update(updatedObject,{
+            where:{
+                id:employeeId
             }
-            return user;
         })
-        if(isAdmin) return res.status(403).json({error:'Admin cannot update other admins'})
-        fileData.users=updatedUsers;
-        const updatedFile=JSON.stringify(fileData)
-        await fs.writeFile(`${__dirname}/../../db/users.json`,updatedFile,'utf8')
+
+        if(updatedEmployee[0] === 0) return res.status(403).json({error:`Employee did not udpate`});
+
         return res.json({message: 'Employee updated successfully'})
     }catch(e){
         return res.status(500).json({error:e.message})
@@ -395,51 +359,57 @@ export const updateEmployeeProfile=async(req,res)=>{
 
 export const updateEmployeeProfileByPut=async(req,res)=>{
     try{
-        const userId=Number(req.params.employeeId);
-        const {name,email,mobileNumber,role,password,salary}=req.body;
-        if(email && !isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
+        const employeeId=Number(req.params.employeeId);
+        const {name,mobileNumber,role,password,salary}=req.body;
+        
+        if(!name) return res.status(400).json({error:`Please provide name`});
+
+        if(!password) return res.status(400).json({error:`Please provide password`});
+
+        if(!role) return res.status(400).json({error:`Please provide role`});
+
+        if(name.length < 3) return res.status(400).json({error:`Name should be of atleast 3 characters`})
+
+        // Checks whether password is Empty
+        if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty and should have more than 3 characters`})
+
+        if(role != 'admin' && role != 'employee') return res.status(400).json({error:`Please enter a valid role`})
+
         if(mobileNumber) isValidNumber(mobileNumber);
+
         if(salary && !Number(salary)) return res.status(400).json({error:"Please enter valid salary"})
-        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
-        const fileData=JSON.parse(data);
+        
+        const employee=await Employee.findByPk(employeeId)
 
-        // Checking if this email already exists or not
-        if(email){
-            const emailAlreadyExists=fileData.users.find(user=>user.email === email.toLowerCase() && user.id != userId);
-            if(emailAlreadyExists) return res.status(500).json({error:'Email already exists. Please try with another email'});
-        }
+        if(req.auth.role === 'admin' && (employee.role === 'admin' || employee.role === 'superadmin')) return res.status(403).json({error:'You are not authorized to update the details of this employee (Forbidden)'})
 
-        let isAdmin=false;
 
-        // Generating the timestamp
-        const timestamp=generateTimestamp();
+        const updatedObject={
+            name:employee.name,
+            email:employee.email,
+            hashedPassword:employee.hashedPassword,
+            mobileNumber:null,
+            salary:null,
+            role:employee.role,
+            leavesLeft:null,
+            active:null
+        };
 
-        const updatedUsers=fileData.users.map((user)=>{
-            if(user.id === userId){
-                if(user.role === 'admin' && req.auth.role === 'admin') isAdmin=true;
-                const updatedUser={
-                    id:user.id,
-                    active:user.active
-                }
-                if(name) updatedUser.name=name;
-                if(email) updatedUser.email=email.toLowerCase();
-                if(mobileNumber) updatedUser.mobileNumber=mobileNumber;
-                if(role) updatedUser.role=role
-                if(password) updatedUser.hashedPassword=generateHashedPassword(password);
-                if(salary) updatedUser.salary=salary
+        if(name) updatedObject.name=name;
+        if(password) updatedObject.hashedPassword=generateHashedPassword(password);
+        if(mobileNumber) updatedObject.mobileNumber=mobileNumber;
+        if(role) updatedObject.role=role;
+        if(salary) updatedObject.salary=salary;
 
-                updatedUser.lastModified=timestamp
-
-                return updatedUser;
+        await Employee.update(updatedObject,{
+            where:{
+                id:employeeId
             }
-            return user;
         })
-        if(isAdmin) return res.status(403).json({error:'Admin cannot update other admins'})
-        fileData.users=updatedUsers;
-        const updatedFile=JSON.stringify(fileData)
-        await fs.writeFile(`${__dirname}/../../db/users.json`,updatedFile,'utf8')
+
         return res.json({message: 'Employee updated successfully'})
     }catch(e){
+        console.log(e)
         return res.status(500).json({error:e.message})
     }
 }
@@ -447,48 +417,43 @@ export const updateEmployeeProfileByPut=async(req,res)=>{
 
 export const updatedProfileByPutMethod= async(req,res)=>{
     try{
-        const userId=req.auth.id;
-        const {name,email,mobileNumber}=req.body;
-        if(email && !isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
+        const employeeId=req.auth.id;
+        if(Object.keys(req.body).length == 0) return res.status(401).json({error:`You have not provided any details to update`})
+        const {name,mobileNumber}=req.body;
+
+        if(!name) return res.status(400).json({error:`Please provide name`});
+
+ 
+        if(name.length < 3) return res.status(400).json({error:'Name should be of atleast 3 characters'})
+
         if(mobileNumber) isValidNumber(mobileNumber);
 
-        // Fetching the logged in user
-        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
-        const fileData=JSON.parse(data);
+        const employee=await Employee.findByPk(employeeId)
 
-        // Checking if this email already exists or not
-        if(email){
-            const emailAlreadyExists=fileData.users.find(user=>user.email === email && user.id != userId);
-            if(emailAlreadyExists) return res.status(500).json({error:'Email already exists. Please try with another email'});
-        }
+        const updatedObject={
+            name,
+            email:employee.email,
+            hashedPassword:employee.hashedPassword,
+            mobileNumber:null,
+            salary:null,
+            role:employee.role,
+            leavesLeft:null,
+            active:null
+        };
+        if(mobileNumber) updatedObject.mobileNumber=mobileNumber;
 
-        // Generating the timestamp
-        const timestamp=generateTimestamp();
 
-        const updatedUsers=fileData.users.map((user)=>{
-            if(user.id === userId){
-                const updatedUser={
-                    id:user.id,
-                    active:user.active
-                }
-                if(name) updatedUser.name=name;
-                if(email) updatedUser.email=email;
-                if(mobileNumber) {
-                    isValidNumber(mobileNumber)
-                    updatedUser.mobileNumber=mobileNumber
-                }
-                updatedUser.lastModified=timestamp
-                return updatedUser;
+        const updatedEmployee=await Employee.update(updatedObject,{
+            where:{
+                id:employeeId
             }
-            return user;
         })
-        fileData.users=updatedUsers;
-        const updatedFile=JSON.stringify(fileData)
 
-        // Writing the changes in the file with updated user data
-        await fs.writeFile(`${__dirname}/../../db/users.json`,updatedFile,'utf8')
+        if(updatedEmployee[0] === 0) return res.status(403).json({error:`Employee did not udpate`});
+
         return res.json({message:"User updated Successfully"})
     }catch(e){
+        console.log(e)
         return res.status(500).json({error:e.message})
     }
 }
@@ -497,38 +462,28 @@ export const updatedProfileByPutMethod= async(req,res)=>{
 
 export const resetPassword=async(req,res)=>{
     try{
-        const userId=req.auth.id;
+        const employeeId=req.auth.id;
         const {oldPassword,newPassword,confirmPassword}=req.body
         if(!oldPassword || !newPassword || !confirmPassword) return res.status(400).json({error:`All fields are necassary`});
         if(newPassword.toString() !== confirmPassword.toString()) return res.status(400).json({error:`New Password and confirm password should be same`})
         
         if(passwordValidation(newPassword) || passwordValidation(confirmPassword)) return res.status(400).json({error:`Password cannot be empty and should have more than 3 characters`})
 
-
-        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8');
-        const fileData=JSON.parse(data);
-
         // check if the old password is correct or not
-        const user=fileData.users.find((user)=>user.id === userId)
-        const isValidPassword=await bcrypt.compare(oldPassword,user.hashedPassword);
+        const employee = await Employee.findByPk(employeeId);
+        const isValidPassword=await bcrypt.compare(oldPassword,employee.hashedPassword);
         if(!isValidPassword)    return res.status(400).json({error:`You have entered incorrect old password`});
         const newHashedPassword= generateHashedPassword(newPassword)
 
-        const updatedUsers=fileData.users.map((user)=>{
-            if(user.id === userId){
-                user.hashedPassword=newHashedPassword
-                // Generate Timestamp
-                user.lastModified=generateTimestamp();
+        await Employee.update({hashedPassword:newHashedPassword},{
+            where:{
+                id:employeeId
             }
-            return user;
         })
 
-        fileData.users=updatedUsers;
-        const updatedFile=JSON.stringify(fileData);
-        await fs.writeFile(`${__dirname}/../../db/users.json`,updatedFile,'utf8');
         return res.json({message:"Password changed successfully"})
     }catch(e){
         console.log(e)
-        return res.status(500).json({error:e.message})
+        return res.status(500).json({error:`Internal server error`})
     }
 }
