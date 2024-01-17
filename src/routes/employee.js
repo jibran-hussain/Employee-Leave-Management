@@ -1,5 +1,5 @@
 import express from 'express'
-import {deleteEmployee,listAllEmployees,listAllDisabledEmployees,activateAccount,getLoggedUsersDetails,updateProfile,getEmployeeDetails,updateEmployeeProfile,updatedProfileByPutMethod,updateEmployeeProfileByPut,resetPassword} from '../controllers/employee.js'
+import {deleteEmployee,listAllEmployees,listAllDisabledEmployees,activateAccount,getLoggedUsersDetails,updateProfile,getEmployeeDetails,updateEmployeeProfile,updatedProfileByPutMethod,updateEmployeeProfileByPut,resetPassword, deleteMe} from '../controllers/employee.js'
 import { isAuth } from '../middlewares/isAuth.js';
 import { isAdminOrSuperadmin } from '../middlewares/isAdminOrSuperadmin.js';
 const router=express.Router();
@@ -18,7 +18,7 @@ router.put("/employees/:employeeId",isAuth,isAdminOrSuperadmin,updateEmployeePro
 router.get('/me',isAuth,getLoggedUsersDetails)
 router.patch('/me',isAuth,updateProfile)
 router.put('/me',isAuth,updatedProfileByPutMethod)
-router.delete('/me',isAuth,deleteEmployee)
+router.delete('/me',isAuth,deleteMe)
 router.patch('/me/password',isAuth,resetPassword)
 
 
