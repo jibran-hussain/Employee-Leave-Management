@@ -1,6 +1,7 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../../index.js'
-   const Employee= sequelize.define('Employee',{
+
+const Employee= sequelize.define('Employee',{
         id:{
             type:DataTypes.INTEGER,
             allowNull:false,
@@ -22,11 +23,9 @@ import sequelize from '../../index.js'
         },
         mobileNumber:{
             type:DataTypes.BIGINT,
-            allowNull:false
         },
         salary:{
             type:DataTypes.DOUBLE.UNSIGNED,
-            allowNull:false
         },
         role:{
             type:DataTypes.STRING(10),
@@ -35,14 +34,10 @@ import sequelize from '../../index.js'
         leavesLeft:{
             type:DataTypes.INTEGER,
             defaultValue:20
-        },
-        leaves:{
-            type:DataTypes.ARRAY(DataTypes.INTEGER),
-            defaultValue:[]
-        },
-        active:{
-            type:DataTypes.BOOLEAN,
-            defaultValue:true
         }
+    },{
+        paranoid:true
     })
+
+
     export default Employee
