@@ -15,6 +15,8 @@ const Leave=sequelize.define('Leave',{
         type:DataTypes.ARRAY(DataTypes.DATEONLY),
         allowNull:false
     }
+},{
+    paranoid:true
 })
 
 export default Leave;
