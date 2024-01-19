@@ -3,20 +3,30 @@ import Leave from '../../models/leaves.js';
 
 // Checks if the employee is already on leave on a particular date or not
 
-export const isAlreadyLeave=async(employeeId,date)=>{
+export const isAlreadyLeave=async(employeeId,date,leaveConsider,leaveId)=>{
     try{
+        console.log(leaveConsider,leaveId,'dddddddddddjjjjjjjjjjjjjjjjjjjjjjjjjjjjuuuuuuuuuuuuuuuuuuuuuuu')
         const allLeaves= await Leave.findAll({
             where:{
                 employeeId
             }
         })
-
         let isAlreadyLeave=false;
-        allLeaves.forEach(leave=>{
-            leave.dates.forEach(leaveDate=>{
-                if(getDateForDB(leaveDate).getTime() === date.getTime()) isAlreadyLeave=true;
-            })
+        if(leaveConsider){
+            allLeaves.forEach(leave=>{
+                leave.dates.forEach(leaveDate=>{
+                    if(getDateForDB(leaveDate).getTime() === date.getTime()) isAlreadyLeave=true;
+                })
         })
+        }else{
+            allLeaves.forEach(leave=>{
+                if(leave.id != leaveId){
+                    leave.dates.forEach(leaveDate=>{
+                        if(getDateForDB(leaveDate).getTime() === date.getTime()) isAlreadyLeave=true;
+                    })
+                }
+        })
+        }
 
         return isAlreadyLeave;
     }catch(e){
