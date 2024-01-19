@@ -17,7 +17,10 @@ export const createUser=async(req,res)=>{
 
         if(name.length < 3) return res.status(400).json({error:'Name should be of atleast 3 characters'})
 
-        if(role != 'admin' && role != 'employee') return res.status(400).json({error:`Please enter a valid role`})
+        if(role != 'admin' && role != 'employee' && role != 'superadmin') return res.status(400).json({error:`Please enter a valid role`})
+
+
+        if(req.auth.role === 'admin' && role === 'superadmin') return res.status(403).json({error:'You are not authorized to create a superadmin'});
 
         if(role === 'admin' && req.auth.role != 'superadmin') return res.status(403).json({error:'You are not authorized to create an admin. Please login as superadmin'});
         if(role === "employee" && (req.auth.role != 'superadmin' &&  req.auth.role != 'admin')) return res.status(403).json({error:'You are not authorized to create an employee. Please login as admin or superadmin'})
@@ -68,14 +71,10 @@ export const userSignin=async(req,res)=>{
         if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty and should have more than 3 characters`})
 
         const employee=await Employee.findOne({where:{email:email.toLowerCase()}})
-
-        // Check if account has been deactivated or not
-        if(employee.active == false) return res.status(403).json({error:`Your account has been deactived`});
         
         if(!employee) return res.status(401).json({error:`Invalid credentials`});
 
         if(isValidPassword(password,employee.hashedPassword)){
-            if(employee.active === false) return res.status(403).json({error:'Your account has been deactivated'})
             const token=generateAuthToken(employee.id,employee.email.toLowerCase(),employee.role)
                  return res.json({
                          token
