@@ -1,21 +1,13 @@
-import fs from 'fs/promises'
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import 'dotenv/config'
-
+import { Op } from 'sequelize';
 import { isDateInPast } from '../utils/Date/isDateInPast.js';
 import { getDatesArray } from '../utils/Date/getDatesArray.js';
 import { getDate,getDateForDB } from '../utils/Date/getDate.js';
 import { isValidDate } from '../utils/Date/isValidDate.js';
-import { pagination } from '../utils/pagination.js';
-import { generateTimestamp } from '../utils/Date/generateTimestamp.js';
 import Leave from '../models/leaves.js';
 import Employee from '../models/employee.js';
 import getTotalLeaveDays from '../utils/leaves/getTotalLeaveDays.js';
 import { getTotalLeaveDaysInSystem,getTotalApplicationsInSystem } from '../utils/leaves/systemLevelLeaveDetails.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename)
 
 // It is used to apply for leave
 
@@ -37,6 +29,8 @@ export const applyForLeave=async (req,res)=>{
 
         const {dates,leaveDuration}=await getDatesArray(id,fromDate,toDate,true);
 
+        if(dates.length === 0 ) return res.status(403).json({message:`You are already on leave on these days`})
+
         // Check if leaves are exhausted or not
         const employee=await Employee.findByPk(id);
         if(employee.leavesLeft <= 0) return res.status(403).json({message:"You have exhausted all your leaves"})
@@ -55,44 +49,6 @@ export const applyForLeave=async (req,res)=>{
     }
 }
 
-// Lists all leaves of an admin who is currently logged in
-export const listAllAdminLeaves=async (req,res)=>{
-    try{
-
-        const limit=Number(req.query.limit)
-        const offset=Number(req.query.offset)
-
-        if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
-
-        let userId;
-        let isAdminExisting=false;
-        if(req.auth.role === 'admin') userId=req.auth.id;
-        else if(req.auth.role === 'superadmin') userId=Number(req.params.adminId);
-        else return res.status(403).json({error:'Unauthorized'})
-        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
-        const fileData=JSON.parse(data);
-        const user=fileData.users.filter((user)=>{
-            if(user.id === userId && user.role === 'admin') {
-                isAdminExisting=true;
-                return user;
-            }
-        })
-
-        if(!isAdminExisting) return res.status(404).json({error:'Admin with this id does not exist'})
-
-        const leavesTaken=20-user[0].leavesLeft;
-
-        if(limit && offset){
-            const {paginatedArray,currentPage,totalPages}=pagination(user[0]?.leaveDetails,offset,limit);
-            return res.json({leaves:paginatedArray,records:paginatedArray.length,leavesTaken,currentPage,totalPages})
-        }
-        
-        return res.json({leaves:user[0]?.leaveDetails,records:user[0]?.leaveDetails.length,leavesTaken})
-    }catch(e){
-        return res.status(500).json({message:`Internal Server Error`})
-    }
-
-}
 
 export const listAllEmployeeLeaves=async (req,res)=>{
     try{
@@ -114,11 +70,13 @@ export const listAllEmployeeLeaves=async (req,res)=>{
                 employeeId
             },
             attributes:{
-                exclude:['employeeId']
+                exclude:['employeeId','deletedAt']
             },
             offset: startIndex || undefined,
             limit: limit || undefined
         })
+
+        if(count === 0) return res.json({message:`The employee has not taken any leave yet`});
 
         if(limit && offset){
             const totalPages=Math.ceil(count/ limit);
@@ -155,7 +113,7 @@ export const updateLeave=async(req,res)=>{
         isDateInPast(toDate)
 
         const employeeId=req.auth.id;
-        const leaveId=Number(req.params.leaveId);     
+        const leaveId=Number(req.params.leaveId);
 
         // Get employee details
         const employee=await Employee.findByPk(employeeId)
@@ -166,35 +124,35 @@ export const updateLeave=async(req,res)=>{
         const currentDate=new Date();
         currentDate.setUTCHours(0,0,0,0)
 
-            console.log(getDateForDB(leave.dates[leave.dates.length-1]) ,currentDate,getDateForDB(leave.dates[leave.dates.length-1]) < currentDate)
         if(getDateForDB(leave.dates[leave.dates.length-1]) < currentDate) return res.status(403).json({error:'You cannot update this leave'})
         let leavesDeleted=0;
-        const newDates=[]
+        const pastDates=[]
         leave.dates.map(leaveDate=>{
-            // console.log(getDateForDB(leaveDate),currentDate,getDateForDB(leaveDate) < currentDate)
             if(getDateForDB(leaveDate) < currentDate){
-                newDates.push(leaveDate)
+                pastDates.push(leaveDate)
             }else leavesDeleted++;
         })
-         const {dates,leaveDuration}=await getDatesArray(employeeId,fromDate,toDate,true);
-         console.log(dates,'kljgksdfjglksdjglk')
+         const {dates,leaveDuration}=await getDatesArray(employeeId,fromDate,toDate,false,leaveId);
          if(employee.leavesLeft - leavesDeleted + leaveDuration > 20) return res.status(403).json({error: 'You do not have enough leaves left'}) ;
 
-        leavesDeleted=leavesDeleted-dates.length;
-
-        const dateRange=[...newDates,...dates];
+        const dateRange=[...pastDates,...dates];
 
         if(dateRange.length === 0) return res.status(403).json({error:`You cannot update this leaving. Try deleting it and creating a new one`})
 
+        const updatedLeave={
+            dates:[...dateRange]
+        }
+        if(reason) updatedLeave.reason=reason;
+
         // Updating leaves
-        await Leave.update({dates:[...dateRange]},{
+        await Leave.update(updatedLeave,{
             where:{
                 id:leaveId
             }
         })
 
         //  Updating leavesLeft for Employee
-        await Employee.update({leavesLeft:employee.leavesLeft+leavesDeleted},{
+        await Employee.update({leavesLeft:employee.leavesLeft + leavesDeleted - dates.length},{
             where:{
                 id:employeeId
             }
@@ -211,67 +169,69 @@ export const updateLeave=async(req,res)=>{
 export const updateLeaveByPutMethod=async(req,res)=>{
     try{
         let {fromDate,toDate,reason}=req.body;
-        if(!fromDate || !toDate || !reason) return res.status(400).json({error:'All fileds are mandatory'});
 
-        fromDate=getDate(fromDate);
-        toDate=getDate(toDate);
 
-        isDateInPast(toDate)
+        if((fromDate && !toDate) || (toDate && ! fromDate)) return res.status(400).json({error:'Start date and End date is mandatory'});
 
-        const userId=req.auth.id;
-        const leaveId=Number(req.params.leaveId);        
-        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
-        const fileData=JSON.parse(data);
-        let leaveFound=false;
-        let leavesDeleted=0;
-        let leaveLimitExceeded=false;
+        const employeeId=req.auth.id;
+        const leaveId=Number(req.params.leaveId);     
 
-        // Generating the timestamp
-        const currentDate=new Date();
-        const timestamp=currentDate.getTime();
+        // Get employee details
+        const employee=await Employee.findByPk(employeeId)
 
-        const promises= fileData.users.map(async (user)=>{
-            if(user.id == userId){
-                let leave=await Promise.all(user.leaveDetails.map(async(leave)=>{
-                    if(leave.leaveId === leaveId){
-                        leaveFound=true;
-                        const currentDate=new Date();
-                        currentDate.setUTCHours(0,0,0,0)
-                        if(currentDate > getDate(leave.dates[leave.dates.length-1])) throw new Error('You cannot update this leave')
-                        // upate leave here
-                        
-                       const newDates= leave.dates.filter((date)=>{
-                            if(getDate(date) < currentDate) return true;
-                            leavesDeleted++;
-                            return false;
-                        })
-                        const addedLeaveDays=await getDatesArray(userId,fromDate,toDate);
+        if(fromDate || toDate){
+            fromDate=getDate(fromDate);
+            toDate=getDate(toDate);
 
-                        if(user.leavesLeft - leavesDeleted + addedLeaveDays.dates.length > 20) leaveLimitExceeded=true;
+            isDateInPast(toDate)
 
-                        leave.dates=[...newDates,...addedLeaveDays.dates];
-                        leavesDeleted=leavesDeleted-addedLeaveDays.dates.length
-                        if(reason) leave.reason=reason
+            
+            const leave=await Leave.findByPk(leaveId);
+            if(!leave || (leave && leave.employeeId !=  employeeId)) return res.status(404).json({error:`Leave not found`});
 
-                        leave.lastModified=timestamp;
-                    }
-                    return leave
-                }))
-                user.leaveDetails=leave;
-                user.leavesLeft=user.leavesLeft + leavesDeleted;
+            const currentDate=new Date();
+            currentDate.setUTCHours(0,0,0,0)
+
+            if(getDateForDB(leave.dates[leave.dates.length-1]) < currentDate) return res.status(403).json({error:'You cannot update this leave'})
+            let leavesDeleted=0;
+            const pastDates=[]
+            leave.dates.map(leaveDate=>{
+                if(getDateForDB(leaveDate) < currentDate){
+                    pastDates.push(leaveDate)
+                }else leavesDeleted++;
+            })
+            const {dates,leaveDuration}=await getDatesArray(employeeId,fromDate,toDate,true,{consider:true,leaveId});
+            if(employee.leavesLeft - leavesDeleted + leaveDuration > 20) return res.status(403).json({error: 'You do not have enough leaves left'}) ;
+
+            let dateRange=[...pastDates,...dates];
+
+            if(dateRange.length === 0) return res.status(403).json({error:`You cannot update this leaving. Try deleting it and creating a new one`})
+        }
+
+        const updatedLeave={
+            reason:null,
+            dates:null
+        }
+        if(reason) updatedLeave.reason=reason;
+        if(fromDate || toDate) updateLeave.dates=[...dateRange]
+
+        // Updating leaves
+        await Leave.update(updatedLeave,{
+            where:{
+                id:leaveId
             }
-            return user;
         })
-        const updatedUsers=await Promise.all(promises)
 
-        if(leaveLimitExceeded) return res.status(403).json({error: 'You do not have enough leaves left'})
-        if(!leaveFound) return res.status(404).json({error:"This leave id does not exist."})
+        //  Updating leavesLeft for Employee
+        await Employee.update({leavesLeft:employee.leavesLeft + leavesDeleted - dates.length},{
+            where:{
+                id:employeeId
+            }
+        })
 
-        const newUpdatedFile=JSON.stringify({users:updatedUsers})
-        await fs.writeFile(`${__dirname}/../../db/users.json`,newUpdatedFile,'utf8')
-        return res.json({message:'Leave updated successfully'})          
-
+        return res.json({message:'Leave updated successfully'})      
     }catch(e){
+        console.log(e)
         return res.status(500).json({error:e.message})
     }   
 }
@@ -287,7 +247,6 @@ export const deleteLeave=async(req,res)=>{
         const employee=await Employee.findByPk(employeeId)
 
         const leave=await Leave.findByPk(leaveId);
-        console.log(leave)
         if(!leave || (leave.employeeId != employeeId)) return res.status(404).json({error:`Leave does not exist`});
 
         const currentDate=new Date();
@@ -336,42 +295,46 @@ export const deleteLeave=async(req,res)=>{
 
 export const deleteLeaveByDate=async(req,res)=>{
     try{
-        const userId=req.auth.id;
+        const employeeId=req.auth.id;
         const dateToDelete=req.params.date;
 
         if(isValidDate(getDate(dateToDelete))) return res.status(400).json({error:`Please enter a valid date`}); 
         if(isDateInPast(getDate(dateToDelete))) return res.status(403).json({error:`This date is of past. You cannot delete it`}); 
 
-        const data=await fs.readFile(`${__dirname}/../../db/users.json`,'utf8')
-        const fileData=JSON.parse(data);
+        const [day,month,year]=dateToDelete.split('-');
+        const dateForDb=`${year}-${month}-${day}`
 
-        let isApplied=false;
+        const employee=await Employee.findByPk(employeeId)
 
-        const updatedUsers=fileData.users.map((user)=>{
-            if(user.id === userId){
-                const updatedLeaveDetails=user.leaveDetails.map((leave)=>{
-                    const newDates=leave.dates.filter(date=>{
-                        if(getDate(date).getTime() === getDate(dateToDelete).getTime()){
-                            isApplied=true;
-                            const timestamp=generateTimestamp();
-                            leave.lastModified=timestamp;
-                            return false;
-                        }
-                        return true;
-                    })
-                    leave.dates=newDates;
-                    return leave;
-                })
-                user.leaveDetails=updatedLeaveDetails;
+        const leave=await Leave.findOne({
+            where:{
+                employeeId,
+                dates:{
+                    [Op.contains]:[dateForDb]
+                }
             }
-            return user;
+        });
+
+        if(!leave) return res.status(400).json({error:`You have not applied for leave on this date`}); 
+
+        const updatedDates=leave.dates.filter(leaveDate=>{
+            if(leaveDate === dateForDb) return false;
+            return true
         })
 
-        if(!isApplied) return res.status(404).json({error:'You have not applied for leave on this date'});
+        await Employee.update({leavesLeft:employee.leavesLeft+1},{
+            where:{
+                id:employeeId
+            }
+        })
 
-        const newUpdatedFile=JSON.stringify({users:updatedUsers})
-        await fs.writeFile(`${__dirname}/../../db/users.json`,newUpdatedFile,'utf8')
-        return res.json({message:' Leave deleted successfully'})
+        await Leave.update({dates:[...updatedDates]},{
+            where:{
+                id:leave.id
+            }
+        })
+
+        return res.json({data:updatedDates})
 
     }catch(e){
         console.log(e);
@@ -449,7 +412,9 @@ export const getLeaveById = async (req, res) => {
     try {
         const leaveId = Number(req.params.leaveId);
 
-        const leave = await Leave.findByPk(leaveId);
+        const leave = await Leave.findByPk(leaveId,{
+            paranoid:false
+        });
 
         if(!leave) return res.status(404).json({error:`Leave not found`});
 
@@ -487,8 +452,6 @@ export const getAllLeaves = async (req, res) => {
 
         const totalLeaveDays=await getTotalLeaveDaysInSystem();
         const totalApplications= await getTotalApplicationsInSystem();
-
-        // console.log(totalApplications,totalLeaveDays,'sdgsdgisdgudoisufgiodfsugsiodfugsdoigusoigusoigusdoifgu')
 
         return res.json({data:allLeaves,metadata:{
             totalLeaveDays,
