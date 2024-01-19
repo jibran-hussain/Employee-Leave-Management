@@ -1,5 +1,5 @@
 import express from 'express'
-import {deleteEmployee,listAllEmployees,listAllDisabledEmployees,activateAccount,getLoggedUsersDetails,updateProfile,getEmployeeDetails,updateEmployeeProfile,updatedProfileByPutMethod,updateEmployeeProfileByPut,resetPassword, deleteMe} from '../controllers/employee.js'
+import {deleteEmployee,listAllEmployees,activateAccount,getLoggedUsersDetails,updateProfile,getEmployeeDetails,updateEmployeeProfile,updatedProfileByPutMethod,updateEmployeeProfileByPut,resetPassword, deleteMe} from '../controllers/employee.js'
 import { isAuth } from '../middlewares/isAuth.js';
 import { isAdminOrSuperadmin } from '../middlewares/isAdminOrSuperadmin.js';
 const router=express.Router();
@@ -7,8 +7,6 @@ const router=express.Router();
 router.get('/employees',isAuth,isAdminOrSuperadmin,listAllEmployees);
 
 router.delete('/employees/:employeeId',isAuth,isAdminOrSuperadmin,deleteEmployee);
-
-router.get('/employees/disabled',isAuth,isAdminOrSuperadmin,listAllDisabledEmployees);
 
 router.post('/employees/:employeeId/activate',isAuth,isAdminOrSuperadmin,activateAccount);
 
