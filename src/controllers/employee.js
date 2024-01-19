@@ -5,37 +5,34 @@ import 'dotenv/config'
 import bcrypt from 'bcrypt';
 import { generateHashedPassword } from '../utils/Auth/generateHashedPassword.js';
 import { isValidNumber } from '../utils/Validation/isValidMobile.js';
-import { isValidEmail, passwordValidation } from '../utils/Validation/validations.js';
-import {generateTimestamp} from '../utils/Date/generateTimestamp.js'
 import sequelize from '../../index.js';
 
 
-// This method gives the list of all active employees.
+// This method gives the list of all active and deactivated employees.
 // Can be accessed by only admin and superadmin
-// Can sort them bassed on name, role, salary in ascending and descending order. Can also search them by name.
+// Can sort them bassed on any field in ascending and descending order. Can also perform global search.
 
 export const listAllEmployees = async (req, res) => {
     try {
-        let defaultOffset=1;
-        
         const limit = Number(req.query.limit) || 10;
-        const offset = Number(req.query.offset) || defaultOffset;
+        const offset = Number(req.query.offset) || 1;
         const sortBy = req.query.sortBy;
         const order = req.query.order === 'desc' ? 'DESC' : 'ASC';
         const search = req.query.search;
+        const deleted = req.query.deleted;
 
         if ((limit && !offset) || (!limit && offset)) {
             return res.status(400).json({ error: 'Either limit or offset is necessary' });
         }
 
-        defaultOffset=0;
-
         const startIndex = (offset - 1)*limit;
 
         const whereClause={
-            active:true,
             role:['admin','employee']
         }
+
+        if(deleted !== 'false' &&  deleted !== 'true' && deleted !== undefined) return res.status(400).json({error:`Invalid option for listing deleted employees`})
+        if(deleted === 'false') whereClause.deletedAt={[Op.not]:null}
         
         if(search){
             whereClause[Op.or]=[
@@ -50,13 +47,24 @@ export const listAllEmployees = async (req, res) => {
 
         const {count,rows:employees}=await Employee.findAndCountAll({
             where:whereClause,
+            include:[
+                {
+                    model:Leave,
+                    attributes:{exclude:['employeeId','deletedAt']}
+                }
+            ],
             order:sortBy?[[sortBy,order]]:[],
             offset:startIndex || undefined,
             limit:limit || undefined,
-            attributes:{exclude:['hashedPassword','active']}
+            attributes:{
+                exclude:['hashedPassword','active','deletedAt'],
+            },
+            paranoid:deleted === 'false'?false:true
+
         }
         )
 
+        if(count === 0) return res.status(404).json({message:`The list is empty`})
 
         if(limit && offset){
             const totalPages = Math.ceil(count/limit);
@@ -74,78 +82,10 @@ export const listAllEmployees = async (req, res) => {
         return res.json({ data:employees});
     } catch (e) {
         console.log(e)
-        return res.status(500).json({ error:`Internal Server Error` });
+        return res.status(500).json({ error:e.message });
     }
 };
 
-// This method gives the list of all deactivated employees.
-// Can be accessed by only admin and superadmin
-// Can sort them bassed on name, role, salary in ascending and descending order. Can also search them by name.
-
-export const listAllDisabledEmployees=async (req,res)=>{
-    try{
-        let defaultOffset=1;
-
-        const limit = Number(req.query.limit) || 10;
-        const offset = Number(req.query.offset) || defaultOffset;
-        const sortBy = req.query.sortBy;
-        const order = req.query.order === 'desc' ? 'DESC' : 'ASC';
-        const search = req.query.search;
-
-        if ((limit && !offset) || (!limit && offset)) {
-            return res.status(400).json({ error: 'Either limit or offset is necessary' });
-        }
-
-        defaultOffset=0;
-
-        const startIndex = (offset - 1)*limit;
-
-        const whereClause={
-            active:false,
-            role:['admin','employee']
-        }
-        
-        if(search){
-            whereClause[Op.or]=[
-                {name:{[Op.iLike]:`%${search}`}},
-                {email:{[Op.iLike]:`%${search}`}},
-                {role:{[Op.iLike]:`%${search}`}},
-                sequelize.literal(`CAST ("id" AS TEXT) ILIKE '%${search}%'`),
-                sequelize.literal(`CAST ("mobileNumber" AS TEXT) ILIKE '%${search}%'`),
-                sequelize.literal(`CAST ("salary" AS TEXT) ILIKE '%${search}%'`),
-            ]
-        }
-
-        const {count,rows:employees}=await Employee.findAndCountAll({
-            where:whereClause,
-            order:sortBy?[[sortBy,order]]:[],
-            offset:startIndex || undefined,
-            limit:limit || undefined,
-            attributes:{exclude:['hashedPassword','active']}
-        }
-        )
-
-
-        if(limit && offset){
-            const totalPages = Math.ceil(count/limit);
-            if(offset > totalPages) return res.status(404).json({error:`This page does not exist`})
-
-            return res.json({
-                data:employees,
-                metadata:{
-                    totalEmployees:count,
-                    currentPage:offset,
-                    totalPages
-                }
-            })
-        }
-
-        return res.json({ data:employees});
-    }catch(e){
-        console.log(e)
-        return res.status(500).json({error:e.message})
-    }
-}
 
 // It activates the employee account.
 // Admin and Superadmin can activate employees account and Superadmin can activate admin's account.
@@ -154,12 +94,14 @@ export const listAllDisabledEmployees=async (req,res)=>{
 export const activateAccount=async (req,res)=>{
     try{
         const employeeId=Number(req.params.employeeId)
-        const employeeToActivate=await Employee.findByPk(employeeId);
+        const employeeToActivate=await Employee.findByPk(employeeId,{
+            paranoid:false
+        });
 
         if(!employeeToActivate) return res.status(404).json({error:'Employee with this id does not exist'});
 
         if(req.auth.role === 'superadmin'){
-            await Employee.update({active:true},{
+            await Employee.restore({
                 where:{
                     id:employeeId
                 }
@@ -169,7 +111,7 @@ export const activateAccount=async (req,res)=>{
         else if(req.auth.role === 'admin' && (employeeToActivate.role === 'admin' || employeeToActivate.role === 'superadmin' )) return res.status(403).json({error:`You are not authorized to activate this employee's account`})
 
         else if(req.auth.role === 'admin' && employeeToActivate.role === 'employee'){
-            await Employee.update({active:true},{
+            await Employee.restore({
                 where:{
                     id:employeeId
                 }
@@ -191,11 +133,11 @@ export const getLoggedUsersDetails=async(req,res)=>{
         const {id}=req.auth;
 
         const employee= await Employee.findByPk(id,{
-            attributes:{exclude:['hashedPassword','active']},
+            attributes:{exclude:['hashedPassword','active','deletedAt']},
             include:[
                 {
                     model:Leave,
-                    attributes:{exclude:['employeeId']},
+                    attributes:{exclude:['employeeId','deletedAt']},
                 }
             ]
         });
@@ -218,7 +160,7 @@ export const deleteEmployee=async (req,res)=>{
         if(!employeeToDelete) return res.status(404).json({error:'Employee with this id does not exist'});
 
         if(req.auth.role === 'superadmin'){
-            await Employee.update({active:false},{
+            await Employee.destroy({
                 where:{
                     id:employeeId
                 }
@@ -227,7 +169,7 @@ export const deleteEmployee=async (req,res)=>{
         else if(req.auth.role === 'admin' && (employeeToDelete.role === 'admin' || employeeToDelete.role === 'superadmin' )) return res.status(403).json({error:`You are not authorized to delete this employee`})
 
         else if(req.auth.role === 'admin' && employeeToDelete.role === 'employee'){
-            await Employee.update({active:false},{
+            await Employee.destroy({
                 where:{
                     id:employeeId
                 }
@@ -236,7 +178,7 @@ export const deleteEmployee=async (req,res)=>{
 
         return res.json({message:`Employee's account has been deactivated succesfully`})
     }catch(e){
-        return res.status(500).json({error:e.message})
+        return res.status(500).json({error:`Internal Server Error`})
     }
 }
 
@@ -245,7 +187,7 @@ export const deleteEmployee=async (req,res)=>{
 
 export const deleteMe= async(req,res)=>{
     try{
-        await Employee.update({active:false},{
+        await Employee.destroy({
             where:{
                 id:req.auth.id
             }
@@ -261,13 +203,13 @@ export const deleteMe= async(req,res)=>{
 export const updateProfile= async(req,res)=>{
     try{
         const employeeId=req.auth.id;
-        if(Object.keys(req.body).length == 0) return res.
-        status(401).json({error:`You have not provided any details to update`})
+        if(Object.keys(req.body).length == 0) return res.status(400).json({error:`You have not provided any details to update`})
+
         const {name,mobileNumber}=req.body;
 
-        if(name.length < 3) return res.status(400).json({error:'Name should be of atleast 3 characters'})
+        if(name && name.length < 3) return res.status(400).json({error:'Name should be of atleast 3 characters'})
 
-        if(mobileNumber) isValidNumber(mobileNumber);
+        if(mobileNumber && !isValidNumber(mobileNumber))  return res.status(400).json({error:`Please enter a valid mobile number`});
 
         const updatedObject={};
         if(name) updatedObject.name=name;
@@ -294,11 +236,12 @@ export const getEmployeeDetails= async(req,res)=>{
     try{
         const employeeId=Number(req.params.employeeId);
         const employee=await Employee.findByPk(employeeId,{
+            paranoid:false,
             include:[
                 {
                     model:Leave,
                     attributes:{
-                        exclude:['employeeId']
+                        exclude:['employeeId','deletedAt']
                     }
                 }
             ]
@@ -323,7 +266,7 @@ export const updateEmployeeProfile=async(req,res)=>{
         
         const {name,mobileNumber,role,password,salary}=req.body;
 
-        if(mobileNumber) isValidNumber(mobileNumber);
+        if(mobileNumber && !isValidNumber(mobileNumber))  return res.status(400).json({error:`Please enter a valid mobile number`});
 
         if(salary && !Number(salary)) return res.status(400).json({error:"Please enter valid salary"})
     
@@ -375,7 +318,7 @@ export const updateEmployeeProfileByPut=async(req,res)=>{
 
         if(role != 'admin' && role != 'employee') return res.status(400).json({error:`Please enter a valid role`})
 
-        if(mobileNumber) isValidNumber(mobileNumber);
+        if(mobileNumber && !isValidNumber(mobileNumber))  return res.status(400).json({error:`Please enter a valid mobile number`});
 
         if(salary && !Number(salary)) return res.status(400).json({error:"Please enter valid salary"})
         
@@ -418,7 +361,6 @@ export const updateEmployeeProfileByPut=async(req,res)=>{
 export const updatedProfileByPutMethod= async(req,res)=>{
     try{
         const employeeId=req.auth.id;
-        if(Object.keys(req.body).length == 0) return res.status(401).json({error:`You have not provided any details to update`})
         const {name,mobileNumber}=req.body;
 
         if(!name) return res.status(400).json({error:`Please provide name`});
@@ -426,7 +368,7 @@ export const updatedProfileByPutMethod= async(req,res)=>{
  
         if(name.length < 3) return res.status(400).json({error:'Name should be of atleast 3 characters'})
 
-        if(mobileNumber) isValidNumber(mobileNumber);
+        if(mobileNumber && !isValidNumber(mobileNumber))  return res.status(400).json({error:`Please enter a valid mobile number`});
 
         const employee=await Employee.findByPk(employeeId)
 
@@ -438,7 +380,6 @@ export const updatedProfileByPutMethod= async(req,res)=>{
             salary:null,
             role:employee.role,
             leavesLeft:null,
-            active:null
         };
         if(mobileNumber) updatedObject.mobileNumber=mobileNumber;
 
