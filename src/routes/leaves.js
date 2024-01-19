@@ -1,9 +1,7 @@
 import express from 'express'
 import { applyForLeave,listLeaves,updateLeave,updateLeaveByPutMethod,deleteLeave,getLeaveDetails,listAllEmployeeLeaves,getLeaveById,getAllLeaves,deleteLeaveByDate } from '../controllers/leave.js';
 import { isAuth } from '../middlewares/isAuth.js';
-import { isEmployee } from '../middlewares/isEmployee.js';
 import { isAdminOrSuperadmin } from '../middlewares/isAdminOrSuperadmin.js';
-import { isAdmin } from '../middlewares/isAdmin.js';
 
 const router= express.Router();
 
