@@ -35,7 +35,7 @@ export const createUser=async(req,res)=>{
         if(!isValidNumber(mobileNumber)) return res.status(400).json({error:`Please enter a valid mobile number`})
 
         // Validatin salary
-        if(!Number(salary) && salary < 0) return res.status(400).json("Please enter a valid salary")
+        if(salary && (!Number(salary) || salary < 0)) return res.status(400).json({error:"Please enter a valid salary"})
 
         // Check whether employee of this email-id already exists or not
         const isEmailExisting=await Employee.findOne({where:{
