@@ -101,60 +101,61 @@ export const listAllEmployeeLeaves=async (req,res)=>{
 
 }
 
-// It is used to modify the leaves of an admin/employee
+// It is used to modify the leaves of an employee
 export const updateLeave=async(req,res)=>{
     try{
-        let {fromDate,toDate,reason}=req.body;
-        if((fromDate && !toDate) || (toDate && ! fromDate)) return res.status(400).json({error:'Start date and End date is mandatory'});
-
-        fromDate=getDate(fromDate);
-        toDate=getDate(toDate);
-
-        isDateInPast(toDate)
-
         const employeeId=req.auth.id;
         const leaveId=Number(req.params.leaveId);
 
-        // Get employee details
-        const employee=await Employee.findByPk(employeeId)
-        
-        const leave=await Leave.findByPk(leaveId);
-        if(!leave || (leave && leave.employeeId !=  employeeId)) return res.status(404).json({error:`Leave not found`});
+         // Get employee details
+         const employee=await Employee.findByPk(employeeId)
+            
+         const leave=await Leave.findByPk(leaveId);
+         if(!leave || (leave && leave.employeeId !=  employeeId)) return res.status(404).json({error:`Leave not found`});
 
-        const currentDate=new Date();
-        currentDate.setUTCHours(0,0,0,0)
+        let updatedLeave={};
+        let {fromDate,toDate,reason}=req.body;
+        if((fromDate && !toDate) || (toDate && ! fromDate)) return res.status(400).json({error:'Start date and End date is mandatory'});
+        else if(fromDate && toDate){
+            fromDate=getDate(fromDate);
+            toDate=getDate(toDate);
 
-        if(getDateForDB(leave.dates[leave.dates.length-1]) < currentDate) return res.status(403).json({error:'You cannot update this leave'})
-        let leavesDeleted=0;
-        const pastDates=[]
-        leave.dates.map(leaveDate=>{
-            if(getDateForDB(leaveDate) < currentDate){
-                pastDates.push(leaveDate)
-            }else leavesDeleted++;
+            isDateInPast(toDate)
+
+            const currentDate=new Date();
+            currentDate.setUTCHours(0,0,0,0)
+
+            if(getDateForDB(leave.dates[leave.dates.length-1]) < currentDate) return res.status(403).json({error:'You cannot update this leave'})
+            let leavesDeleted=0;
+            const pastDates=[]
+            leave.dates.map(leaveDate=>{
+                if(getDateForDB(leaveDate) < currentDate){
+                    pastDates.push(leaveDate)
+                }else leavesDeleted++;
+            })
+            const {dates,leaveDuration}=await getDatesArray(employeeId,fromDate,toDate,false,leaveId);
+            if(employee.leavesLeft - leavesDeleted + leaveDuration > 20) return res.status(403).json({error: 'You do not have enough leaves left'}) ;
+
+            let dateRange=[...pastDates,...dates];
+
+            if(dateRange.length === 0) return res.status(403).json({error:`You cannot update this leaving. Try deleting it and creating a new one`})
+
+            updatedLeave.dates=[...dateRange]
+
+            //  Updating leavesLeft for Employee
+            await Employee.update({leavesLeft:employee.leavesLeft + leavesDeleted - dates.length},{
+            where:{
+                id:employeeId
+            }
         })
-         const {dates,leaveDuration}=await getDatesArray(employeeId,fromDate,toDate,false,leaveId);
-         if(employee.leavesLeft - leavesDeleted + leaveDuration > 20) return res.status(403).json({error: 'You do not have enough leaves left'}) ;
-
-        const dateRange=[...pastDates,...dates];
-
-        if(dateRange.length === 0) return res.status(403).json({error:`You cannot update this leaving. Try deleting it and creating a new one`})
-
-        const updatedLeave={
-            dates:[...dateRange]
         }
+        
         if(reason) updatedLeave.reason=reason;
 
         // Updating leaves
         await Leave.update(updatedLeave,{
             where:{
                 id:leaveId
-            }
-        })
-
-        //  Updating leavesLeft for Employee
-        await Employee.update({leavesLeft:employee.leavesLeft + leavesDeleted - dates.length},{
-            where:{
-                id:employeeId
             }
         })
 
@@ -360,7 +361,7 @@ export const listLeaves=async(req,res)=>{
                 employeeId
             },
             attributes:{
-                exclude:['employeeId']
+                exclude:['employeeId','deletedAt']
             },
             offset:startIndex || undefined,
             limit:limit ||undefined
