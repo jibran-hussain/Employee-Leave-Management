@@ -32,14 +32,14 @@ export const listAllEmployees = async (req, res) => {
         }
 
         if(deleted !== 'false' &&  deleted !== 'true' && deleted !== undefined) return res.status(400).json({error:`Invalid option for listing deleted employees`})
-        if(deleted === 'false') whereClause.deletedAt={[Op.not]:null}
+        if(deleted === 'true') whereClause.deletedAt={[Op.not]:null}
         
         if(search){
             whereClause[Op.or]=[
-                {name:{[Op.iLike]:`%${search}`}},
-                {email:{[Op.iLike]:`%${search}`}},
-                {role:{[Op.iLike]:`%${search}`}},
-                sequelize.literal(`CAST ("id" AS TEXT) ILIKE '%${search}%'`),
+                {name:{[Op.iLike]:`%${search}%`}},
+                {email:{[Op.iLike]:`%${search}%`}},
+                {role:{[Op.iLike]:`%${search}%`}},
+                sequelize.literal(`CAST ("Employee"."id" AS TEXT) ILIKE '%${search}%'`),
                 sequelize.literal(`CAST ("mobileNumber" AS TEXT) ILIKE '%${search}%'`),
                 sequelize.literal(`CAST ("salary" AS TEXT) ILIKE '%${search}%'`),
             ]
@@ -47,12 +47,6 @@ export const listAllEmployees = async (req, res) => {
 
         const {count,rows:employees}=await Employee.findAndCountAll({
             where:whereClause,
-            include:[
-                {
-                    model:Leave,
-                    attributes:{exclude:['employeeId','deletedAt']}
-                }
-            ],
             order:sortBy?[[sortBy,order]]:[],
             offset:startIndex || undefined,
             limit:limit || undefined,
