@@ -11,7 +11,9 @@ import Employee from '../models/employee.js';
 
 export const createUser=async(req,res)=>{
     try{
-        const {name,email,password,role,mobileNumber,salary}=req.body;
+        const {name,password,role,mobileNumber,salary}=req.body;
+
+        let{email}=req.body;
 
         if(!name ||!email || !password || !role) return res.status(400).json({error:'All fields are mandatory'})
 
@@ -24,6 +26,9 @@ export const createUser=async(req,res)=>{
 
         if(role === 'admin' && req.auth.role != 'superadmin') return res.status(403).json({error:'You are not authorized to create an admin. Please login as superadmin'});
         if(role === "employee" && (req.auth.role != 'superadmin' &&  req.auth.role != 'admin')) return res.status(403).json({error:'You are not authorized to create an employee. Please login as admin or superadmin'})
+
+        // Trim the email and convert it into lowercase
+        email=email.trim().toLowerCase();
 
         // Check if it is a valid email or not
         if(!isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
@@ -39,7 +44,7 @@ export const createUser=async(req,res)=>{
 
         // Check whether employee of this email-id already exists or not
         const isEmailExisting=await Employee.findOne({where:{
-            email:email.toLowerCase()
+            email
         }})
 
         if(isEmailExisting) return res.status(409).json({error:"Employee with this email already exists. Please try with another email id"})
@@ -47,7 +52,7 @@ export const createUser=async(req,res)=>{
         // Hashing the password
         const hashedPassword=generateHashedPassword(password);
 
-        await Employee.create({name,email:email.toLowerCase(),hashedPassword,mobileNumber,salary,role});
+        await Employee.create({name,email,hashedPassword,mobileNumber,salary,role});
 
         return res.status(201).json({message:`Employee created successfully`});
         
@@ -61,8 +66,13 @@ export const createUser=async(req,res)=>{
 
 export const userSignin=async(req,res)=>{
     try{
-        const {email,password}=req.body; 
+        const {password}=req.body; 
+        let {email}=req.body
+
         if(!email || !password) return res.status(400).json({message:`All fields are necassary`})  
+
+        // Trim the email and convert it into lowercase
+        email=email.trim().toLowerCase();
 
         // Check if it is a valid email or not
         if(!isValidEmail(email)) return res.status(400).json({error:"Please enter valid email address"})
@@ -70,12 +80,12 @@ export const userSignin=async(req,res)=>{
         // Checks whether password is Empty
         if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty and should have more than 3 characters`})
 
-        const employee=await Employee.findOne({where:{email:email.toLowerCase()}})
+        const employee=await Employee.findOne({where:{email}})
         
         if(!employee) return res.status(401).json({error:`Invalid credentials`});
 
         if(isValidPassword(password,employee.hashedPassword)){
-            const token=generateAuthToken(employee.id,employee.email.toLowerCase(),employee.role)
+            const token=generateAuthToken(employee.id,employee.email,employee.role)
                  return res.json({
                          token
                     })
