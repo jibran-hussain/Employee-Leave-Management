@@ -142,7 +142,7 @@ export const getLoggedUsersDetails=async(req,res)=>{
             ]
         });
 
-        return res.json({user:employee})
+        return res.json({data:employee})
     }catch(e){
         return res.status(500).json({error:e.message})
     }
