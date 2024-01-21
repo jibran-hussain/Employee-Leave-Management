@@ -25,6 +25,8 @@ export const listAllEmployees = async (req, res) => {
             return res.status(400).json({ error: 'Either limit or offset is necessary' });
         }
 
+        if(sortBy && (sortBy != 'id' && sortBy != 'name' && sortBy != 'email' && sortBy != 'mobileNumber' && sortBy != 'salary' && sortBy != 'role' && sortBy != 'leavesLeft' && sortBy != 'createdAt' && sortBy != 'updatedAt')) return res.status(401).json({error:`Please enter a valid field for using sorting`})
+
         const startIndex = (offset - 1)*limit;
 
         const whereClause={
