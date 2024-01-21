@@ -5,6 +5,7 @@ import 'dotenv/config'
 import bcrypt from 'bcrypt';
 import { generateHashedPassword } from '../utils/Auth/generateHashedPassword.js';
 import { isValidNumber } from '../utils/Validation/isValidMobile.js';
+import {passwordValidation} from '../utils/Validation/validations.js'
 import sequelize from '../../index.js';
 
 
@@ -319,6 +320,8 @@ export const updateEmployeeProfileByPut=async(req,res)=>{
         if(salary && !Number(salary)) return res.status(400).json({error:"Please enter valid salary"})
         
         const employee=await Employee.findByPk(employeeId)
+
+        if(!employee) return res.status(404).json({error:`Employee with this id does not exist`})
 
         if(req.auth.role === 'admin' && (employee.role === 'admin' || employee.role === 'superadmin')) return res.status(403).json({error:'You are not authorized to update the details of this employee (Forbidden)'})
 
