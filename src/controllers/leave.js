@@ -316,7 +316,16 @@ export const deleteLeaveByDate=async(req,res)=>{
             }
         });
 
-        if(!leave) return res.status(400).json({error:`You have not applied for leave on this date`}); 
+        if(!leave) return res.status(404).json({error:`You have not applied for leave on this date`}); 
+
+        if(leave.dates.length === 1){
+            await Leave.destroy({
+                where:{
+                    id:leave.id
+                }
+            })
+            return res.json({message:`Leave deleted successfully`});
+        }
 
         const updatedDates=leave.dates.filter(leaveDate=>{
             if(leaveDate === dateForDb) return false;
@@ -335,7 +344,7 @@ export const deleteLeaveByDate=async(req,res)=>{
             }
         })
 
-        return res.json({data:updatedDates})
+        return res.json({message:`Leave deleted successfully`})
 
     }catch(e){
         console.log(e);
