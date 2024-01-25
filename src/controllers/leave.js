@@ -365,7 +365,7 @@ export const listLeaves=async(req,res)=>{
 
 
         const employeeId=req.auth.id;
-        const allLeaves= await Leave.findAll({
+        const {count,row:allLeaves}= await Leave.findAndCountAll({
             where:{
                 employeeId
             },
@@ -375,6 +375,8 @@ export const listLeaves=async(req,res)=>{
             offset:startIndex || undefined,
             limit:limit ||undefined
         })
+
+        if(count === 0) return res.status(404).json({message:`There are no leaves in the system`});
 
         const {totalLeaveDays,timesApplied}=await getTotalLeaveDays(employeeId);
 
@@ -451,7 +453,7 @@ export const getAllLeaves = async (req, res) => {
         limit: limit || undefined
        });
 
-
+       if(count === 0) return res.status(404).json({message:`There are no leaves in the system`})
        let totalLeaves=0;
 
        allLeaves.forEach(leave=> totalLeaves=totalLeaves+leave.dates.length)
