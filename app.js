@@ -7,13 +7,12 @@ import {connectToDB} from './db/connection.js'
 const app=express();
 const PORT=process.env.port || 8000
 
+app.use(connectToDB)
 app.use(express.json())
 app.use(`/api/${process.env.API_VERSION}/auth`,authRoute)
 app.use(`/api/${process.env.API_VERSION}`,employeeRoute)
 app.use(`/api/${process.env.API_VERSION}`,leaveRoute)
 
-// Connection to database
-await connectToDB();
 
 app.listen(PORT,()=>{
     console.log(`Server is running on port ${PORT}`)
