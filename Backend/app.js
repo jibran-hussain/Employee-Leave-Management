@@ -1,5 +1,6 @@
 import express from 'express';
 import 'dotenv/config';
+import cors from 'cors'
 import authRoute from './src/routes/auth.js'
 import employeeRoute from './src/routes/employee.js'
 import leaveRoute from './src/routes/leaves.js'
@@ -7,6 +8,7 @@ import {connectToDB} from './db/connection.js'
 const app=express();
 const PORT=process.env.port || 8000
 
+app.use(cors())
 app.use(connectToDB)
 app.use(express.json())
 app.use(`/api/${process.env.API_VERSION}/auth`,authRoute)
