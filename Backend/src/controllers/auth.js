@@ -45,7 +45,9 @@ export const createUser=async(req,res)=>{
         // Check whether employee of this email-id already exists or not
         const isEmailExisting=await Employee.findOne({where:{
             email
-        }})
+        },
+        paranoid:false
+    })
 
         if(isEmailExisting) return res.status(409).json({error:"Employee with this email already exists. Please try with another email id"})
             
