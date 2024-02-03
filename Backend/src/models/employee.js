@@ -31,6 +31,9 @@ const Employee= sequelize.define('Employee',{
             type:DataTypes.STRING(10),
             allowNull:false
         },
+        profilePictureURL:{
+            type:DataTypes.TEXT
+        },
         leavesLeft:{
             type:DataTypes.INTEGER,
             defaultValue:20
