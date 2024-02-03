@@ -37,7 +37,9 @@ export const applyForLeave=async (req,res)=>{
 
         if(dates.length > employee.leavesLeft) return res.status(403).json({error: `You have only ${employee.leavesLeft} leaves left and you are applying for  ${dates.length} days`})
 
-        const leave =await Leave.create({reason,employeeId:id,dates})
+        if(req.auth.role === 'superadmin') await Leave.create({reason,employeeId:id,dates,status:'approved'})
+        else await Leave.create({reason,employeeId:id,dates})
+        
 
         await employee.update({leavesLeft:employee.leavesLeft-leaveDuration});
         
@@ -111,6 +113,7 @@ export const updateLeave=async(req,res)=>{
          const employee=await Employee.findByPk(employeeId)
             
          const leave=await Leave.findByPk(leaveId);
+         if(leave.status != 'Under Process') return res.status(403).json({message:`You cannot update this leave`})
          if(!leave || (leave && leave.employeeId !=  employeeId)) return res.status(404).json({error:`Leave not found`});
 
         let updatedLeave={};
@@ -250,6 +253,8 @@ export const deleteLeave=async(req,res)=>{
         const leave=await Leave.findByPk(leaveId);
         if(!leave || (leave.employeeId != employeeId)) return res.status(404).json({error:`Leave does not exist`});
 
+        if(leave.status != 'Under Process') return res.status(403).json({message:`This leave cannot be deleted`})
+
         const currentDate=new Date();
         currentDate.setUTCHours(0,0,0,0)
 
@@ -358,6 +363,9 @@ export const listLeaves=async(req,res)=>{
 
         const limit=Number(req.query.limit) || 10
         const offset=Number(req.query.offset) || 1;
+        const status = req.query.status || 'approved';
+
+        if(status && (status != 'approved' && status != 'Under Process' && status != "rejected")) return res.status(400).json({message:`Please enter a valid status`})
 
         if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
 
@@ -365,9 +373,10 @@ export const listLeaves=async(req,res)=>{
 
 
         const employeeId=req.auth.id;
-        const {count,row:allLeaves}= await Leave.findAndCountAll({
+        const {count,rows:allLeaves}= await Leave.findAndCountAll({
             where:{
-                employeeId
+                employeeId,
+                status: status?status:undefined,
             },
             attributes:{
                 exclude:['employeeId','deletedAt']
@@ -375,6 +384,7 @@ export const listLeaves=async(req,res)=>{
             offset:startIndex || undefined,
             limit:limit ||undefined
         })
+
 
         if(count === 0) return res.status(404).json({message:`There are no leaves in the system`});
 
@@ -384,6 +394,8 @@ export const listLeaves=async(req,res)=>{
             const totalPages=Math.ceil(timesApplied/ limit);
 
             if(offset > totalPages) return res.status(404).json({error:`This page does not exist`});
+
+            
 
             return res.json({data:allLeaves,metadata:{
                 totalLeaveApplications:timesApplied,
@@ -437,20 +449,89 @@ export const getLeaveById = async (req, res) => {
     }
 };
 
+export const rejectLeave=async(req,res)=>{
+    try{
+        const {rejectionReason}=req.body;
+        if(!rejectionReason) return res.status(400).json({message:`Please provide the reason for rejecing this leave`})
+        const leaveId = Number(req.params.leaveId);
+
+        const employee=await Employee.findByPk(leave.employeeId)
+        if(!employee) return res.status(400).json({error:`Employee with this id not found`});
+        
+        if(req.auth.role === 'admin' && employee.role != 'employee')  return res.status(403).json({error:`You are not authorized to reject this leave`});
+
+        if(req.auth.role === 'superadmin' && employee.role === 'superadmin')  return res.status(403).json({error:`You are not authorized to reject this leave`});
+
+        await Leave.update({status:'rejected',rejectionReason},{
+            where:{
+                id:leaveId
+            }
+        })
+        return res.json({message:`Leave rejected`})
+
+    }catch(e){
+        console.log(e.message)
+        return res.status(500).json({ error: e.message });
+    }
+}
+
+export const approveLeave=async(req,res)=>{
+    try{
+        const leaveId = Number(req.params.leaveId);
+        const leave=await Leave.findByPk(leaveId);
+        if(!leave) return res.status(400).json({error:`Leave with this id not found`});
+
+        const employee=await Employee.findByPk(leave.employeeId);
+        
+        if(req.auth.role === 'admin' && employee.role != 'employee')  return res.status(403).json({error:`You are not authorized to approve this leave`});
+
+        if(leave.status != 'Under Process') return res.status(400).json({error:`This leave cannot be approved`}) 
+
+        await Leave.update({status:'approved'},{
+            where:{
+                id:leaveId
+            }
+        })
+        return res.json({message:`Leave Approved`});
+
+    }catch(e){
+        console.log(e.message)
+        return res.status(500).json({ error: e.message });
+    }
+}
+
+       
+   
+
 // It is used to get all leaves in a system
 
 export const getAllLeaves = async (req, res) => {
     try {
         const limit=Number(req.query.limit) || 10;
         const offset=Number(req.query.offset) || 1;
+        const status=req.query.status || 'Under Process'
+
+        if(status && (status != 'approved' && status != 'Under Process' && status != "rejected")) return res.status(400).json({message:`Please enter a valid status`})
 
         if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
 
         const startIndex = (offset - 1)*limit;
 
+
        const {count,rows:allLeaves}=await Leave.findAndCountAll({
+        where:{
+            status
+        },
         offset:startIndex || undefined,
-        limit: limit || undefined
+        limit: limit || undefined,
+        include:[
+            {
+                model:Employee,
+                attributes:{
+                    exclude:['employeeId','deletedAt']
+                }
+            }
+        ]
        });
 
        if(count === 0) return res.status(404).json({message:`There are no leaves in the system`})
@@ -481,6 +562,33 @@ export const getAllLeaves = async (req, res) => {
         return res.status(500).json({ error: e.message });
     }
 };
+
+export const LeaveTypesInfo=async(req,res)=>{
+    try{
+        const approvedLeaves = await Leave.count({
+            where: {
+                status: 'approved',
+            },
+        });
+
+        const underProcessLeaves = await Leave.count({
+            where: {
+                status: 'Under Process',
+            },
+        });
+
+        const rejectedLeaves = await Leave.count({
+            where: {
+                status: 'rejected',
+            },
+        });
+
+        return res.json({data:{approvedLeaves,underProcessLeaves,rejectedLeaves}})
+    }catch(e){
+        console.log(e);
+        return res.status(500).json({ error: e.message });  
+    }
+}
 
 
 
