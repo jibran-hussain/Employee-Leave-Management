@@ -5,6 +5,7 @@
     import { user } from "../stores/userStore";
     import toast, { Toaster } from 'svelte-french-toast';
     import UpdateEmployeeModal from "../Components/UpdateEmployeeModal.svelte";
+    import EmployeeListTable from "../Components/EmployeeListTable.svelte";
 
 
     let employeesListData;
@@ -30,7 +31,9 @@
     $: {
         if (showDeletedEmployees) {
             fetchDeletedEmployees().then(data => {
-                employeesListData = data;
+                console.log(data,'hi')
+                if(data.message) employeesListData='';
+                else employeesListData=data
             });
         } else {
             fetchActiveEmployees().then(data => {
@@ -43,7 +46,11 @@
 
     const fetchActiveEmployees=async()=>{
         try{
-            const response=await fetch(`http://localhost:3000/api/v1/employees`,{
+            let url= `http://localhost:3000/api/v1/employees`;
+
+            if(searchInput) url += `?search=${searchInput}`;
+            if(selectedOption) searchInput?url += `&sortBy=${selectedOption}`:url += `?sortBy=${selectedOption}`
+            const response=await fetch(url,{
                 headers:{
                     'Authorization':`Bearer ${token}`
                 }
@@ -58,7 +65,11 @@
 
     const fetchDeletedEmployees=async()=>{
         try{
-            const response=await fetch(`http://localhost:3000/api/v1/employees?deleted=true`,{
+            console.log('asssalamunalaikum')
+            let url=`http://localhost:3000/api/v1/employees?deleted=true`;
+            if(searchInput) url += `&search=${searchInput}`;
+            if(selectedOption) url += `&sortBy=${selectedOption}`
+            const response=await fetch(url,{
                 headers:{
                     'Authorization':`Bearer ${token}`
                 }
@@ -114,7 +125,8 @@
 
 const handleDeleteEmployee=async(employeeId)=>{
     try{
-        const response=await fetch(`http://localhost:3000/api/v1/employees/${employeeId}`,{
+        let url=`http://localhost:3000/api/v1/employees/${employeeId}`;
+        const response=await fetch(url,{
                 method:'DELETE',
                 headers:{
                     'Authorization':`Bearer ${token}`
@@ -229,7 +241,7 @@ const handleActivateEmployee=async(employeeId)=>{
             <div class="mb-3">
                 <div class="row  align-items-center justify-content-end">
                     <div class="col-4 d-flex  justify-content-center">
-                        <input type="text" id="searchInput" class="form-control input-lg" bind:value={searchInput} on:input={()=>searchInput && handleSearch()} placeholder="Search" style="height: 50%;">
+                        <input type="text" id="searchInput" class="form-control input-lg" bind:value={searchInput} on:keyup={()=>searchInput && handleSearch()} placeholder="Search" style="height: 50%;">
                     </div>
                     <div class="col-4 d-flex  justify-content-center align-items-center">
                         <label for="sortBySelect" class="col-form-label"><span style="white-space: nowrap; padding-right:10px">Sort By</span></label>
@@ -255,45 +267,9 @@ const handleActivateEmployee=async(employeeId)=>{
             
             {#if employeesListData}
     
-                <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <thead class="text-center">
-                        <tr>
-                            <th scope="col">Id</th>
-                            <th scope="col">Name</th>
-                            <th scope="col">Email</th>
-                            <th scope="col">Mobile Number</th>
-                            <th scope="col">Salary</th>
-                            <th scope="col">Leaves Left</th>
-                            <th scope="col">Role</th>
-                            <th scope="col"></th>
-                            <th scope="col"></th>
-                        </tr>
-                        </thead>
-                        <tbody class="text-center">
-                        {#each employeesListData.data as employee(employee)}
-                            <tr>
-                                <td class="align-middle">{employee.id}</td>
-                                <td class="align-middle">{employee.name}</td>
-                                <td class="align-middle">{employee.email}</td>
-                                <td class="align-middle">{employee.mobileNumber}</td>
-                                <td class="align-middle">{employee.salary}</td>
-                                <td class="align-middle" >{employee.leavesLeft}</td>
-                                <td class="align-middle">{employee.role}</td>
-                                <td class="align-middle">
-                                    {#if showDeletedEmployees}
-                                    <button type="button" class="btn btn-success" on:click={()=>handleActivateEmployee(employee.id)}>Activate</button>
-                                    {:else}
-                                        <button type="button" class="btn btn-danger" on:click={()=>handleDeleteEmployee(employee.id)}>Delete</button>
-                                    {/if}
-                                </td>
-                                <td class="align-middle"><button type="button" class="btn btn-primary" on:click={()=>handleUpdateEmployee(employee.id)}>Update</button></td>
+            <EmployeeListTable {employeesListData} {showDeletedEmployees} {handleActivateEmployee} {handleDeleteEmployee} {handleUpdateEmployee}
+          />
 
-                            </tr>
-                        {/each}
-                        </tbody>
-                    </table>
-                </div>
                 
                 {:else}
                     <h1>The List is empty</h1>
