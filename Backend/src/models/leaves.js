@@ -14,6 +14,17 @@ const Leave=sequelize.define('Leave',{
     dates:{
         type:DataTypes.ARRAY(DataTypes.DATEONLY),
         allowNull:false
+    },
+    status:{
+        type:DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'Under Process',
+        validate: {
+            isIn: [['approved', 'rejected','Under Process']]
+        }
+    },
+    rejectionReason:{
+        type:DataTypes.TEXT
     }
 },{
     paranoid:true
