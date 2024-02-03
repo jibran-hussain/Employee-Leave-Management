@@ -1,5 +1,5 @@
 import express from 'express'
-import { applyForLeave,listLeaves,updateLeave,updateLeaveByPutMethod,deleteLeave,getLeaveDetails,listAllEmployeeLeaves,getLeaveById,getAllLeaves,deleteLeaveByDate } from '../controllers/leave.js';
+import { applyForLeave,listLeaves,updateLeave,updateLeaveByPutMethod,deleteLeave,getLeaveDetails,listAllEmployeeLeaves,getLeaveById,getAllLeaves,deleteLeaveByDate,rejectLeave,LeaveTypesInfo, approveLeave } from '../controllers/leave.js';
 import { isAuth } from '../middlewares/isAuth.js';
 import { isAdminOrSuperadmin } from '../middlewares/isAdminOrSuperadmin.js';
 
@@ -19,5 +19,8 @@ router.get('/me/leaves/:leaveId',isAuth,getLeaveDetails)
 router.get('/employees/:employeeId/leaves',isAuth,isAdminOrSuperadmin,listAllEmployeeLeaves)
 router.get('/employees/leaves/:leaveId',isAuth,isAdminOrSuperadmin,getLeaveById)
 router.get('/leaves',isAuth,isAdminOrSuperadmin,getAllLeaves)
+router.post('/leaves/:leaveId/accept',isAuth,isAdminOrSuperadmin,approveLeave)
+router.post('/leaves/:leaveId/reject',isAuth,isAdminOrSuperadmin,rejectLeave)
+router.get('/leaves/info',isAuth,isAdminOrSuperadmin,LeaveTypesInfo)
 
 export default router;
