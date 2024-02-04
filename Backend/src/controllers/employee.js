@@ -141,6 +141,7 @@ export const getLoggedUsersDetails=async(req,res)=>{
 
         return res.json({data:employee})
     }catch(e){
+        console.log(e.message)
         return res.status(500).json({error:e.message})
     }
 }
@@ -261,7 +262,7 @@ export const updateEmployeeProfile=async(req,res)=>{
 
         if(Object.keys(req.body).length === 0) return res.status(400).json({error:`You have not provided any details to update`});
         
-        const {name,mobileNumber,role,password,salary}=req.body;
+        const {name,mobileNumber,role,password,salary,profilePictureURL}=req.body;
 
         if(mobileNumber && !isValidNumber(mobileNumber))  return res.status(400).json({error:`Please enter a valid mobile number`});
 
@@ -281,6 +282,7 @@ export const updateEmployeeProfile=async(req,res)=>{
         if(role) updatedObject.role=role
         if(password) updatedObject.hashedPassword=generateHashedPassword(password);
         if(salary) updatedObject.salary=salary
+        if(profilePictureURL) updatedObject.profilePictureURL=profilePictureURL;
 
         const updatedEmployee=await Employee.update(updatedObject,{
             where:{
