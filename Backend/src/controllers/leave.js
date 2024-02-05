@@ -41,8 +41,6 @@ export const applyForLeave=async (req,res)=>{
         else await Leave.create({reason,employeeId:id,dates})
         
 
-        await employee.update({leavesLeft:employee.leavesLeft-leaveDuration});
-        
         return res.status(201).json({message:`Leave created successfully`})
         
     }catch(e){
@@ -382,7 +380,15 @@ export const listLeaves=async(req,res)=>{
                 exclude:['employeeId','deletedAt']
             },
             offset:startIndex || undefined,
-            limit:limit ||undefined
+            limit:limit ||undefined,
+            include:[
+                {
+                    model:Employee,
+                    attributes:{
+                        exclude:['employeeId','deletedAt']
+                    }
+                }
+            ]
         })
 
 
@@ -455,6 +461,8 @@ export const rejectLeave=async(req,res)=>{
         if(!rejectionReason) return res.status(400).json({message:`Please provide the reason for rejecing this leave`})
         const leaveId = Number(req.params.leaveId);
 
+        const leave=await Leave.findByPk(leaveId)
+
         const employee=await Employee.findByPk(leave.employeeId)
         if(!employee) return res.status(400).json({error:`Employee with this id not found`});
         
@@ -490,6 +498,15 @@ export const approveLeave=async(req,res)=>{
         await Leave.update({status:'approved'},{
             where:{
                 id:leaveId
+            }
+        
+        })
+
+        const totalLeaveDays=leave.dates.length;
+
+        await Employee.update({leavesLeft:employee.leavesLeft - totalLeaveDays },{
+            where:{
+                id:leave.employeeId
             }
         })
         return res.json({message:`Leave Approved`});
