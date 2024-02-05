@@ -26,16 +26,16 @@
             });
              data=await response.json()
             // show the error
-            if(data.error){
-                isError=true;
-            }
-            else{
+            if(response.ok){
                 const {token}=data;
                 localStorage.setItem('jwt',`${JSON.stringify(token)}`)
                 const decodedToken=decodeJwtToken(token);
                 user.set(decodedToken)
                 navigate("/dashboard", { replace: true });
                 console.log($user,'just checking')
+            }
+            else{
+                isError=true;
             }
             
         }catch(error){
@@ -44,7 +44,7 @@
     }
 
     $:{
-        if(isError) error=data.error
+        if(isError) error=data.error || data.message;
     }
     console.log("in parent")
 
@@ -54,17 +54,25 @@
     <p class="mb-0">EMPLOYEE LEAVE MANAGEMENT SYSTEM</p>
 </header>
 
-<Form options={formFields} formHeading="Signin" {handleSubmit} {error} />
+    <Form options={formFields} formHeading="Signin" buttonLabel='Signin' {handleSubmit} {error} width='30%'/>
 
 <style>
     header{
         display: flex;
         justify-content: center;
         align-items: center;
-        background-image: linear-gradient(to left, #553c9a, #b393d3);
-        color: white;
+        background-color: #4bb5f5;
+        color: #fff;
         font-weight:600;
         height: 7vh;
         margin-bottom: 7em;
+        padding: 20px;
+        border-radius: 10px 10px 0 0;
+        width: 100%;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    p{
+        font-size: larger;
     }
 </style>
