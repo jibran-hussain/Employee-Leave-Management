@@ -95,7 +95,6 @@
       padding: 20px;
       border-radius: 10px;
   
-      /* WebKit (Chrome, Safari) scrollbar styles */
       &::-webkit-scrollbar {
         width: 8px;
       }
