@@ -2,6 +2,7 @@
     import { createEventDispatcher } from "svelte";
     const dispatch=createEventDispatcher();
 
+    export let selectedStatus;
 
     const setLeaveStatus=(status)=>{
         console.log('status changed to ', status)
@@ -14,13 +15,13 @@
 <div class="container bg-light">
     <div class="custom-container m-0 ">
         <div class="custom-box">
-            <p on:click={()=>setLeaveStatus('Under Process')}>Pending (2)</p>
+            <p class={selectedStatus === 'Under Process'?"selected":""} on:click={()=>setLeaveStatus('Under Process')}>Pending</p>
         </div>
         <div class="custom-box">
-            <p on:click={()=>setLeaveStatus('approved')}>Approved (10)</p>
+            <p class={selectedStatus === 'approved'?"selected":""} on:click={()=>setLeaveStatus('approved')}>Approved</p>
         </div>
         <div class="custom-box">
-            <p on:click={()=>setLeaveStatus('rejected')}>Rejected (5)</p>
+            <p class={selectedStatus === 'rejected'?"selected":""} on:click={()=>setLeaveStatus('rejected')}>Rejected</p>
         </div>
     </div>
 </div>
@@ -53,6 +54,13 @@
 
   p{
     margin-bottom: 0px;
-    color:#279EFF;
+    color:#4bb5f5;
+    font-weight:600;
+    font-size:1.1rem;
+    cursor: pointer;
+  }
+
+  .selected{
+    text-decoration: underline;
   }
 </style>
