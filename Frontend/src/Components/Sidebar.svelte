@@ -1,6 +1,6 @@
 <script>
-  import { navigate } from "svelte-routing";
-  import { user } from "../stores/userStore";
+    import { goto } from '$app/navigation';
+    import { user } from "../stores/userStore";
     import { onMount } from "svelte";
 
   let employeeInfo;
@@ -29,18 +29,17 @@
   };
 
   let menuItems = [
-    { label: "All Employees", action: "/dashboard" },
-    { label: "Get All Leaves", action: "/leaves" },
-    { label: "Apply for Leave", action: "/leave" },
-    { label: "List Personal Leaves", action: "/me/leaves" },
-    { label: "Reset Password", action: "/me/password" },
+    { label: "All Employees", action: "/dashboard/employees" },
+    { label: "Get All Leaves", action: "/dashboard/employees/leaves" },
+    { label: "Apply for Leave", action: "/dashboard/me/leave" },
+    { label: "List Personal Leaves", action: "/dashboard/me/leaves" },
+    { label: "Reset Password", action: "/dashboard/me/password" },
+    { label: "My Profile", action: "/dashboard/me/profile"}
   ];
 
   
   function handleMenuClick(action) {
-    // Handle menu item click based on the action
-    navigate(action, { replace: true });
-
+    goto(action)
   }
 
   onMount(async()=>{
