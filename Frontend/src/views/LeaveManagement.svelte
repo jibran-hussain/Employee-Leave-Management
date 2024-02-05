@@ -62,6 +62,36 @@
             console.log(error)
         }
     }
+    
+    const handleRejectionSubmit = async(event) => {
+    try{
+      const response = await fetch(`http://localhost:3000/api/v1/leaves/${event.detail.leaveId}/reject`, {
+        method: "POST",
+        headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            'Authorization':`Bearer ${$user.token}`
+        },
+        body: JSON.stringify({rejectionReason:event.detail.rejectionReason}),
+        });
+      const data=await response.json();
+      if(response.ok){
+        toast.success('Leave Rejected', {
+                duration: 5000,
+                position: 'top-center',
+            });
+            leaves=await fetchLeaves();
+      }
+      else{
+        toast.error(data.error || data.message,{
+                duration:3000
+            });
+      }
+
+    }catch(e){
+        console.log(e.message)
+    }
+  };
 
     onMount(async()=>{
         leaves=await fetchLeaves();
@@ -69,18 +99,20 @@
 
 
 </script>
-
+{console.log(leaves,'dfksjfkljdfkjsdkfjakjdfak;jfak;lsdjflks')}
 <Toaster />
 <Navbar />
 <div class="main-container">
     <Sidebar />
     <div class='display-area'>
         <div  style="margin-bottom: 3em;">
-            <LeavesStatusComponent on:setLeaveStatus={handleStatusChange} />
+            <LeavesStatusComponent on:setLeaveStatus={handleStatusChange} selectedStatus={leaveStatus} />
         </div>
         {#if leaves}
-             <LeavesInSystemTable leavesData={leaves.data} {handleAcceptLeaveButton} />
+                {console.log('boya i am in leaves')}
+             <LeavesInSystemTable leavesData={leaves.data} {handleAcceptLeaveButton}  {handleRejectionSubmit} />
         {:else}
+        {console.log('boya i am not in leaves')}
             <h3>No such leaves are present</h3>
         {/if}
     </div>
