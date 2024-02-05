@@ -62,9 +62,8 @@ const handleSubmit=async(formData)=>{
 
 <div class="container-fluid  outer-model-container">
   <div class="modal-content">
-      <!-- Add your form elements and logic here -->
-      <Form options={formFields}  formHeading="Register Employee" {handleSubmit} {error} {success} />
-      <button on:click={closeModal}>Close</button>
+      <button class="close-button" on:click={closeModal}>×</button>
+      <Form options={formFields}  formHeading="Register Employee" buttonLabel="Register Employee" {handleSubmit} {error} {success} />
   </div>
 </div>
 
@@ -89,6 +88,19 @@ const handleSubmit=async(formData)=>{
       overflow-y: auto;
       padding: 20px;
       border-radius: 10px;
+
+      &::-webkit-scrollbar {
+        width: 8px;
+      }
+  
+      &::-webkit-scrollbar-thumb {
+        background-color: #777;
+        border-radius: 4px;
+      }
+  
+      &::-webkit-scrollbar-track {
+        background-color: transparent;
+      }
   }
 
   h2 {
@@ -101,4 +113,19 @@ const handleSubmit=async(formData)=>{
       padding: 10px;
       cursor: pointer;
   }
+
+  .close-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 30px;
+      border: none;
+      background-color: transparent;
+      cursor: pointer;
+      color: #777;
+    }
+  
+    .close-button:hover {
+      color: #333;
+    }
 </style>
