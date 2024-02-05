@@ -62,7 +62,7 @@
             console.log(error)
         }
     }
-    
+
     const handleRejectionSubmit = async(event) => {
     try{
       const response = await fetch(`http://localhost:3000/api/v1/leaves/${event.detail.leaveId}/reject`, {
@@ -99,7 +99,6 @@
 
 
 </script>
-{console.log(leaves,'dfksjfkljdfkjsdkfjakjdfak;jfak;lsdjflks')}
 <Toaster />
 <Navbar />
 <div class="main-container">
@@ -109,7 +108,6 @@
             <LeavesStatusComponent on:setLeaveStatus={handleStatusChange} selectedStatus={leaveStatus} />
         </div>
         {#if leaves}
-                {console.log('boya i am in leaves')}
              <LeavesInSystemTable leavesData={leaves.data} {handleAcceptLeaveButton}  {handleRejectionSubmit} />
         {:else}
         {console.log('boya i am not in leaves')}
