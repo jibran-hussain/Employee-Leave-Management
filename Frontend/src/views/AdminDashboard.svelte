@@ -12,6 +12,7 @@
     let showDeletedEmployees=false;
     let searchInput=''
     let selectedOption=''
+    let orderOption;
     let showUpdateModal=false;
     let userToUpdate;
 
@@ -31,7 +32,6 @@
     $: {
         if (showDeletedEmployees) {
             fetchDeletedEmployees().then(data => {
-                console.log(data,'hi')
                 if(data.message) employeesListData='';
                 else employeesListData=data
             });
@@ -50,6 +50,7 @@
 
             if(searchInput) url += `?search=${searchInput}`;
             if(selectedOption) searchInput?url += `&sortBy=${selectedOption}`:url += `?sortBy=${selectedOption}`
+            if(selectedOption && orderOption) url += `&order=${orderOption}`
             const response=await fetch(url,{
                 headers:{
                     'Authorization':`Bearer ${token}`
@@ -65,7 +66,6 @@
 
     const fetchDeletedEmployees=async()=>{
         try{
-            console.log('asssalamunalaikum')
             let url=`http://localhost:3000/api/v1/employees?deleted=true`;
             if(searchInput) url += `&search=${searchInput}`;
             if(selectedOption) url += `&sortBy=${selectedOption}`
@@ -87,6 +87,7 @@
             let url=`http://localhost:3000/api/v1/employees?search=${searchInput}`;
             if(showDeletedEmployees) url += `&deleted=true`
             if(selectedOption) url += `&sortBy=${selectedOption}`
+            if(selectedOption && orderOption) url += `&order=${orderOption}`
             else url=url
             const response=await fetch(url,{
                 headers:{
@@ -96,9 +97,6 @@
             const data=await response.json();
             if(data.message) employeesListData='';
             else employeesListData = data;
-            
-
-            console.log(data,'seeeeeeeeeeeeeeeeeaaaaaaaaaaaaaaaaaaaarrrrrrrrrccccccccchhhhhhhhhhhhhhhh')
         }catch(error){
             console.log(error.message)
         }
@@ -110,6 +108,7 @@
             let url=`http://localhost:3000/api/v1/employees?sortBy=${selectedOption}`;
             if(showDeletedEmployees) url += `&deleted=true`
             if(searchInput) url += `&search=${searchInput}`
+            if(orderOption) url += `&order=${orderOption}`
             const response=await fetch(url,{
                 headers:{
                     'Authorization':`Bearer ${token}`
@@ -122,6 +121,37 @@
             console.log(error)
         }
     }
+
+    const handleOrder = async () => {
+    try {
+        if (!selectedOption) {
+            // Show an error message or handle the case where no sortBy option is selected
+            console.error('Please select a Sort By option before ordering.');
+            return;
+        }
+
+        let url = `http://localhost:3000/api/v1/employees?sortBy=${selectedOption}&order=${orderOption}`;
+
+        if (showDeletedEmployees) url += `&deleted=true`;
+        if (searchInput) url += `&search=${searchInput}`;
+
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+        if(response.ok){
+            employeesListData=data;
+        }else{
+            employeesListData='';
+        }
+    } catch (error) {
+        console.log(error);
+    }
+};
+
 
 const handleDeleteEmployee=async(employeeId)=>{
     try{
@@ -136,7 +166,7 @@ const handleDeleteEmployee=async(employeeId)=>{
             if(response.ok){
                 toast.success('Employee deleted successfully', {
                     duration: 5000,
-                    position: 'top-center', // Set the position to 'top'
+                    position: 'top-center', 
                 });
             employeesListData=await fetchActiveEmployees();
             }else{
@@ -207,6 +237,8 @@ const handleActivateEmployee=async(employeeId)=>{
         if (selectedOption.trim() !== '') {
             url += `&sortBy=${encodeURIComponent(selectedOption.trim())}`;
         }
+
+        if(selectedOption && orderOption) url += `&order=${orderOption}`
             const response=await fetch(url,{
                 headers:{
                     'Authorization':`Bearer ${token}`
@@ -234,30 +266,41 @@ const handleActivateEmployee=async(employeeId)=>{
 
     <!-- Main content -->
     <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4 bg-light">
-            <!-- <h1>Display Area</h1> -->
         
         <div class="chartjs-size-monitor pt-4">
-            <!-- Searching and sorting -->
             <div class="mb-3">
                 <div class="row  align-items-center justify-content-end">
                     <div class="col-4 d-flex  justify-content-center">
                         <input type="text" id="searchInput" class="form-control input-lg" bind:value={searchInput} on:keyup={()=>searchInput && handleSearch()} placeholder="Search" style="height: 50%;">
                     </div>
-                    <div class="col-4 d-flex  justify-content-center align-items-center">
-                        <label for="sortBySelect" class="col-form-label"><span style="white-space: nowrap; padding-right:10px">Sort By</span></label>
-                        <select id="sortBySelect" class="form-select custom-select" bind:value={selectedOption} on:change={handleSortBy} style="height: 50%;">
-                            <option selected>Choose...</option>
-                            <option value="id">Id</option>
-                            <option value="name">Name</option>
-                            <option value="salary">Salary</option>
-                            <option value="mobileNumber">Mobile Number</option>
-                            <option value="role">Role</option>
-                        </select>
+                    <div class="col-5 d-flex  justify-content-center align-items-center">
+                        <div class="col-4 d-flex  justify-content-center align-items-center">
+                            <label for="sortBySelect" class="col-form-label"><span style="white-space: nowrap; padding-right:10px">Sort By</span></label>
+                            <select id="sortBySelect" class="form-select custom-select" bind:value={selectedOption} on:change={handleSortBy} style="height: 50%;">
+                                <option value=''>none</option>
+                                <option value="id">Id</option>
+                                <option value="name">Name</option>
+                                <option value="salary">Salary</option>
+                                <option value="mobileNumber">Mobile Number</option>
+                                <option value="role">Role</option>
+                            </select>
+                        </div>
+                        <div class="col-4 d-flex justify-content-center align-items-center">
+                            <label for="orderSelect" class="col-form-label"><span style="white-space: nowrap; padding-right:10px; padding-left:10px">Order</span></label>
+                            <select id="orderSelect" class="form-select custom-select" bind:value={orderOption} on:change={handleOrder} style="height: 50%;">
+                                <option value=''>none</option>
+                                <option value="asc">Ascending</option>
+                                <option value="desc">Descending</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="col-4">
+
+                    
+
+                    <div class="col-3">
                         <div class="form-check d-flex  justify-content-center">
                             <input class="form-check-input" type="checkbox" id="deletedCheckbox" bind:checked={showDeletedEmployees}>
-                            <label class="form-check-label" for="deletedCheckbox">
+                            <label class="form-check-label" for="deletedCheckbox" style="margin-left: 3%;">
                                 Deleted
                             </label>
                         </div>
@@ -281,9 +324,9 @@ const handleActivateEmployee=async(employeeId)=>{
             {#if employeesListData}
             <nav aria-label="..." class="d-flex justify-content-center align-items-center">
                 <ul class="pagination">
-                <li class="page-item disabled">
+                <!-- <li class="page-item disabled">
                     <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
-                </li>
+                </li> -->
                 
                 {#each Array.from({ length: employeesListData.metadata.totalPages }) as _, i (i+1)}
                     {#if employeesListData.metadata.currentPage === i+1}
@@ -295,9 +338,9 @@ const handleActivateEmployee=async(employeeId)=>{
                     {/if}
                 {/each}
                 
-                <li class="page-item">
+                <!-- <li class="page-item">
                     <a class="page-link" href="#">Next</a>
-                </li>
+                </li> -->
                 </ul>
             </nav>
             
