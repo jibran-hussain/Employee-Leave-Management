@@ -15,7 +15,8 @@
 
 
   let error=''
-  let success=false;
+  let success=''
+  let isSuccess=false;
   let isError=false;
   let data;
 
@@ -41,6 +42,7 @@ const handleSubmit=async(formData)=>{
         const data=await response.json();
         console.log(data)
         if(response.ok){
+            success='Leave applied successfully'
             toast.success('Leave applied successfully', {
                     duration: 5000,
                     position: 'top-center', 
