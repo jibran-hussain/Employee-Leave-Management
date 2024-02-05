@@ -1,18 +1,40 @@
 <script>
-export let options;
+  import toast, { Toaster } from 'svelte-french-toast';
 
-export let handleSubmit
+
+export let options;
+export let width;
+export let handleSubmit;
+export let userToUpdate;
 let formData={};
 export let error;
-console.log('in form')
-</script>
-{JSON.stringify({formData})}<br>
+export let success;
+export let formHeading;
+export let buttonLabel;
 
-<div class="container mt-5 w-25">
-    <h2 class="mb-5">Signin</h2>
+$:{
+    if(success){
+    formData={...formData,name:'',email:'',password:'',mobileNumber:'',salary:'',role:'',oldPassword:'',newPassword:'',confirmPassword:'',profilePictureURL:'',fromDate:'',toDate:'',reason:''}
+}
+}
+
+// $:{
+//     if(userToUpdate){
+//         formData={...formData,name:userToUpdate.name}
+//     }
+// }
+</script>
+
+<Toaster />
+
+<div class="container mt-5" style="width:{width}">
+    <h2 class="mb-5 text-center">{formHeading}</h2>
     {#if error}
-        <p class="text-center text-danger">{error}</p>
+        <p class="text-center text-danger mb-5">{error}</p>
+    {:else if success}
+    <p class="text-center text-success mb-5">{success}</p>
     {/if}
+
 
     <form class="form" on:submit|preventDefault={()=>handleSubmit(formData)}>
         
@@ -22,6 +44,13 @@ console.log('in form')
                 <div class="mb-3 mt-3">
                     <label for={option.name} class="form-label">{option.label}:</label>
                     <input type="text" class="form-control" bind:value={formData[option.name]} id={option.name} placeholder={option.placeholder} name={option.name}>
+                </div>
+
+                {:else if option.type === 'number'}
+
+                <div class="mb-3">
+                    <label for={option.name} class="form-label">{option.label}</label>
+                    <input type="number" class="form-control" bind:value={formData[option.name]} id={option.name} placeholder={option.placeholder}>
                 </div>
     
             {:else if option.type === 'password'}
@@ -37,9 +66,16 @@ console.log('in form')
                 <label for={option.name} class="form-label">{option.label}</label>
                 <input type="email" class="form-control" bind:value={formData[option.name]} id={option.name} placeholder={option.placeholder} name={option.name}>
               </div>
+
+              {:else if option.type === 'textarea'}
+
+              <div class="mb-3 mt-3">
+                  <label for={option.name} class="form-label">{option.label}</label>
+                  <textarea class="form-control" bind:value={formData[option.name]} id={option.name} placeholder={option.placeholder} name={option.name} />
+                </div>
     
-            <!-- {:else if option.type === 'date'}
-            <div class="form-input">
+            {:else if option.type === 'date'}
+            <div class="form-input ">
                 <label>{option.label}
                     <br>
                     <input type='date' placeholder={option.placeholder} bind:value={formData[option.name]} />
@@ -47,21 +83,41 @@ console.log('in form')
             </div>
             
             {:else if option.type === 'select' }
-                <div class="form-input">
+                <div class="form-input select-field">
                     <label>{option.label}
                         <br>
                         <select bind:value={formData[option.name]}>{option.label}
-                            <option selected disabled>--select--</option>
+                            <option value=''>--select--</option>
                             {#each option.options as option}
-                                <option value={option.value}>{option.value}</option>
+                                <option value={option}>{option}</option>
                             {/each}
                         </select>
                     </label><br>
-                </div> -->
+                </div>
             {/if}
         {/each}
     
-        <button type="submit" class="btn btn-primary w-100 mt-3">Submit</button>
+        <button type="submit" class="btn btn-primary w-100 mt-3">{buttonLabel}</button>
 
     </form>
 </div>
+
+
+<style>
+    label{
+        width: 100%;
+    }
+    select, input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    textarea{
+        height:20vh;
+    }
+  </style>
