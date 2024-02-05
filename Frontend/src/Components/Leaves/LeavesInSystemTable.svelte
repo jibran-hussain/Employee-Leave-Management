@@ -2,12 +2,18 @@
   import RejectLeaveForm from "./RejectLeaveForm.svelte";
   import { onMount } from "svelte";
   import { user } from "../../stores/userStore";
+  import toast, { Toaster } from 'svelte-french-toast';
+  import { page } from '$app/stores';
+
 
   export let leavesData;
   export let handleAcceptLeaveButton;
-
+  export let handleDeleteLeaveButton;
+  export let handleRejectionSubmit;
   let selectedLeaveId;
   let showRejectionPopup=false;
+
+
 
   const handleRejectClick = (leaveId) => {
     selectedLeaveId = leaveId;
@@ -22,29 +28,20 @@
     showRejectionPopup = false;
   };
 
-  const handleRejectionSubmit = async(event) => {
+  const handleReject=async(event)=>{
     try{
-      const response=await fetch(`http://localhost:3000/api/v1/leaves/${leaveId}/accept`,{
-                method:"POST",
-                headers:{
-                    Authorization:`Bearer ${$user.token}`
-                }
-            })
-          if(response.ok){
-
-          }
-          else{
-            
-          }
-
-      showRejectionPopup = false;
+      showRejectionPopup=false;
+      await handleRejectionSubmit(event)
     }catch(e){
-
+      console.log(e.message)
     }
-  };
+  }
 
 </script>
+
+  <Toaster />
   
+  {#if leavesData}
   <div class="table-responsive">
     <table class="table table-bordered">
       <thead class="text-center">
@@ -70,14 +67,19 @@
             {#if leave.status === 'rejected'}
               <td class="align-middle">{leave.rejectionReason}</td>
             {/if}
-            {#if leave.status === 'Under Process'}
+            {#if leave.status === 'Under Process' && $page.route.id === '/leaves'}
               <td class="align-middle"><button type="button" class="btn btn-success" on:click={()=>{handleAcceptLeaveButton(leave.id)}}>Accept</button></td>
               <td class="align-middle">  <button type="button" class="btn btn-danger" on:click={()=>{handleRejectClick(leave.id) }}>Reject</button></td>
+            {:else if leave.status === 'Under Process' && $page.route.id === '/me/leaves'}
+              <td class="align-middle">  <button type="button" class="btn btn-danger" on:click={()=>{handleDeleteLeaveButton(leave.id)}}>Delete</button></td>
             {/if}
           </tr>
         {/each}
       </tbody>
     </table>
-    <RejectLeaveForm show={showRejectionPopup} leaveId={selectedLeaveId} on:cancel={handleRejectionCancel} on:submit={handleRejectionSubmit} />
+    <RejectLeaveForm show={showRejectionPopup} leaveId={selectedLeaveId} on:cancel={handleRejectionCancel} on:submit={handleReject} />
   </div>
+  {:else}
+    <h3 class="text-center" style="margin-top:15%;">No such leaves in the system</h3>
+  {/if}
   
