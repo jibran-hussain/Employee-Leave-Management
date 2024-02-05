@@ -10,7 +10,7 @@
     const formFields = [
     { type: 'date', name: 'fromDate', label: 'From' },
     { type: 'date', name: 'toDate', label: 'To' },
-    { type: 'text', name: 'reason', label: 'Reason', placeholder: 'Enter reason for taking leave' },
+    { type: 'textarea', name: 'reason', label: 'Reason', placeholder: 'Enter reason for taking leave' },
   ];
 
 
@@ -62,7 +62,7 @@ const handleSubmit=async(formData)=>{
 <div class="main-container">
     <Sidebar />
     <div class="display-area">
-        <Form options={formFields}  formHeading="Apply for Leave" {handleSubmit} {error} {success} />
+        <Form options={formFields}  formHeading="Apply for Leave" buttonLabel="Apply Leave" {handleSubmit} {error} {success} width="45%" />
     </div>
 </div>
 
@@ -73,7 +73,6 @@ const handleSubmit=async(formData)=>{
     }
 
     .display-area{
-        background-color: bisque;
         flex: 1;
         padding:3%;
     }
