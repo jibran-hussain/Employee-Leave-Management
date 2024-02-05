@@ -46,6 +46,7 @@
 
     const fetchActiveEmployees=async()=>{
         try{
+            console.log(orderOption,'order.slkfj')
             let url= `http://localhost:3000/api/v1/employees`;
 
             if(searchInput) url += `?search=${searchInput}`;
@@ -69,6 +70,7 @@
             let url=`http://localhost:3000/api/v1/employees?deleted=true`;
             if(searchInput) url += `&search=${searchInput}`;
             if(selectedOption) url += `&sortBy=${selectedOption}`
+            if(selectedOption && orderOption) url += `&order=${orderOption}`
             const response=await fetch(url,{
                 headers:{
                     'Authorization':`Bearer ${token}`
@@ -216,7 +218,7 @@ const handleActivateEmployee=async(employeeId)=>{
                 });
             }
     }catch(error){
-
+        console.log(error.message)
     }
 }
 
