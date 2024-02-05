@@ -1,6 +1,6 @@
 <script>
     import '../global.css';
-    import { navigate } from "svelte-routing";
+    import { goto } from '$app/navigation';
     import Form from '../Components/Form.svelte';
     import {decodeJwtToken} from '../utils/decodeJwtToken.js'
     import {user} from '../stores/userStore.js'
@@ -31,7 +31,7 @@
                 localStorage.setItem('jwt',`${JSON.stringify(token)}`)
                 const decodedToken=decodeJwtToken(token);
                 user.set(decodedToken)
-                navigate("/dashboard", { replace: true });
+                goto('/dashboard')
                 console.log($user,'just checking')
             }
             else{
