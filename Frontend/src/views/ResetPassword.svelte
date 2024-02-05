@@ -54,7 +54,7 @@
 <div class="main-container">
     <Sidebar />
     <div class="display-area">
-        <Form options={formFields} formHeading="Reset Password" {handleSubmit} {error} {success} />
+        <Form options={formFields} formHeading="Reset Password" {handleSubmit} {error} {success} width='45%' />
     </div>
 </div>
 
