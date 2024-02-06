@@ -10,6 +10,7 @@
   export let handleAcceptLeaveButton;
   export let handleDeleteLeaveButton;
   export let handleRejectionSubmit;
+  export let handlePageChange;
   let selectedLeaveId;
   let showRejectionPopup=false;
 
@@ -37,11 +38,11 @@
     }
   }
 
+
 </script>
 
   <Toaster />
-  
-  {#if leavesData}
+  {#if leavesData?.data}
   <div class="table-responsive">
     <table class="table table-bordered">
       <thead class="text-center">
@@ -51,13 +52,13 @@
           <th scope="col">Reason</th>
           <th scope="col">From</th>
           <th scope="col">To</th>
-          {#if leavesData[0].status === 'rejected'}
+          {#if leavesData?.data[0].status === 'rejected'}
             <th scope="col">Rejection Reason</th>
           {/if}
         </tr>
       </thead>
       <tbody class="text-center">
-        {#each leavesData as leave (leave.id)}
+        {#each leavesData.data as leave (leave.id)}
           <tr>
             <td class="align-middle">{leave.id}</td>
             <td class="align-middle">{leave.Employee.name}</td>
@@ -67,16 +68,43 @@
             {#if leave.status === 'rejected'}
               <td class="align-middle">{leave.rejectionReason}</td>
             {/if}
-            {#if leave.status === 'Under Process' && $page.route.id === '/leaves'}
+            {#if leave.status === 'Under Process' && $page.route.id === '/dashboard/employees/leaves'}
               <td class="align-middle"><button type="button" class="btn btn-success" on:click={()=>{handleAcceptLeaveButton(leave.id)}}>Accept</button></td>
               <td class="align-middle">  <button type="button" class="btn btn-danger" on:click={()=>{handleRejectClick(leave.id) }}>Reject</button></td>
-            {:else if leave.status === 'Under Process' && $page.route.id === '/me/leaves'}
+            {:else if leave.status === 'Under Process' && $page.route.id === '/dashboard/me/leaves'}
               <td class="align-middle">  <button type="button" class="btn btn-danger" on:click={()=>{handleDeleteLeaveButton(leave.id)}}>Delete</button></td>
             {/if}
           </tr>
         {/each}
       </tbody>
     </table>
+
+    <!-- Pagination -->
+    {#if leavesData}
+            <nav aria-label="..." class="d-flex justify-content-center align-items-center">
+                <ul class="pagination">
+                <!-- <li class="page-item disabled">
+                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                </li> -->
+                
+                {#each Array.from({ length: leavesData.metadata.totalPages }) as _, i (i+1)}
+                    {#if leavesData.metadata.currentPage === i+1}
+                    <li class="page-item active" aria-current="page">
+                        <a class="page-link" href="#" on:click|preventDefault={(event)=>handlePageChange(event,i+1)}>{i+1}</a>
+                    </li>
+                    {:else}
+                    <li class="page-item"><a class="page-link" href="#" on:click|preventDefault={(event)=>handlePageChange(event,i+1)}>{i+1}</a></li>
+                    {/if}
+                {/each}
+                
+                <!-- <li class="page-item">
+                    <a class="page-link" href="#">Next</a>
+                </li> -->
+                </ul>
+            </nav>
+            
+            {/if}
+
     <RejectLeaveForm show={showRejectionPopup} leaveId={selectedLeaveId} on:cancel={handleRejectionCancel} on:submit={handleReject} />
   </div>
   {:else}
