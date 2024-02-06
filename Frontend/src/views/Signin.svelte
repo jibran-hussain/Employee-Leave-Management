@@ -25,14 +25,12 @@
             body: JSON.stringify(formData),
             });
              data=await response.json()
-            // show the error
             if(response.ok){
                 const {token}=data;
                 localStorage.setItem('jwt',`${JSON.stringify(token)}`)
                 const decodedToken=decodeJwtToken(token);
                 user.set(decodedToken)
                 goto('/dashboard')
-                console.log($user,'just checking')
             }
             else{
                 isError=true;
@@ -46,7 +44,6 @@
     $:{
         if(isError) error=data.error || data.message;
     }
-    console.log("in parent")
 
 </script>
 
