@@ -18,8 +18,10 @@
     { type: 'password', name: 'password', label: 'Password', placeholder: 'Enter Password' },
     { type: 'number', name: 'mobileNumber', label: 'Mobile Number', placeholder: 'Enter Mobile Number' },
     { type: 'number', name: 'salary', label: 'Salary', placeholder: 'Enter Salary' },
-    { type: 'select', name: 'role', label: 'Select Role', options:['superadmin','admin','employee'] }
   ];
+
+  if($user.role === 'admin') formFields.push({ type: 'select', name: 'role', label: 'Role', placeholder: 'Select Role',options:['employee'] });
+    else if($user.role === 'superadmin') formFields.push({ type: 'select', name: 'role', label: 'Role', placeholder: 'Select Role',options:['admin','employee','superadmin'] },)
 
   let error=''
   let success=false;
@@ -45,8 +47,9 @@ const handleSubmit=async(formData)=>{
             isError=true;
             error=data.error
         }else{
-          success=true;
+          success="Employee Registered Successfully";
           error=false
+          document.querySelector('.modal-content').scrollTop = 0;
         }
         
     }catch(error){
@@ -54,9 +57,6 @@ const handleSubmit=async(formData)=>{
     }
 }
 
-// $:{
-//         if(isError) error=data.error
-//     }
 </script>
 
 
