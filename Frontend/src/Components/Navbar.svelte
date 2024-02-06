@@ -1,6 +1,8 @@
 <script>
     import RegisterEmployeeModal from "./RegisterEmployeeModal.svelte";
     import { user } from "../stores/userStore";
+    import { goto } from '$app/navigation'
+
     let showModal = false;
     
 
@@ -9,8 +11,10 @@
     }
 
     const handleSignout=()=>{
-        // localStorage.removeItem('jwt');  
+        localStorage.removeItem('jwt');  
+        goto('/')
         // user.set(null)
+        
     }
 </script>
 
@@ -29,9 +33,11 @@
 
     <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
         <ul class="nav navbar-nav ml-auto" >
+            {#if $user.role != 'employee'}
             <li class="nav-item">
                 <a class="nav-link" href="#" on:click|preventDefault={openModal}>Create Employee</a>
             </li>
+            {/if}
             <li class="nav-item">
                 <a class="nav-link" href="#" on:click|preventDefault={handleSignout}>Sign Out</a>
             </li>
