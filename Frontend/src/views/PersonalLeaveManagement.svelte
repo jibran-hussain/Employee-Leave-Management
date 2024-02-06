@@ -77,7 +77,7 @@
             {#if leaves}
                 <LeavesInSystemTable leavesData={leaves.data} {handleDeleteLeaveButton} />
             {:else}
-                <h3>No such leaves are present</h3>
+                 <h4 class="text-center" style="margin-top:15%; color:#B4B4B8">No such leaves in the system</h4>
             {/if}
     </div>
 </div>

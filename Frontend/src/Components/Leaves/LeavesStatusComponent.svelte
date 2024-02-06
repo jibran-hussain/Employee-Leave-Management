@@ -27,12 +27,13 @@
 </div>
 
 <style>
-    .container{
-        padding-left: 0px;
-        padding-right: 0px;
-        height: 10vh;
-        border-radius: 5px;
-    }
+  .container{
+      padding-left: 0px;
+      padding-right: 0px;
+      height: 10vh;
+      border-radius: 5px;
+  }
+
   .custom-container {
     display: flex;
     justify-content: space-around;
@@ -40,27 +41,36 @@
   }
 
   .custom-box {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex: 1;
-    padding: 10px;
-    border-right: 1px solid #ccc;
-  }
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        flex: 1;
+        padding: 10px;
+        border-right: 1px solid #ccc;
+    }
 
   .custom-box:last-child {
     border-right: none;
   }
 
-  p{
-    margin-bottom: 0px;
-    color:#4bb5f5;
-    font-weight:600;
-    font-size:1.1rem;
-    cursor: pointer;
-  }
+  p {
+        margin-bottom: 0px;
+        color: #40A2E3;
+        font-weight: 600;
+        font-size: 1.1rem;
+        cursor: pointer;
+    }
 
-  .selected{
-    text-decoration: underline;
-  }
+
+  .selected::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: -5px;
+        width: 100%;
+        height: 2px;
+        background-color: #4bb5f5;
+    }
+
 </style>

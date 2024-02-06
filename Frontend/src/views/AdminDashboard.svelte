@@ -300,7 +300,7 @@ const handleActivateEmployee=async(employeeId)=>{
             {#if employeesListData}
                 <EmployeeListTable {employeesListData} {showDeletedEmployees} {handleActivateEmployee} {handleDeleteEmployee} {handleUpdateEmployee} />
             {:else}
-                <h1>The List is empty</h1>
+            <h3 class="text-center" style="margin-top:15%; color:#B4B4B8">No such employees found in the system</h3>
             {/if}
 
 

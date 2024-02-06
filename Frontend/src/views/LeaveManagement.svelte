@@ -128,8 +128,8 @@
         {#if leaves}
              <LeavesInSystemTable leavesData={leaves} {handleAcceptLeaveButton}  {handleRejectionSubmit} {handlePageChange} />
         {:else}
-        {console.log('boya i am not in leaves')}
-            <h3>No such leaves are present</h3>
+        <h4 class="text-center" style="margin-top:15%; color:#B4B4B8">No such leaves in the system</h4>
+
         {/if}
     </div>
 </div>
