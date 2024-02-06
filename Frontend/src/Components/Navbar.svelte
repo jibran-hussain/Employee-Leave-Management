@@ -44,3 +44,14 @@
         </ul>
     </div>
 </nav>
+
+<style>
+    .nav-link{
+        color: #40A2E3;
+    }
+
+    .navbar-brand{
+        font-family: 'Nunito Sans', sans-serif;
+        color:#0B60B0;
+    }
+</style>
