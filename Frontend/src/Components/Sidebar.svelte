@@ -92,6 +92,7 @@
     background-color: white; 
     color: rgb(39 39 42);
     padding-top: 20px;
+    box-shadow: -5px 0px 10px rgba(0, 0, 0, 0.1); 
   }
 
   #sidebar .profile-pic {
