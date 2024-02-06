@@ -70,11 +70,13 @@
 <div class="main-container">
     <Sidebar />
     <div class="display-area">
-        <!-- Use the UserDisplay component -->
         <UserDisplay
           employee={loggedInEmployee}
           {showUpdateModal}
           {handleDeleteAccount}
+          on:showUpdateModal={async()=>{
+            showUpdateModal=true
+          }}
         />
     </div>
 </div>
