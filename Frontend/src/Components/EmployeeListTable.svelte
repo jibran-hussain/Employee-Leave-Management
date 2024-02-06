@@ -17,6 +17,9 @@
           <th scope="col">Salary</th>
           <th scope="col">Leaves Left</th>
           <th scope="col">Role</th>
+          {#if showDeletedEmployees}
+            <th scope="col">Deleted At</th>
+          {/if}
           <th scope="col"></th>
           <th scope="col"></th>
         </tr>
@@ -31,6 +34,10 @@
             <td class="align-middle">{employee.salary}</td>
             <td class="align-middle">{employee.leavesLeft}</td>
             <td class="align-middle">{employee.role}</td>
+            {#if showDeletedEmployees}
+            <td class="align-middle">{employee.deletedAt}</td>
+            {/if}
+              
             <td class="align-middle">
               {#if showDeletedEmployees}
                 <button type="button" class="btn btn-success" on:click={() => handleActivateEmployee(employee.id)}>Activate</button>
