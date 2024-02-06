@@ -2,11 +2,14 @@
     import { onMount } from 'svelte';
     import Navbar from '../Components/Navbar.svelte'
     import Sidebar from '../Components/Sidebar.svelte';
+    import UpdateProfileModal from "../Components/UpdateProfileModal.svelte";
     import { user } from "../stores/userStore";
     import toast, { Toaster } from 'svelte-french-toast';
     import { goto } from '$app/navigation';
 
     let loggedInEmployee;
+    let showUpdateModal=false;
+    let userToUpdate;
 
     const fetchEmployeeDetail=async()=>{
         try{
@@ -18,8 +21,8 @@
                     Authorization:`Bearer ${$user.token}`
                 }
             });
-            const {data}=await response.json();
-            loggedInEmployee=data;
+            const userToUpdate=await response.json();
+            loggedInEmployee=userToUpdate.data;
         }catch(error){
             
         }
@@ -59,6 +62,10 @@
 
 </script>
 
+{#if showUpdateModal}
+ <UpdateProfileModal {userToUpdate} on:modalClosed={()=>showUpdateModal=false} />
+{/if}
+
 <Toaster />
 <Navbar />
 <div class="main-container">
@@ -96,7 +103,7 @@
             </div>
 
             <button type="button" class="btn btn-danger" on:click={handleDeleteAccount}>Delete account</button>
-            <button type="button" class="btn btn-primary" on:click={()=>{}}>Update Profile</button>
+            <button type="button" class="btn btn-primary" on:click={()=>{showUpdateModal=true}}>Update Profile</button>
         </div>
     </div>
 </div>
