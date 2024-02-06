@@ -1,5 +1,8 @@
 <script>
     import PersonalLeaveManagement from '../../../../views/PersonalLeaveManagement.svelte'
+    import { user } from '../../../../stores/userStore';
 </script>
 
-<PersonalLeaveManagement />
+{#if $user}
+    <PersonalLeaveManagement />
+{/if}

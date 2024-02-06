@@ -1,5 +1,8 @@
 <script>
-    import LeaveManagement from '../../../../views/LeaveManagement.svelte'
+    import { user } from '../../../../stores/userStore';
+import LeaveManagement from '../../../../views/LeaveManagement.svelte'
 </script>
 
-<LeaveManagement />
+{#if $user}
+    <LeaveManagement />
+{/if}

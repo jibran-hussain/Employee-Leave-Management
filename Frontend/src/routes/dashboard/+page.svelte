@@ -5,8 +5,8 @@
 </script>
 
 
-{#if $user.role === 'admin' || $user.role === 'superadmin'}
+{#if $user && $user?.role === 'admin' || $user?.role === 'superadmin'}
     <AdminDashboard />
-{:else}
+{:else if $user && $user.role === 'employee'}
     <PersonalLeaveManagement />
 {/if}

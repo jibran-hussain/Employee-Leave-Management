@@ -1,5 +1,8 @@
 <script>
     import ResetPassword from '../../../../views/ResetPassword.svelte'
+    import { user } from '../../../../stores/userStore';
 </script>
 
-<ResetPassword />
+{#if $user}
+    <ResetPassword />
+{/if}

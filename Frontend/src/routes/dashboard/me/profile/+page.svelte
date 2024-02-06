@@ -1,5 +1,8 @@
 <script>
     import MyProfile from '../../../../views/MyProfile.svelte'
+    import { user } from '../../../../stores/userStore';
 </script>
 
-<MyProfile />
+{#if $user}
+    <MyProfile />
+{/if}

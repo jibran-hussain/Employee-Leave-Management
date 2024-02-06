@@ -1,5 +1,8 @@
 <script>
     import ApplyForLeave from '../../../../views/ApplyForLeave.svelte'
+    import { user } from '../../../../stores/userStore'
 </script>
 
-<ApplyForLeave />
+{#if $user}
+    <ApplyForLeave />
+{/if}
