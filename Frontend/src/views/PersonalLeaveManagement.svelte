@@ -4,11 +4,14 @@
     import Navbar from "../Components/Navbar.svelte";
     import LeavesStatusComponent from '../Components/Leaves/LeavesStatusComponent.svelte'
     import LeavesInSystemTable from '../Components/Leaves/LeavesInSystemTable.svelte'
+    import UpdateLeaveModal from "../Components/UpdateLeaveModal.svelte";
     import { user } from "../stores/userStore";
     import toast, { Toaster } from 'svelte-french-toast';
 
     let leaves;
     let leaveStatus='approved';
+    let showUpdateLeaveModal=false;
+    let leaveToUpdate;
 
     const fetchLeaves=async()=>{
         try{
@@ -61,11 +64,24 @@
         }
     }
 
+    const handleUpdateLeaveButton=(leaveId)=>{
+        showUpdateLeaveModal=true;
+        leaveToUpdate=leaveId   
+    }
+
+    const handleCloseModal=async()=>{
+        showUpdateLeaveModal=false
+        leaves=await fetchLeaves();
+    }
+
     onMount(async()=>{
         leaves=await fetchLeaves();
     })
 </script>
 
+{#if showUpdateLeaveModal}
+    <UpdateLeaveModal {leaveToUpdate} on:modalClosed={handleCloseModal} />
+{/if}
 <Toaster />
 <Navbar />
 <div class="main-container">
@@ -75,7 +91,7 @@
             <LeavesStatusComponent on:setLeaveStatus={handleStatusChange} selectedStatus={leaveStatus} />
         </div>
             {#if leaves}
-                <LeavesInSystemTable leavesData={leaves} {handleDeleteLeaveButton} />
+                <LeavesInSystemTable leavesData={leaves} {handleDeleteLeaveButton} {handleUpdateLeaveButton} />
             {:else}
                  <h4 class="text-center" style="margin-top:15%; color:#B4B4B8">No such leaves in the system</h4>
             {/if}
