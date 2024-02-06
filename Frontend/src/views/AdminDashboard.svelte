@@ -16,18 +16,7 @@
     let showUpdateModal=false;
     let userToUpdate;
 
-    const openUpdateModel=()=>{
-        showUpdateModal=true;
-    }
-
-
-
-    $:{
-        console.log(selectedOption,'here is the selected Option')
-    }
-
     const {id,email,role,token}=$user;
-    console.log(`here is ${id},${email} and ${role}`)
 
     $: {
         if (showDeletedEmployees) {
@@ -46,7 +35,6 @@
 
     const fetchActiveEmployees=async()=>{
         try{
-            console.log(orderOption,'order.slkfj')
             let url= `http://localhost:3000/api/v1/employees`;
 
             if(searchInput) url += `?search=${searchInput}`;
@@ -60,7 +48,7 @@
             const data=await response.json();
             return data;
         }catch(e){
-            console.log(`Here is the error`, e.message)
+            console.log(e.message)
         }
     }
 
@@ -77,9 +65,10 @@
                 }
             })
             const data=await response.json();
-            return data;
+            if(response.ok) return data;
+            else return ''
         }catch(e){
-            console.log(`Here is the error`, e.message)
+            console.log(e.message)
         }
     }
 
@@ -106,7 +95,6 @@
 
     const handleSortBy=async()=>{
         try{
-            console.log('select changedd')
             let url=`http://localhost:3000/api/v1/employees?sortBy=${selectedOption}`;
             if(showDeletedEmployees) url += `&deleted=true`
             if(searchInput) url += `&search=${searchInput}`
@@ -191,7 +179,6 @@ const handleUpdateEmployee=async(employeeId)=>{
         const data=await response.json();
         userToUpdate=data.data;
         showUpdateModal=true;
-        console.log(data,'here is the data from update button')
     }catch(e){
         console.log(e.message)
     }
@@ -209,13 +196,14 @@ const handleActivateEmployee=async(employeeId)=>{
             if(response.ok){
                 toast.success('Employee Activated successfully', {
                     duration: 5000,
-                    position: 'top-center', // Set the position to 'top'
+                    position: 'top-center',
                 });
-            employeesListData=await fetchDeletedEmployees();
+                employeesListData=await fetchDeletedEmployees();
             }else{
                 toast.error('You are not authorized to delete this employee',{
                     duration:3000
                 });
+                employeesListData=''
             }
     }catch(error){
         console.log(error.message)
@@ -228,7 +216,6 @@ const handleActivateEmployee=async(employeeId)=>{
 
     const handlePageChange=async(event,offset)=>{
         try{
-            console.log(searchInput,'Here is the search input')
             let url=`http://localhost:3000/api/v1/employees?offset=${offset}`;
 
             if (searchInput.trim() !== '') {
@@ -249,7 +236,7 @@ const handleActivateEmployee=async(employeeId)=>{
             const data=await response.json();
             employeesListData=data;
         }catch(error){
-            console.log(`Here is the error in page change`, e.message)
+            console.log( e.message)
         }
     }
 
@@ -311,13 +298,9 @@ const handleActivateEmployee=async(employeeId)=>{
             </div>
             
             {#if employeesListData}
-    
-            <EmployeeListTable {employeesListData} {showDeletedEmployees} {handleActivateEmployee} {handleDeleteEmployee} {handleUpdateEmployee}
-          />
-
-                
-                {:else}
-                    <h1>The List is empty</h1>
+                <EmployeeListTable {employeesListData} {showDeletedEmployees} {handleActivateEmployee} {handleDeleteEmployee} {handleUpdateEmployee} />
+            {:else}
+                <h1>The List is empty</h1>
             {/if}
 
 
@@ -345,8 +328,9 @@ const handleActivateEmployee=async(employeeId)=>{
                 </li> -->
                 </ul>
             </nav>
-            
+            {:else}
             {/if}
+
         </div>
     </main>
     </div>
