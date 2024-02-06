@@ -30,6 +30,24 @@
         }
     }
 
+    const handlePageChange=async(event,offset)=>{
+    try{
+      const response=await fetch(`http://localhost:3000/api/v1/leaves?status=${leaveStatus}&offset=${offset}`,{
+                method:'GET',
+                headers:{
+                    Authorization:`Bearer ${$user.token}`
+                }
+            });
+      const data= await response.json();
+      if(response.ok){
+            leaves= data;
+            }
+            else return 'undefined';
+    }catch(error){
+        console.log(error.message)
+    }
+  }
+
     const handleStatusChange=async(event)=>{
         leaveStatus=event.detail.status;
         leaves=await fetchLeaves()
@@ -108,7 +126,7 @@
             <LeavesStatusComponent on:setLeaveStatus={handleStatusChange} selectedStatus={leaveStatus} />
         </div>
         {#if leaves}
-             <LeavesInSystemTable leavesData={leaves.data} {handleAcceptLeaveButton}  {handleRejectionSubmit} />
+             <LeavesInSystemTable leavesData={leaves} {handleAcceptLeaveButton}  {handleRejectionSubmit} {handlePageChange} />
         {:else}
         {console.log('boya i am not in leaves')}
             <h3>No such leaves are present</h3>
