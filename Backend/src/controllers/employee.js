@@ -54,7 +54,7 @@ export const listAllEmployees = async (req, res) => {
             offset:startIndex || undefined,
             limit:limit || undefined,
             attributes:{
-                exclude:['hashedPassword','deletedAt'],
+                exclude:['hashedPassword'],
             },
             paranoid:deleted === 'true'?false:true
 
