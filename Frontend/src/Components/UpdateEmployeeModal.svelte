@@ -53,6 +53,7 @@
             isSuccess=true;
             success='Employee Updated Successfully'
             error=false
+            document.querySelector('.modal-content').scrollTop = 0;
           }
           
       }catch(error){
