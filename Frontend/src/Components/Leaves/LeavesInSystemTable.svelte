@@ -79,7 +79,6 @@
       </tbody>
     </table>
 
-    <!-- Pagination -->
     {#if leavesData}
             <nav aria-label="..." class="d-flex justify-content-center align-items-center">
                 <ul class="pagination">
