@@ -22,25 +22,6 @@
     }
   }
     
-  let employee = {
-    name: "John Doe",
-    designation: "Software Engineer",
-    avatar: "https://images.ctfassets.net/h6goo9gw1hh6/2sNZtFAWOdP1lmQ33VwRN3/24e953b920a9cd0ff2e1d587742a2472/1-intro-photo-final.jpg?w=1200&h=992&q=70&fm=webp",
-  };
-
-  let menuItems = [
-    { label: "All Employees", action: "/dashboard/employees" },
-    { label: "Get All Leaves", action: "/dashboard/employees/leaves" },
-    { label: "Apply for Leave", action: "/dashboard/me/leave" },
-    { label: "List Personal Leaves", action: "/dashboard/me/leaves" },
-    { label: "Reset Password", action: "/dashboard/me/password" },
-    { label: "My Profile", action: "/dashboard/me/profile"}
-  ];
-
-  
-  function handleMenuClick(action) {
-    goto(action)
-  }
 
   onMount(async()=>{
     try{
@@ -53,33 +34,100 @@
 
 </script>
 
-<!-- {console.log(employeeInfo?.data.name)} -->
-<nav id="sidebar" class="col-md-3 col-lg-2 d-md-blocksidebar">
+<nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar">
   <div class="text-center d-flex justify-content-around align-items-center">
     <img src={employeeInfo?.data.profilePictureURL} alt="Profile Picture" class="profile-pic img-fluid rounded-circle mt-3 mb-2" width="100" height="100" />
     <div class="d-flex flex-column justify-content-center align-items-center">
       <h5 class="mb-0">{employeeInfo?.data.name}</h5>
-      <p class="text-muted m-0 p-0">{employee.designation}</p>
+      <p class="text-muted m-0 p-0">Software Engineer</p>
     </div>
   </div>
 
   <hr />
 
-  <ul class="nav flex-column ">
-    {#each menuItems as { label, action }}
+  <ul class="nav flex-column">
+    {#if $user.role === 'admin' || $user.role === 'superadmin'}
       <li class="nav-item">
-        <a href="#" style="color:rgb(39 39 42); font-weight:500" on:click={() => handleMenuClick(action)} class="nav-link">{label}</a>
+        <a href="#" on:click={() => goto('/dashboard/employees')} class="nav-link">
+           List All Employees
+        </a>
       </li>
-    {/each}
+      <li class="nav-item">
+        <a href="#" on:click={() => goto('/dashboard/employees/leaves')} class="nav-link">
+           Leaves in System
+        </a>
+      </li>
+    {/if}
+
+    <li class="nav-item">
+      <a href="#" on:click={() => goto('/dashboard/me/leave')} class="nav-link">
+        Apply for Leave
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="#" on:click={() => goto('/dashboard/me/leaves')} class="nav-link">
+       List Personal Leaves
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="#" on:click={() => goto('/dashboard/me/password')} class="nav-link">
+         Reset Password
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="#" on:click={() => goto('/dashboard/me/profile')} class="nav-link">
+         My Profile
+      </a>
+    </li>
   </ul>
 </nav>
 
 <style>
-  .rounded-circle {
-  width: 70px; /* Set the desired width */
-  height: 65px; /* Set the desired height */
-  border-radius: 50%;
-  object-fit: cover;
-}
+  #sidebar {
+    background-color: white; 
+    color: rgb(39 39 42);
+    padding-top: 20px;
+  }
+
+  #sidebar .profile-pic {
+    border: 2px solid #007bff; 
+  }
+
+  #sidebar hr {
+    border-color: #007bff;
+  }
+
+  #sidebar ul.nav li.nav-item:hover {
+    background-color: #4bb5f5;
+  }
+
+  #sidebar ul.nav li.nav-item a.nav-link {
+    color: rgb(39 39 42);
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+  }
+
+  #sidebar ul.nav li.nav-item a.nav-link:hover {
+    color: white;
+    text-decoration: none;
+  }
+
+  nav{
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+
+  li{
+    margin-bottom: 4%;
+  }
+  
+  
+
+  .rounded-circle{
+    width:70px;
+    height: 65px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
 
 </style>
