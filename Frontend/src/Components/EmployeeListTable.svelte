@@ -1,5 +1,3 @@
-<!-- EmployeeTable.svelte -->
-
 <script>
     export let employeesListData;
     export let showDeletedEmployees;

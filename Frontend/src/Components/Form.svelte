@@ -18,17 +18,12 @@ $:{
 }
 }
 
-// $:{
-//     if(userToUpdate){
-//         formData={...formData,name:userToUpdate.name}
-//     }
-// }
 </script>
 
 <Toaster />
 
 <div class="container mt-5" style="width:{width}">
-    <h2 class="mb-5 text-center">{formHeading}</h2>
+    <h2 class="mb-5 text-center" style="color: #40A2E3;">{formHeading}</h2>
     {#if error}
         <p class="text-center text-danger mb-5">{error}</p>
     {:else if success}
