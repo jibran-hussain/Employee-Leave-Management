@@ -43,14 +43,10 @@ const handleSubmit=async(formData)=>{
         console.log(data)
         if(response.ok){
             success='Leave applied successfully'
-            toast.success('Leave applied successfully', {
-                    duration: 5000,
-                    position: 'top-center', 
-                });
+            error=''
         }else{
-            toast.error(data.message || data.error,{
-                    duration:3000
-                });
+            error=data.error || data.message;
+            success=''
         }
         
     }catch(error){
