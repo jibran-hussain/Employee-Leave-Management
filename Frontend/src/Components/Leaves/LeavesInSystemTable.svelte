@@ -10,6 +10,7 @@
   export let handleAcceptLeaveButton;
   export let handleDeleteLeaveButton;
   export let handleRejectionSubmit;
+  export let handleUpdateLeaveButton;
   export let handlePageChange;
   let selectedLeaveId;
   let showRejectionPopup=false;
@@ -73,6 +74,8 @@
               <td class="align-middle">  <button type="button" class="btn btn-danger" on:click={()=>{handleRejectClick(leave.id) }}>Reject</button></td>
             {:else if leave.status === 'Under Process' && $page.route.id === '/dashboard/me/leaves'}
               <td class="align-middle">  <button type="button" class="btn btn-danger" on:click={()=>{handleDeleteLeaveButton(leave.id)}}>Delete</button></td>
+              <td class="align-middle">  <button type="button" class="btn btn-primary" on:click={()=>{handleUpdateLeaveButton(leave.id)}}>Update</button></td>
+            
             {/if}
           </tr>
         {/each}
