@@ -19,7 +19,6 @@
 		"axios": "^1.6.7",
 		"bootstrap-icons": "^1.11.3",
 		"kit-monorepo": "github:sveltejs/kit",
-		"svelte-french-toast": "^1.2.0",
-		"svelte-routing": "^2.11.0"
+		"svelte-french-toast": "^1.2.0"
 	}
 }
