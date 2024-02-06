@@ -75,7 +75,7 @@
             <LeavesStatusComponent on:setLeaveStatus={handleStatusChange} selectedStatus={leaveStatus} />
         </div>
             {#if leaves}
-                <LeavesInSystemTable leavesData={leaves.data} {handleDeleteLeaveButton} />
+                <LeavesInSystemTable leavesData={leaves} {handleDeleteLeaveButton} />
             {:else}
                  <h4 class="text-center" style="margin-top:15%; color:#B4B4B8">No such leaves in the system</h4>
             {/if}
