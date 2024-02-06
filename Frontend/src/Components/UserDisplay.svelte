@@ -1,4 +1,8 @@
 <script>
+    import { createEventDispatcher } from "svelte";
+
+    const dispatch =createEventDispatcher()
+
     export let employee;
     export let showUpdateModal;
     export let handleDeleteAccount;
@@ -37,7 +41,7 @@
         </div>
 
         <button type="button" class="btn btn-danger" on:click={handleDeleteAccount}>Delete account</button>
-        <button type="button" class="btn btn-primary" on:click={() => showUpdateModal = true}>Update Profile</button>
+        <button type="button" class="btn btn-primary" on:click={() => dispatch('showUpdateModal')}>Update Profile</button>
     </div>
   
     <style>
