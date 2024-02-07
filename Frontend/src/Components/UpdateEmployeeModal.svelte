@@ -49,10 +49,13 @@
           if(data.error){
               isError=true;
               error=data.error
+              success=false;
+              isSuccess=false;
           }else{
             isSuccess=true;
             success='Employee Updated Successfully'
             error=false
+            isError=false;
             document.querySelector('.modal-content').scrollTop = 0;
           }
           
@@ -61,16 +64,13 @@
       }
   }
   
-  // $:{
-  //         if(isError) error=data.error
-  //     }
   </script>
   
   
   <div class="container-fluid  outer-model-container">
     <div class="modal-content">
         <button class="close-button" on:click={closeModal}>×</button>
-        <Form options={formFields}  formHeading="Update Employee" buttonLabel="Update Employee" {handleSubmit} {userToUpdate} {error} {success} />
+        <Form options={formFields}  formHeading="Update Employee" buttonLabel="Update Employee" {handleSubmit} {userToUpdate} {isError} {isSuccess} {error} {success} />
     </div>
   </div>
   

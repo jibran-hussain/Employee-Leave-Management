@@ -41,14 +41,15 @@
           body: JSON.stringify(formData),
           });
            data=await response.json()
-          // show the error
           if(data.error){
               isError=true;
               error=data.error
+              success=false;
           }else{
             isSuccess=true;
             success='Employee Updated Successfully'
-            error=false
+            isError=false
+            error=''
             document.querySelector('.modal-content').scrollTop = 0;
           }
           
@@ -64,7 +65,7 @@
   <div class="container-fluid  outer-model-container">
     <div class="modal-content">
         <button class="close-button" on:click={closeModal}>×</button>
-        <Form options={formFields}  formHeading="Update Employee" buttonLabel="Update Employee" {handleSubmit} {userToUpdate} {error} {success} />
+        <Form options={formFields}  formHeading="Update Employee" buttonLabel="Update Employee" {handleSubmit} {userToUpdate} {isError} {error} {isSuccess} {success} />
     </div>
   </div>
   

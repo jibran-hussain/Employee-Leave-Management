@@ -24,7 +24,8 @@
     else if($user.role === 'superadmin') formFields.push({ type: 'select', name: 'role', label: 'Role', placeholder: 'Select Role',options:['admin','employee','superadmin'] },)
 
   let error=''
-  let success=false;
+  let success='';
+  let isSuccess=false;
   let isError=false;
   let data;
 
@@ -44,11 +45,15 @@ const handleSubmit=async(formData)=>{
          data=await response.json()
         // show the error
         if(data.error){
-            isError=true;
-            error=data.error
+              isError=true;
+              error=data.error
+              success=false;
+              isSuccess=false;
         }else{
-          success="Employee Registered Successfully";
-          error=false
+            isSuccess=true;
+            success='Employee registered successfully'
+            isError=false
+            error=''
           document.querySelector('.modal-content').scrollTop = 0;
         }
         
@@ -63,7 +68,7 @@ const handleSubmit=async(formData)=>{
 <div class="container-fluid  outer-model-container">
   <div class="modal-content">
       <button class="close-button" on:click={closeModal}>×</button>
-      <Form options={formFields}  formHeading="Register Employee" buttonLabel="Register Employee" {handleSubmit} {error} {success} />
+      <Form options={formFields}  formHeading="Register Employee" buttonLabel="Register Employee" {handleSubmit} {isError} {isSuccess} {error} {success} />
   </div>
 </div>
 

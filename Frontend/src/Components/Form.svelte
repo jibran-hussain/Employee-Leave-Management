@@ -7,15 +7,22 @@ export let width;
 export let handleSubmit;
 export let userToUpdate;
 let formData={};
+export let isError;
+export let isSuccess;
 export let error;
 export let success;
 export let formHeading;
 export let buttonLabel;
 
 $:{
-    if(success){
+    if(isSuccess){
     formData={...formData,name:'',email:'',password:'',mobileNumber:'',salary:'',role:'',oldPassword:'',newPassword:'',confirmPassword:'',profilePictureURL:'',fromDate:'',toDate:'',reason:''}
+    isSuccess=false
 }
+}
+
+const handleInputChange=()=>{
+    success=''
 }
 
 </script>
@@ -38,7 +45,7 @@ $:{
 
                 <div class="mb-3 mt-3">
                     <label for={option.name} class="form-label">{option.label}:</label>
-                    <input type="text" class="form-control" bind:value={formData[option.name]} id={option.name} placeholder={option.placeholder} name={option.name}>
+                    <input type="text" class="form-control" bind:value={formData[option.name]} on:input={handleInputChange} id={option.name} placeholder={option.placeholder} name={option.name}>
                 </div>
 
                 {:else if option.type === 'number'}

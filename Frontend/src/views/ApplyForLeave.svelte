@@ -42,10 +42,14 @@ const handleSubmit=async(formData)=>{
         const data=await response.json();
         console.log(data)
         if(response.ok){
-            success='Leave applied successfully'
+            isSuccess=true;
+            success='Leave applied successfully';
+            isError=false;
             error=''
         }else{
+            isError=true;
             error=data.error || data.message;
+            isSuccess=false
             success=''
         }
         
@@ -60,7 +64,7 @@ const handleSubmit=async(formData)=>{
 <div class="main-container">
     <Sidebar />
     <div class="display-area">
-        <Form options={formFields}  formHeading="Apply for Leave" buttonLabel="Apply Leave" {handleSubmit} {error} {success} width="45%" />
+        <Form options={formFields}  formHeading="Apply for Leave" buttonLabel="Apply Leave" {handleSubmit} {isError} {error} {isSuccess} {success} width="45%" />
     </div>
 </div>
 
