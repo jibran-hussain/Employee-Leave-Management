@@ -63,13 +63,13 @@
             })
 
             if(response && response.ok === false){
-                toast.error('You are not authorized to approve leave of this employee',{
+                toast.error('You cannot approve the leave of this employee',{
                     duration:3000
                 });
             }else{
                 toast.success('Leave Approved', {
                     duration: 5000,
-                    position: 'top-center', // Set the position to 'top'
+                    position: 'top-center',
                 });
                 console.log('boya')
                 leaves=await fetchLeaves()
