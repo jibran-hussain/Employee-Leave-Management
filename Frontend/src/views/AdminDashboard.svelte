@@ -6,6 +6,7 @@
     import toast, { Toaster } from 'svelte-french-toast';
     import UpdateEmployeeModal from "../Components/UpdateEmployeeModal.svelte";
     import EmployeeListTable from "../Components/EmployeeListTable.svelte";
+    import Pagination from "../Components/Pagination.svelte";
 
 
     let employeesListData;
@@ -115,7 +116,6 @@
     const handleOrder = async () => {
     try {
         if (!selectedOption) {
-            // Show an error message or handle the case where no sortBy option is selected
             console.error('Please select a Sort By option before ordering.');
             return;
         }
@@ -214,7 +214,7 @@ const handleActivateEmployee=async(employeeId)=>{
         employeesListData=await fetchActiveEmployees();
     })
 
-    const handlePageChange=async(event,offset)=>{
+    const handlePageChange=async(offset)=>{
         try{
             let url=`http://localhost:3000/api/v1/employees?offset=${offset}`;
 
@@ -303,32 +303,10 @@ const handleActivateEmployee=async(employeeId)=>{
             <h3 class="text-center" style="margin-top:15%; color:#B4B4B8">No such employees found in the system</h3>
             {/if}
 
-
             <!-- Pagination -->
 
             {#if employeesListData}
-            <nav aria-label="..." class="d-flex justify-content-center align-items-center">
-                <ul class="pagination">
-                <!-- <li class="page-item disabled">
-                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
-                </li> -->
-                
-                {#each Array.from({ length: employeesListData.metadata.totalPages }) as _, i (i+1)}
-                    {#if employeesListData.metadata.currentPage === i+1}
-                    <li class="page-item active" aria-current="page">
-                        <a class="page-link" href="#" on:click|preventDefault={(event)=>handlePageChange(event,i+1)}>{i+1}</a>
-                    </li>
-                    {:else}
-                    <li class="page-item"><a class="page-link" href="#" on:click|preventDefault={(event)=>handlePageChange(event,i+1)}>{i+1}</a></li>
-                    {/if}
-                {/each}
-                
-                <!-- <li class="page-item">
-                    <a class="page-link" href="#">Next</a>
-                </li> -->
-                </ul>
-            </nav>
-            {:else}
+            <Pagination totalPages={employeesListData.metadata.totalPages} currentPage={employeesListData.metadata.currentPage} onPageChange={handlePageChange} />
             {/if}
 
         </div>
