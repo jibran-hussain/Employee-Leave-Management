@@ -1,12 +1,12 @@
 <script>
-    import AdminDashboard from '../../views/AdminDashboard.svelte';
-    import PersonalLeaveManagement from '../../views/PersonalLeaveManagement.svelte';
     import { user } from '../../stores/userStore';
+    import { onMount } from 'svelte';
+    import{goto} from '$app/navigation';
+
+    onMount(()=>{
+        if($user.role === 'superadmin' || $user.role === 'admin') goto('/dashboard/employees');
+        else if($user.role === 'employee') goto('/dashboard/me/leaves')
+    })
 </script>
+<p></p>
 
-
-{#if $user && $user?.role === 'admin' || $user?.role === 'superadmin'}
-    <AdminDashboard />
-{:else if $user && $user.role === 'employee'}
-    <PersonalLeaveManagement />
-{/if}
