@@ -15,6 +15,9 @@
   let selectedLeaveId;
   let showRejectionPopup=false;
 
+  let currentDate=new Date();
+  currentDate.setUTCHours(0,0,0,0);
+
 
 
   const handleRejectClick = (leaveId) => {
@@ -76,6 +79,10 @@
               <td class="align-middle">  <button type="button" class="btn btn-danger" on:click={()=>{handleDeleteLeaveButton(leave.id)}}>Delete</button></td>
               <td class="align-middle">  <button type="button" class="btn btn-primary" on:click={()=>{handleUpdateLeaveButton(leave.id)}}>Update</button></td>
             
+            {/if}
+
+            {#if leave.status === 'approved' &&  $page.route.id === '/dashboard/me/leaves' && new Date(leavesData?.data[0].dates[0]).getTime() > currentDate.getTime()}
+              <td class="align-middle">  <button type="button" class="btn btn-danger" on:click={()=>{handleDeleteLeaveButton(leave.id)}}>Delete</button></td>
             {/if}
           </tr>
         {/each}
