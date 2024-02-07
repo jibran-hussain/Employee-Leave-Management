@@ -52,35 +52,35 @@ const handleInputChange=()=>{
 
                 <div class="mb-3">
                     <label for={option.name} class="form-label">{option.label}</label>
-                    <input type="number" class="form-control" bind:value={formData[option.name]} id={option.name} placeholder={option.placeholder}>
+                    <input type="number" class="form-control" bind:value={formData[option.name]} on:input={handleInputChange} id={option.name} placeholder={option.placeholder}>
                 </div>
     
             {:else if option.type === 'password'}
 
                 <div class="mb-3">
                     <label for={option.name} class="form-label">{option.label}</label>
-                    <input type="password" class="form-control" bind:value={formData[option.name]} id={option.name} placeholder={option.placeholder}>
+                    <input type="password" class="form-control" bind:value={formData[option.name]} on:input={handleInputChange} id={option.name} placeholder={option.placeholder}>
                 </div>
     
             {:else if option.type === 'email'}
 
             <div class="mb-3 mt-3">
                 <label for={option.name} class="form-label">{option.label}</label>
-                <input type="email" class="form-control" bind:value={formData[option.name]} id={option.name} placeholder={option.placeholder} name={option.name}>
+                <input type="email" class="form-control" bind:value={formData[option.name]} on:input={handleInputChange} id={option.name} placeholder={option.placeholder} name={option.name}>
               </div>
 
               {:else if option.type === 'textarea'}
 
               <div class="mb-3 mt-3">
                   <label for={option.name} class="form-label">{option.label}</label>
-                  <textarea class="form-control" bind:value={formData[option.name]} id={option.name} placeholder={option.placeholder} name={option.name} />
+                  <textarea class="form-control" bind:value={formData[option.name]} on:input={handleInputChange} id={option.name} placeholder={option.placeholder} name={option.name} />
                 </div>
     
             {:else if option.type === 'date'}
             <div class="form-input ">
                 <label>{option.label}
                     <br>
-                    <input type='date' placeholder={option.placeholder} bind:value={formData[option.name]} />
+                    <input type='date' placeholder={option.placeholder} on:input={handleInputChange} bind:value={formData[option.name]} />
                 </label><br>
             </div>
             
