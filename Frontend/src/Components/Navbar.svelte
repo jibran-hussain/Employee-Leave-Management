@@ -35,7 +35,7 @@
         <ul class="nav navbar-nav ml-auto" >
             {#if $user.role != 'employee'}
             <li class="nav-item">
-                <a class="nav-link" href="#" on:click|preventDefault={openModal}>Create Employee</a>
+                <a class="nav-link" href="#" on:click|preventDefault={openModal}>Register Employee</a>
             </li>
             {/if}
             <li class="nav-item">
