@@ -251,10 +251,10 @@ export const deleteLeave=async(req,res)=>{
         const leave=await Leave.findByPk(leaveId);
         if(!leave || (leave.employeeId != employeeId)) return res.status(404).json({error:`Leave does not exist`});
 
-        if(leave.status != 'Under Process') return res.status(403).json({message:`This leave cannot be deleted`})
-
         const currentDate=new Date();
         currentDate.setUTCHours(0,0,0,0)
+
+        if(leave.status === 'rejected' || (leave.status === 'approved' &&  new Date(leave.dates[0]).getTime() <= currentDate.getTime())) return res.status(403).json({message:`This leave cannot be deleted`})
 
         if(getDateForDB(leave.dates[leave.dates.length-1]) < currentDate) return res.status(403).json({error:'You cannot delete this leave as it is of past'})
 
@@ -493,7 +493,10 @@ export const approveLeave=async(req,res)=>{
         
         if(req.auth.role === 'admin' && employee.role != 'employee')  return res.status(403).json({error:`You are not authorized to approve this leave`});
 
-        if(leave.status != 'Under Process') return res.status(400).json({error:`This leave cannot be approved`}) 
+        const currentDate=new Date();
+        currentDate.setUTCHours(0,0,0,0);
+
+        if(leave.status === 'approved' || leave.status === 'rejected' || (leave.status === 'Under Process' && currentDate.getTime() > new Date(leave.dates[0]).getTime())) return res.status(400).json({error:`This leave cannot be approved`}) 
 
         await Leave.update({status:'approved'},{
             where:{
