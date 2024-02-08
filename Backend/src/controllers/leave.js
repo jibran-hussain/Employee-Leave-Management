@@ -7,7 +7,7 @@ import { isValidDate } from '../utils/Date/isValidDate.js';
 import Leave from '../models/leaves.js';
 import Employee from '../models/employee.js';
 import getTotalLeaveDays from '../utils/leaves/getTotalLeaveDays.js';
-import { getTotalLeaveDaysInSystem,getTotalApplicationsInSystem } from '../utils/leaves/systemLevelLeaveDetails.js';
+import sequelize from '../../index.js';
 
 // It is used to apply for leave
 
@@ -529,7 +529,8 @@ export const getAllLeaves = async (req, res) => {
     try {
         const limit=Number(req.query.limit) || 10;
         const offset=Number(req.query.offset) || 1;
-        const status=req.query.status || 'Under Process'
+        const status=req.query.status;
+        const search=req.query.search;
 
         if(status && (status != 'approved' && status != 'Under Process' && status != "rejected")) return res.status(400).json({message:`Please enter a valid status`})
 
@@ -538,10 +539,21 @@ export const getAllLeaves = async (req, res) => {
         const startIndex = (offset - 1)*limit;
 
 
-       const {count,rows:allLeaves}=await Leave.findAndCountAll({
-        where:{
-            status
-        },
+        const whereClause={};
+
+        if(status) whereClause.status=status;
+
+        if(search){
+            whereClause[Op.or]=[
+                {reason:{[Op.iLike]:`%${search}%`}},
+                {status:{[Op.iLike]:`%${search}%`}},
+                {rejectionReason:{[Op.iLike]:`%${search}%`}},
+                sequelize.literal(`CAST ("Leave"."id" AS TEXT) ILIKE '%${search}%'`),
+            ]
+        }
+
+        const {count,rows:allLeaves}=await Leave.findAndCountAll({
+        where:whereClause,
         offset:startIndex || undefined,
         limit: limit || undefined,
         include:[
@@ -563,20 +575,13 @@ export const getAllLeaves = async (req, res) => {
         const totalPages=Math.ceil(count/limit)
         if(offset > totalPages) return res.status(404).json({error:`This page does not exist`})
 
-        const totalLeaveDays=await getTotalLeaveDaysInSystem();
-        const totalApplications= await getTotalApplicationsInSystem();
-
         return res.json({data:allLeaves,metadata:{
-            totalLeaveDays,
-            totalApplications,
+            totalLeaveDays:totalLeaves,
+            totalApplications:count,
             currentPage:offset,
             totalPages
         }})
        }
-
-       return res.json({data:allLeaves,metadata:{
-        totalLeaves
-       }})
     } catch (e) {
         console.log(e);
         return res.status(500).json({ error: e.message });
