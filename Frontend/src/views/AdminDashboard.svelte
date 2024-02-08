@@ -47,7 +47,8 @@
                 }
             })
             const data=await response.json();
-            return data;
+            if(response.ok) return data;
+            else return ''
         }catch(e){
             console.log(e.message)
         }
@@ -306,6 +307,7 @@ const handleActivateEmployee=async(employeeId)=>{
             <!-- Pagination -->
 
             {#if employeesListData}
+            {console.log(employeesListData,'here is employee data')}
             <Pagination totalPages={employeesListData.metadata.totalPages} currentPage={employeesListData.metadata.currentPage} onPageChange={handlePageChange} />
             {/if}
 
