@@ -81,7 +81,7 @@
             
             {/if}
 
-            {#if leave.status === 'approved' &&  $page.route.id === '/dashboard/me/leaves' && new Date(leavesData?.data[0].dates[0]).getTime() > currentDate.getTime()}
+            {#if leave.status === 'approved' &&  $page.route.id === '/dashboard/me/leaves' && new Date(leave.dates[leave.dates.length - 1]).getTime() > currentDate.getTime()}
               <td class="align-middle">  <button type="button" class="btn btn-danger" on:click={()=>{handleDeleteLeaveButton(leave.id)}}>Delete</button></td>
             {/if}
           </tr>
