@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import { Op } from 'sequelize';
+import { Op, where } from 'sequelize';
 import { isDateInPast } from '../utils/Date/isDateInPast.js';
 import { getDatesArray } from '../utils/Date/getDatesArray.js';
 import { getDate,getDateForDB } from '../utils/Date/getDate.js';
@@ -361,7 +361,8 @@ export const listLeaves=async(req,res)=>{
 
         const limit=Number(req.query.limit) || 10
         const offset=Number(req.query.offset) || 1;
-        const status = req.query.status || 'approved';
+        const status = req.query.status;
+        const search=req.query.search;
 
         if(status && (status != 'approved' && status != 'Under Process' && status != "rejected")) return res.status(400).json({message:`Please enter a valid status`})
 
@@ -369,13 +370,27 @@ export const listLeaves=async(req,res)=>{
 
         const startIndex = (offset - 1)*limit;
 
-
         const employeeId=req.auth.id;
+
+        const whereClause={
+            employeeId,
+        };
+
+        if(status) whereClause.status=status;
+
+        if(search){
+            whereClause[Op.or]=[
+                {reason:{[Op.iLike]:`%${search}%`}},
+                {status:{[Op.iLike]:`%${search}%`}},
+                {rejectionReason:{[Op.iLike]:`%${search}%`}},
+                sequelize.where(sequelize.fn('array_to_string', sequelize.col('dates'), ','), { [Op.iLike]: `%${search}%` }),
+                sequelize.literal(`CAST ("Leave"."id" AS TEXT) ILIKE '%${search}%'`),
+            ]
+        }
+
+
         const {count,rows:allLeaves}= await Leave.findAndCountAll({
-            where:{
-                employeeId,
-                status: status?status:undefined,
-            },
+            where:whereClause,
             attributes:{
                 exclude:['employeeId','deletedAt']
             },
@@ -394,23 +409,24 @@ export const listLeaves=async(req,res)=>{
 
         if(count === 0) return res.status(404).json({message:`There are no leaves in the system`});
 
-        const {totalLeaveDays,timesApplied}=await getTotalLeaveDays(employeeId);
+        let totalLeaves=0;
+
+        allLeaves.forEach(leave=> totalLeaves=totalLeaves+leave.dates.length)
 
         if(limit && offset){
-            const totalPages=Math.ceil(timesApplied/ limit);
+            const totalPages=Math.ceil(count/ limit);
 
             if(offset > totalPages) return res.status(404).json({error:`This page does not exist`});
 
             
 
             return res.json({data:allLeaves,metadata:{
-                totalLeaveApplications:timesApplied,
-                totalLeaveDays,
+                totalLeaveApplications:count,
+                totalLeaveDays:totalLeaves,
                 page:offset,
                 totalPages
             }})
         }
-        return res.json({data:allLeaves})
     }catch(e){
         console.log(e)
         return res.status(500).json({error:e.message});
@@ -548,6 +564,7 @@ export const getAllLeaves = async (req, res) => {
                 {reason:{[Op.iLike]:`%${search}%`}},
                 {status:{[Op.iLike]:`%${search}%`}},
                 {rejectionReason:{[Op.iLike]:`%${search}%`}},
+                sequelize.where(sequelize.fn('array_to_string', sequelize.col('dates'), ','), { [Op.iLike]: `%${search}%` }),
                 sequelize.literal(`CAST ("Leave"."id" AS TEXT) ILIKE '%${search}%'`),
             ]
         }
