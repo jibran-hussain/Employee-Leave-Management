@@ -204,7 +204,7 @@ const handleActivateEmployee=async(employeeId)=>{
                 toast.error('You are not authorized to delete this employee',{
                     duration:3000
                 });
-                employeesListData=''
+            
             }
     }catch(error){
         console.log(error.message)
