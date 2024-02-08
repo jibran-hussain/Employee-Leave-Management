@@ -12,10 +12,11 @@
     let leaveStatus='approved';
     let showUpdateLeaveModal=false;
     let leaveToUpdate;
+    let searchInput='';
 
     const fetchLeaves=async()=>{
         try{
-            let url=`http://localhost:3000/api/v1/me/leaves?status=${leaveStatus}`;
+            let url=`http://localhost:3000/api/v1/me/leaves?status=${leaveStatus}&search=${searchInput}`;
             const response=await fetch(url,{
                 method:'GET',
                 headers:{
@@ -87,6 +88,7 @@
 <div class="main-container">
     <Sidebar />
     <div class="display-area">
+        <input type="search" class="form-control form-control-sm w-25 mb-3" bind:value={searchInput} on:keyup={async()=>leaves=await fetchLeaves()} placeholder="Search a leave....."/>
         <div  style="margin-bottom: 3em;">
             <LeavesStatusComponent on:setLeaveStatus={handleStatusChange} selectedStatus={leaveStatus} />
         </div>
