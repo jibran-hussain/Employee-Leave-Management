@@ -254,7 +254,7 @@ export const deleteLeave=async(req,res)=>{
         const currentDate=new Date();
         currentDate.setUTCHours(0,0,0,0)
 
-        if(leave.status === 'rejected' || (leave.status === 'approved' &&  new Date(leave.dates[0]).getTime() <= currentDate.getTime())) return res.status(403).json({message:`This leave cannot be deleted`})
+        if(leave.status === 'rejected' || (leave.status === 'approved' &&  new Date(leave.dates[leave.dates.length-1]).getTime() <= currentDate.getTime())) return res.status(403).json({message:`This leave cannot be deleted`})
 
         if(getDateForDB(leave.dates[leave.dates.length-1]) < currentDate) return res.status(403).json({error:'You cannot delete this leave as it is of past'})
 
