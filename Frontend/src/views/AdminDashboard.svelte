@@ -223,7 +223,6 @@ const handleActivateEmployee=async(employeeId)=>{
             url += `&search=${encodeURIComponent(searchInput.trim())}`;
         }
 
-        // Check if there is a sort option selected
         if (selectedOption.trim() !== '') {
             url += `&sortBy=${encodeURIComponent(selectedOption.trim())}`;
         }
@@ -261,7 +260,7 @@ const handleActivateEmployee=async(employeeId)=>{
             <div class="mb-3">
                 <div class="row  align-items-center justify-content-end">
                     <div class="col-4 d-flex  justify-content-center">
-                        <input type="text" id="searchInput" class="form-control input-lg" bind:value={searchInput} on:keyup={()=>searchInput && handleSearch()} placeholder="Search" style="height: 50%;">
+                        <input type="text" id="searchInput" class="form-control input-lg" bind:value={searchInput} on:keyup={()=>handleSearch()} placeholder="Search" style="height: 50%;">
                     </div>
                     <div class="col-5 d-flex  justify-content-center align-items-center">
                         <div class="col-4 d-flex  justify-content-center align-items-center">
@@ -307,7 +306,6 @@ const handleActivateEmployee=async(employeeId)=>{
             <!-- Pagination -->
 
             {#if employeesListData}
-            {console.log(employeesListData,'here is employee data')}
             <Pagination totalPages={employeesListData.metadata.totalPages} currentPage={employeesListData.metadata.currentPage} onPageChange={handlePageChange} />
             {/if}
 
