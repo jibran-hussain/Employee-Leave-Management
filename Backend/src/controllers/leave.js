@@ -60,23 +60,53 @@ export const listAllEmployeeLeaves=async (req,res)=>{
 
         const limit=Number(req.query.limit) || 10;
         const offset=Number(req.query.offset) || 1;
+        const status = req.query.status;
+        const search=req.query.search;
+
+        if(status && (status != 'approved' && status != 'Under Process' && status != "rejected")) return res.status(400).json({message:`Please enter a valid status`})
 
         if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
 
         const startIndex = (offset - 1)*limit;
 
+        const whereClause={
+            employeeId,
+        };
+
+        if(status) whereClause.status=status;
+
+        if(search){
+            whereClause[Op.or]=[
+                {reason:{[Op.iLike]:`%${search}%`}},
+                {status:{[Op.iLike]:`%${search}%`}},
+                {rejectionReason:{[Op.iLike]:`%${search}%`}},
+                sequelize.where(sequelize.fn('array_to_string', sequelize.col('dates'), ','), { [Op.iLike]: `%${search}%` }),
+                sequelize.literal(`CAST ("Leave"."id" AS TEXT) ILIKE '%${search}%'`),
+            ]
+        }
+
         const {count,rows:allLeaves}=await Leave.findAndCountAll({
-            where:{
-                employeeId
-            },
+            where:whereClause,
             attributes:{
                 exclude:['employeeId','deletedAt']
             },
             offset: startIndex || undefined,
-            limit: limit || undefined
+            limit: limit || undefined,
+            include:[
+                {
+                    model:Employee,
+                    attributes:{
+                        exclude:['employeeId','deletedAt']
+                    }
+                }
+            ]
         })
 
         if(count === 0) return res.json({message:`The employee has not taken any leave yet`});
+
+        let totalLeaves=0;
+
+        allLeaves.forEach(leave=> totalLeaves=totalLeaves+leave.dates.length)
 
         if(limit && offset){
             const totalPages=Math.ceil(count/ limit);
@@ -86,14 +116,13 @@ export const listAllEmployeeLeaves=async (req,res)=>{
             const {totalLeaveDays,timesApplied}=await getTotalLeaveDays(employeeId)
 
             return res.json({data:allLeaves,metadata:{
-                totalLeaveDays,
-                timesApplied,
+                totalLeaveDays:totalLeaveDays,
+                timesApplied:count,
                 currentPage:offset,
                 totalPages
             }})
         }
 
-        return res.json({data:allLeaves})
 
     }catch(e){
         return res.status(500).json({error:`Internal Server Error`})
