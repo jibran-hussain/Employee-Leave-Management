@@ -90,31 +90,6 @@
       </tbody>
     </table>
 
-    {#if leavesData}
-            <nav aria-label="..." class="d-flex justify-content-center align-items-center">
-                <ul class="pagination">
-                <!-- <li class="page-item disabled">
-                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
-                </li> -->
-                
-                {#each Array.from({ length: leavesData.metadata.totalPages }) as _, i (i+1)}
-                    {#if leavesData.metadata.currentPage === i+1}
-                    <li class="page-item active" aria-current="page">
-                        <a class="page-link" href="#" on:click|preventDefault={(event)=>handlePageChange(event,i+1)}>{i+1}</a>
-                    </li>
-                    {:else}
-                    <li class="page-item"><a class="page-link" href="#" on:click|preventDefault={(event)=>handlePageChange(event,i+1)}>{i+1}</a></li>
-                    {/if}
-                {/each}
-                
-                <!-- <li class="page-item">
-                    <a class="page-link" href="#">Next</a>
-                </li> -->
-                </ul>
-            </nav>
-            
-            {/if}
-
     <RejectLeaveForm show={showRejectionPopup} leaveId={selectedLeaveId} on:cancel={handleRejectionCancel} on:submit={handleReject} />
   </div>
   {:else}

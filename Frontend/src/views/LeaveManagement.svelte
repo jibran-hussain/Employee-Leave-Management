@@ -1,9 +1,8 @@
 <script>
-    import Sidebar from "../Components/Sidebar.svelte";
-    import Navbar from "../Components/Navbar.svelte";
     import LeavesStatusComponent from "../Components/Leaves/LeavesStatusComponent.svelte";
     import LeavesInSystemTable from "../Components/Leaves/LeavesInSystemTable.svelte";
-    import toast, { Toaster } from 'svelte-french-toast';
+    import Pagination from "../Components/Pagination.svelte";
+    import toast from 'svelte-french-toast';
     import { user } from "../stores/userStore";
     import { onMount } from "svelte";
 
@@ -27,7 +26,7 @@
                 console.log(data)
                 return data;
             }
-            else return 'undefined';
+            else return undefined;
         }catch(error){
             console.log(error.message)
         }
@@ -35,7 +34,7 @@
 
     const handlePageChange=async(event,offset)=>{
     try{
-      const response=await fetch(`http://localhost:3000/api/v1/leaves?status=${leaveStatus}&offset=${offset}`,{
+      const response=await fetch(`http://localhost:3000/api/v1/leaves?status=${leaveStatus}&offset=${offset}&search=${searchInput}`,{
                 method:'GET',
                 headers:{
                     Authorization:`Bearer ${$user.token}`
@@ -45,7 +44,7 @@
       if(response.ok){
             leaves= data;
             }
-            else return 'undefined';
+            else return undefined;
     }catch(error){
         console.log(error.message)
     }
@@ -121,11 +120,13 @@
 
 </script>
 <input type="search" class="form-control form-control-sm w-25 mb-3" bind:value={searchInput} on:keyup={async()=>leaves=await fetchLeaves()} placeholder="Search a leave....."/>
-<div  style="margin-bottom: 3em;">
-    <LeavesStatusComponent on:setLeaveStatus={handleStatusChange} selectedStatus={leaveStatus} />
-</div>
-{#if leaves}
-        <LeavesInSystemTable leavesData={leaves} {handleAcceptLeaveButton}  {handleRejectionSubmit} {handlePageChange} />
-{:else}
-<h4 class="text-center" style="margin-top:15%; color:#B4B4B8">No such leaves in the system</h4>
-{/if}
+    <div  style="margin-bottom: 3em;">
+        <LeavesStatusComponent on:setLeaveStatus={handleStatusChange} selectedStatus={leaveStatus} />
+    </div>
+    {#if leaves}
+            <LeavesInSystemTable leavesData={leaves} {handleAcceptLeaveButton}  {handleRejectionSubmit} {handlePageChange} />
+            <Pagination totalPages={leaves.metadata.totalPages} currentPage={leaves.metadata.currentPage} onPageChange={handlePageChange} />
+    {:else}
+    <h4 class="text-center" style="margin-top:15%; color:#B4B4B8">No such leaves in the system</h4>
+
+    {/if}

@@ -3,6 +3,7 @@
     import LeavesStatusComponent from '../Components/Leaves/LeavesStatusComponent.svelte'
     import LeavesInSystemTable from '../Components/Leaves/LeavesInSystemTable.svelte'
     import UpdateLeaveModal from "../Components/UpdateLeaveModal.svelte";
+    import Pagination from "../Components/Pagination.svelte";
     import { user } from "../stores/userStore";
     import toast from 'svelte-french-toast';
 
@@ -26,7 +27,7 @@
                 console.log(data)
                 return data;
             }
-            else return 'undefined';
+            else return undefined;
         }catch(error){
             console.log(error.message)
         }
@@ -63,6 +64,24 @@
         }
     }
 
+    const handlePageChange=async(event,offset)=>{
+    try{
+      const response=await fetch(`http://localhost:3000/api/v1/me/leaves/${leaveId}&offset=${offset}&search=${searchInput}`,{
+                method:'GET',
+                headers:{
+                    Authorization:`Bearer ${$user.token}`
+                }
+            });
+      const data= await response.json();
+      if(response.ok){
+            leaves= data;
+            }
+            else return undefined;
+    }catch(error){
+        console.log(error.message)
+    }
+  }
+
     const handleUpdateLeaveButton=(leaveId)=>{
         showUpdateLeaveModal=true;
         leaveToUpdate=leaveId   
@@ -90,6 +109,7 @@
 
 {#if leaves}
     <LeavesInSystemTable leavesData={leaves} {handleDeleteLeaveButton} {handleUpdateLeaveButton} />
+    <Pagination totalPages={leaves.metadata.totalPages} currentPage={leaves.metadata.page} onPageChange={handlePageChange} />
 {:else}
-        <h4 class="text-center" style="margin-top:15%; color:#B4B4B8">No such leaves in the system</h4>
+    <h4 class="text-center" style="margin-top:15%; color:#B4B4B8">No such leaves in the system</h4>
 {/if}
