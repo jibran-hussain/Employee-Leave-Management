@@ -49,7 +49,9 @@
       <thead class="text-center">
         <tr>
           <th scope="col">Id</th>
-          <th scope="col">Name</th>
+          {#if leavesData.data[0].Employee}
+            <th scope="col">Name</th>
+          {/if}
           <th scope="col">Reason</th>
           <th scope="col">From</th>
           <th scope="col">To</th>
@@ -62,7 +64,9 @@
         {#each leavesData.data as leave (leave.id)}
           <tr>
             <td class="align-middle">{leave.id}</td>
-            <td class="align-middle">{leave.Employee.name}</td>
+            {#if leave.Employee}
+              <td class="align-middle">{leave.Employee.name}</td>
+            {/if}
             <td class="align-middle">{leave.reason}</td>
             <td class="align-middle">{leave.dates[0]}</td>
             <td class="align-middle">{leave.dates[leave.dates.length-1]}</td>
