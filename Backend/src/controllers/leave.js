@@ -55,7 +55,7 @@ export const listAllEmployeeLeaves=async (req,res)=>{
 
         const employeeId=Number(req.params.employeeId)
 
-        const employee= await Employee.findByPk(employeeId);
+        const employee= await Employee.findByPk(employeeId,{paranoid:false});
         if(!employee) return res.status(404).json({error:`Emplyee with this id does not exist`});
 
         const limit=Number(req.query.limit) || 10;
@@ -273,6 +273,12 @@ export const deleteLeave=async(req,res)=>{
         const currentDate=new Date();
         currentDate.setUTCHours(0,0,0,0)
 
+        if(leave.status === 'Under Process'){
+            await Leave.destroy({
+                where:{id:leaveId}
+            })
+        }
+
         if(leave.status === 'rejected' || (leave.status === 'approved' &&  new Date(leave.dates[leave.dates.length-1]).getTime() <= currentDate.getTime())) return res.status(403).json({message:`This leave cannot be deleted`})
 
         if(getDateForDB(leave.dates[leave.dates.length-1]) < currentDate) return res.status(403).json({error:'You cannot delete this leave as it is of past'})
@@ -301,7 +307,7 @@ export const deleteLeave=async(req,res)=>{
                 }
             })
 
-            await leave.update({dates:[...pastDates]},{
+            await Leave.update({dates:[...pastDates]},{
                 where:{
                     id:leaveId
                 }
