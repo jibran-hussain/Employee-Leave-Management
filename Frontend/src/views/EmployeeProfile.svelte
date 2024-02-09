@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import Navbar from '../Components/Navbar.svelte'
     import Sidebar from '../Components/Sidebar.svelte';
-    import UpdateProfileModal from "../Components/UpdateProfileModal.svelte";
+    import UpdateEmployeeModal from '../Components/UpdateEmployeeModal.svelte';
     import UserDisplay from '../Components/UserDisplay.svelte';
     import { user } from "../stores/userStore";
     import toast, { Toaster } from 'svelte-french-toast';
@@ -11,11 +11,11 @@
     let employeeId;
     let employee;
     let showUpdateModal=false;
-    let userToUpdate;
     
-    const handleDeleteAccount=async()=>{
-        try{
-            const response=await fetch(`http://localhost:3000/api/v1/me`,{
+    const handleDeleteEmployee=async(employeeId)=>{
+    try{
+        let url=`http://localhost:3000/api/v1/employees/${employeeId}`;
+        const response=await fetch(url,{
                 method:'DELETE',
                 headers:{
                     'Authorization':`Bearer ${$user.token}`
@@ -23,21 +23,45 @@
             })
 
             if(response.ok){
-                toast.success('Account deleted successfully', {
+                toast.success('Employee deleted successfully', {
                     duration: 5000,
                     position: 'top-center', 
                 });
-            goto('/');
+            await handleSearchEmployee();
             }else{
-                const data=await response.json();
-                toast.error(data.error,{
-                    duration:5000
+                toast.error('You are not authorized to delete this employee',{
+                    duration:3000
                 });
             }
-        }catch(error){
-            console.log(error.message)
-        }
+    }catch(error){
+        console.log(error.message)
     }
+}
+
+const handleActivateEmployee=async(employeeId)=>{
+    try{
+        const response=await fetch(`http://localhost:3000/api/v1/employees/${employeeId}/activate`,{
+                method:'POST',
+                headers:{
+                    'Authorization':`Bearer ${$user.token}`
+                }
+            })
+
+            if(response.ok){
+                toast.success('Employee Activated successfully', {
+                    duration: 5000,
+                    position: 'top-center',
+                });
+                await handleSearchEmployee();
+            }else{
+                toast.error('You are not authorized to delete this employee',{
+                    duration:3000
+                });
+            }
+    }catch(error){
+        console.log(error.message)
+    }
+}
 
     const handleSearchEmployee=async()=>{
         try{
@@ -50,7 +74,6 @@
                 }
             });
             const {data}=await response.json();
-            console.log(data,'in handle search bar')
             if(response.ok) employee=data
             else employee=''
         }catch(error){
@@ -61,7 +84,7 @@
 </script>
 
 {#if showUpdateModal}
- <UpdateProfileModal {userToUpdate} on:modalClosed={()=>showUpdateModal=false} />
+ <UpdateEmployeeModal userToUpdate={employee} on:modalClosed={()=>showUpdateModal=false} />
 {/if}
 
 <Toaster />
@@ -69,18 +92,18 @@
 <div class="main-container">
     <Sidebar />
     <div class="display-area">
-        <form on:submit|preventDefault={handleSearchEmployee}>
-            <label>
-                <input type="number" bind:value={employeeId} placeholder="Enter employee id">
-            </label>
-            <button>Search</button>
+        <form on:submit={handleSearchEmployee} class="d-flex">
+            <input class="form-control me-2 w-25" type="search" bind:value={employeeId} placeholder="Search" aria-label="Search">
+            <button class="btn btn-outline-primary" type="submit">Search</button>
         </form>
+        
         {#if employee}
-        {console.log(employee,'data near props')}
             <UserDisplay
+            on:showUpdateModal={()=>showUpdateModal=true}
             {employee}
             {showUpdateModal}
-            {handleDeleteAccount}
+            {handleDeleteEmployee}
+            {handleActivateEmployee}
         />
         {:else}
         <h3 class="text-center" style="margin-top:15%; color:#B4B4B8">No Employee found</h3>
