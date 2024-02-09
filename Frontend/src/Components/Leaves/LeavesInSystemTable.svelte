@@ -72,7 +72,7 @@
             {#if leave.status === 'rejected'}
               <td class="align-middle">{leave.rejectionReason}</td>
             {/if}
-            {#if leave.status === 'Under Process' && $page.route.id === '/dashboard/employees/leaves'}
+            {#if leave.status === 'Under Process' && ($page.route.id === '/dashboard/employees/leaves' || $page.route.id === `/dashboard/employees/[slug]/leaves`)}
               <td class="align-middle"><button type="button" class="btn btn-success" on:click={()=>{handleAcceptLeaveButton(leave.id)}}>Accept</button></td>
               <td class="align-middle">  <button type="button" class="btn btn-danger" on:click={()=>{handleRejectClick(leave.id) }}>Reject</button></td>
             {:else if leave.status === 'Under Process' && $page.route.id === '/dashboard/me/leaves'}
