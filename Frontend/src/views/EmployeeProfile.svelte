@@ -1,7 +1,4 @@
 <script>
-    import { onMount } from 'svelte';
-    import Navbar from '../Components/Navbar.svelte'
-    import Sidebar from '../Components/Sidebar.svelte';
     import UpdateEmployeeModal from '../Components/UpdateEmployeeModal.svelte';
     import UserDisplay from '../Components/UserDisplay.svelte';
     import { user } from "../stores/userStore";
@@ -87,39 +84,20 @@ const handleActivateEmployee=async(employeeId)=>{
  <UpdateEmployeeModal userToUpdate={employee} on:modalClosed={()=>showUpdateModal=false} />
 {/if}
 
-<Toaster />
-<Navbar />
-<div class="main-container">
-    <Sidebar />
-    <div class="display-area">
-        <form on:submit={handleSearchEmployee} class="d-flex">
-            <input class="form-control me-2 w-25" type="search" bind:value={employeeId} placeholder="Search" aria-label="Search">
-            <button class="btn btn-outline-primary" type="submit">Search</button>
-        </form>
-        
-        {#if employee}
-            <UserDisplay
-            on:showUpdateModal={()=>showUpdateModal=true}
-            {employee}
-            {showUpdateModal}
-            {handleDeleteEmployee}
-            {handleActivateEmployee}
-        />
-        {:else}
-        <h3 class="text-center" style="margin-top:15%; color:#B4B4B8">No Employee found</h3>
+<form on:submit={handleSearchEmployee} class="d-flex">
+    <input class="form-control me-2 w-25" type="search" bind:value={employeeId} placeholder="Search" aria-label="Search">
+    <button class="btn btn-outline-primary" type="submit">Search</button>
+</form>
 
-        {/if}
-    </div>
-</div>
+{#if employee}
+    <UserDisplay
+    on:showUpdateModal={()=>showUpdateModal=true}
+    {employee}
+    {showUpdateModal}
+    {handleDeleteEmployee}
+    {handleActivateEmployee}
+/>
+{:else}
+<h3 class="text-center" style="margin-top:15%; color:#B4B4B8">No Employee found</h3>
 
-<style>
-    .main-container {
-            display: flex;
-            height: 100vh;
-        }
-
-        .display-area {
-            flex: 1;
-            padding: 3%;
-        }
-</style>
+{/if}

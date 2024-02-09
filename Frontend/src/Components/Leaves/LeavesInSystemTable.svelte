@@ -1,8 +1,6 @@
 <script>
   import RejectLeaveForm from "./RejectLeaveForm.svelte";
   import { onMount } from "svelte";
-  import { user } from "../../stores/userStore";
-  import toast, { Toaster } from 'svelte-french-toast';
   import { page } from '$app/stores';
 
 
@@ -45,7 +43,6 @@
 
 </script>
 
-  <Toaster />
   {#if leavesData?.data}
   <div class="table-responsive">
     <table class="table table-bordered">

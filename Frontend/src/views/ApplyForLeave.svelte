@@ -1,11 +1,7 @@
 <script>
-    import Navbar from "../Components/Navbar.svelte";
-    import Sidebar from "../Components/Sidebar.svelte";
     import Form from "../Components/Form.svelte";
     import formatDate from '../utils/formatDate.js'
     import { user } from "../stores/userStore";
-    import toast, { Toaster } from 'svelte-french-toast';
-
 
     const formFields = [
     { type: 'date', name: 'fromDate', label: 'From' },
@@ -59,24 +55,6 @@ const handleSubmit=async(formData)=>{
 }
 
 </script>
-<Toaster />
-<Navbar />
-<div class="main-container">
-    <Sidebar />
-    <div class="display-area">
-        <Form options={formFields}  formHeading="Apply for Leave" buttonLabel="Apply Leave" {handleSubmit} {isError} {error} {isSuccess} {success} width="45%" />
-    </div>
-</div>
 
-<style>
-    .main-container{
-        display: flex;
-        height: 100vh;
-    }
-
-    .display-area{
-        flex: 1;
-        padding:3%;
-    }
-</style>
+<Form options={formFields}  formHeading="Apply for Leave" buttonLabel="Apply Leave" {handleSubmit} {isError} {error} {isSuccess} {success} width="45%" />
 

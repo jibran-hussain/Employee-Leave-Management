@@ -2,6 +2,7 @@
     import { createEventDispatcher } from "svelte";
     import { user } from "../stores/userStore";
     import {goto} from '$app/navigation'
+    import {page} from '$app/stores'
 
     const dispatch =createEventDispatcher()
 
@@ -45,19 +46,20 @@
             <span class="value">{employee?.leavesLeft}</span>
         </div>
 
-        {#if $user.role === 'superadmin' || $user.role === 'admin'}
-            {#if employee.deletedAt === null}
-                <button type="button" class="btn btn-danger" on:click={handleDeleteEmployee(employee.id)}>Delete account</button>
-            {:else}
-                <button type="button" class="btn btn-success" on:click={handleActivateEmployee(employee.id)}>Activate account</button>
-            {/if}
-        {:else if $user.role === 'employee'}
-            <button type="button" class="btn btn-danger" on:click={handleDeleteAccount(employee.id)}>Delete account</button>
+{#if $page.route.id === '/dashboard/me/profile' }
+    <button type="button" class="btn btn-danger" on:click={handleDeleteAccount(employee.id)}>Delete account</button>
+    <button type="button" class="btn btn-primary" on:click={() => dispatch('showUpdateModal')}>Update Profile</button>
+{:else if $page.route.id === `/dashboard/employees/search`}
+    {#if ($user.role === 'superadmin' || $user.role === 'admin')}
+        {#if employee && employee.deletedAt === null}
+            <button type="button" class="btn btn-danger" on:click={handleDeleteEmployee(employee.id)}>Delete account</button>
+        {:else}
+            <button type="button" class="btn btn-success" on:click={handleActivateEmployee(employee.id)}>Activate account</button>
         {/if}
         <button type="button" class="btn btn-primary" on:click={() => dispatch('showUpdateModal')}>Update Profile</button>
-        {#if $user.role === 'superadmin' || $user.role === 'admin'}
-            <button type="button" class="btn btn-success" on:click={()=>goto(`/dashboard/employees/${employee.id}/leaves`)}>View Leaves</button>
-        {/if}
+        <button type="button" class="btn btn-success" on:click={()=>goto(`/dashboard/employees/${employee.id}/leaves`)}>View Leaves</button>
+    {/if}
+{/if}
     </div>
   
     <style>

@@ -54,8 +54,9 @@
             isSuccess=true;
             success='Leave Updated Successfully'
             error=false
-            document.querySelector('.modal-content').scrollTop = 0;
           }
+          document.querySelector('.modal-content').scrollTop = 0;
+
           
       }catch(error){
           console.log(error)

@@ -65,30 +65,6 @@
  <UpdateProfileModal {userToUpdate} on:modalClosed={()=>showUpdateModal=false} />
 {/if}
 
-<Toaster />
-<Navbar />
-<div class="main-container">
-    <Sidebar />
-    <div class="display-area">
-        <UserDisplay
-          employee={loggedInEmployee}
-          {showUpdateModal}
-          {handleDeleteAccount}
-          on:showUpdateModal={async()=>{
-            showUpdateModal=true
-          }}
-        />
-    </div>
-</div>
-
-<style>
-    .main-container {
-            display: flex;
-            height: 100vh;
-        }
-
-        .display-area {
-            flex: 1;
-            padding: 3%;
-        }
-</style>
+<UserDisplay employee={loggedInEmployee} {showUpdateModal} {handleDeleteAccount} on:showUpdateModal={async()=>{showUpdateModal=true
+    }}
+/>

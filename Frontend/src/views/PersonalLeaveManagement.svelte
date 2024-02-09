@@ -1,12 +1,10 @@
 <script>
     import { onMount } from "svelte";
-    import Sidebar from "../Components/Sidebar.svelte";
-    import Navbar from "../Components/Navbar.svelte";
     import LeavesStatusComponent from '../Components/Leaves/LeavesStatusComponent.svelte'
     import LeavesInSystemTable from '../Components/Leaves/LeavesInSystemTable.svelte'
     import UpdateLeaveModal from "../Components/UpdateLeaveModal.svelte";
     import { user } from "../stores/userStore";
-    import toast, { Toaster } from 'svelte-french-toast';
+    import toast from 'svelte-french-toast';
 
     let leaves;
     let leaveStatus='approved';
@@ -83,31 +81,15 @@
 {#if showUpdateLeaveModal}
     <UpdateLeaveModal {leaveToUpdate} on:modalClosed={handleCloseModal} />
 {/if}
-<Toaster />
-<Navbar />
-<div class="main-container">
-    <Sidebar />
-    <div class="display-area">
-        <input type="search" class="form-control form-control-sm w-25 mb-3" bind:value={searchInput} on:keyup={async()=>leaves=await fetchLeaves()} placeholder="Search a leave....."/>
-        <div  style="margin-bottom: 3em;">
-            <LeavesStatusComponent on:setLeaveStatus={handleStatusChange} selectedStatus={leaveStatus} />
-        </div>
-            {#if leaves}
-                <LeavesInSystemTable leavesData={leaves} {handleDeleteLeaveButton} {handleUpdateLeaveButton} />
-            {:else}
-                 <h4 class="text-center" style="margin-top:15%; color:#B4B4B8">No such leaves in the system</h4>
-            {/if}
-    </div>
+
+<input type="search" class="form-control form-control-sm w-25 mb-3" bind:value={searchInput} on:keyup={async()=>leaves=await fetchLeaves()} placeholder="Search a leave....."/>
+
+<div  style="margin-bottom: 3em;">
+    <LeavesStatusComponent on:setLeaveStatus={handleStatusChange} selectedStatus={leaveStatus} />
 </div>
 
-<style>
-    .main-container{
-        display: flex;
-        height: 100vh;
-    }
-
-    .display-area{
-        flex: 1;
-        padding:3%;
-    }
-</style>
+{#if leaves}
+    <LeavesInSystemTable leavesData={leaves} {handleDeleteLeaveButton} {handleUpdateLeaveButton} />
+{:else}
+        <h4 class="text-center" style="margin-top:15%; color:#B4B4B8">No such leaves in the system</h4>
+{/if}

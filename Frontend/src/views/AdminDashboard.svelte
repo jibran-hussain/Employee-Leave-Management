@@ -1,7 +1,5 @@
 <script>
     import { onMount } from "svelte";
-    import Navbar from "../Components/Navbar.svelte";
-    import Sidebar from "../Components/Sidebar.svelte";
     import { user } from "../stores/userStore";
     import toast, { Toaster } from 'svelte-french-toast';
     import UpdateEmployeeModal from "../Components/UpdateEmployeeModal.svelte";
@@ -241,75 +239,62 @@ const handleActivateEmployee=async(employeeId)=>{
     }
 
 </script>
-<Toaster />
 
 {#if showUpdateModal}
  <UpdateEmployeeModal {userToUpdate} on:modalClosed={()=>showUpdateModal=false} />
 {/if}
 
-<Navbar />
-<div class="container-fluid">
-    <div class="row vh-100">
-    <!-- Sidebar -->
-    <Sidebar />
-
-    <!-- Main content -->
-    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4 bg-light">
-        
-        <div class="chartjs-size-monitor pt-4">
-            <div class="mb-3">
-                <div class="row  align-items-center justify-content-end">
-                    <div class="col-4 d-flex  justify-content-center">
-                        <input type="text" id="searchInput" class="form-control input-lg" bind:value={searchInput} on:keyup={()=>handleSearch()} placeholder="Search" style="height: 50%;">
-                    </div>
-                    <div class="col-5 d-flex  justify-content-center align-items-center">
-                        <div class="col-4 d-flex  justify-content-center align-items-center">
-                            <label for="sortBySelect" class="col-form-label"><span style="white-space: nowrap; padding-right:10px">Sort By</span></label>
-                            <select id="sortBySelect" class="form-select custom-select" bind:value={selectedOption} on:change={handleSortBy} style="height: 50%;">
-                                <option value=''>none</option>
-                                <option value="id">Id</option>
-                                <option value="name">Name</option>
-                                <option value="salary">Salary</option>
-                                <option value="mobileNumber">Mobile Number</option>
-                                <option value="role">Role</option>
-                            </select>
-                        </div>
-                        <div class="col-4 d-flex justify-content-center align-items-center">
-                            <label for="orderSelect" class="col-form-label"><span style="white-space: nowrap; padding-right:10px; padding-left:10px">Order</span></label>
-                            <select id="orderSelect" class="form-select custom-select" bind:value={orderOption} on:change={handleOrder} style="height: 50%;">
-                                <option value=''>none</option>
-                                <option value="asc">Ascending</option>
-                                <option value="desc">Descending</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    
-
-                    <div class="col-3">
-                        <div class="form-check d-flex  justify-content-center">
-                            <input class="form-check-input" type="checkbox" id="deletedCheckbox" bind:checked={showDeletedEmployees}>
-                            <label class="form-check-label" for="deletedCheckbox" style="margin-left: 3%;">
-                                Deleted
-                            </label>
-                        </div>
-                    </div>
+<div class="pt-4">
+    <div class="mb-3">
+        <div class="row  align-items-center justify-content-end">
+            <div class="col-4 d-flex  justify-content-center">
+                <input type="text" id="searchInput" class="form-control input-lg" bind:value={searchInput} on:keyup={()=>handleSearch()} placeholder="Search" style="height: 50%;">
+            </div>
+            <div class="col-5 d-flex  justify-content-center align-items-center">
+                <div class="col-4 d-flex  justify-content-center align-items-center">
+                    <label for="sortBySelect" class="col-form-label"><span style="white-space: nowrap; padding-right:10px">Sort By</span></label>
+                    <select id="sortBySelect" class="form-select custom-select" bind:value={selectedOption} on:change={handleSortBy} style="height: 50%;">
+                        <option value=''>none</option>
+                        <option value="id">Id</option>
+                        <option value="name">Name</option>
+                        <option value="salary">Salary</option>
+                        <option value="mobileNumber">Mobile Number</option>
+                        <option value="role">Role</option>
+                    </select>
+                </div>
+                <div class="col-4 d-flex justify-content-center align-items-center">
+                    <label for="orderSelect" class="col-form-label"><span style="white-space: nowrap; padding-right:10px; padding-left:10px">Order</span></label>
+                    <select id="orderSelect" class="form-select custom-select" bind:value={orderOption} on:change={handleOrder} style="height: 50%;">
+                        <option value=''>none</option>
+                        <option value="asc">Ascending</option>
+                        <option value="desc">Descending</option>
+                    </select>
                 </div>
             </div>
+
             
-            {#if employeesListData}
-                <EmployeeListTable {employeesListData} {showDeletedEmployees} {handleActivateEmployee} {handleDeleteEmployee} {handleUpdateEmployee} />
-            {:else}
-            <h3 class="text-center" style="margin-top:15%; color:#B4B4B8">No such employees found in the system</h3>
-            {/if}
 
-            <!-- Pagination -->
-
-            {#if employeesListData}
-            <Pagination totalPages={employeesListData.metadata.totalPages} currentPage={employeesListData.metadata.currentPage} onPageChange={handlePageChange} />
-            {/if}
-
+            <div class="col-3">
+                <div class="form-check d-flex  justify-content-center">
+                    <input class="form-check-input" type="checkbox" id="deletedCheckbox" bind:checked={showDeletedEmployees}>
+                    <label class="form-check-label" for="deletedCheckbox" style="margin-left: 3%;">
+                        Deleted
+                    </label>
+                </div>
+            </div>
         </div>
-    </main>
     </div>
+    
+    {#if employeesListData}
+        <EmployeeListTable {employeesListData} {showDeletedEmployees} {handleActivateEmployee} {handleDeleteEmployee} {handleUpdateEmployee} />
+    {:else}
+    <h3 class="text-center" style="margin-top:15%; color:#B4B4B8">No such employees found in the system</h3>
+    {/if}
+
+    <!-- Pagination -->
+
+    {#if employeesListData}
+    <Pagination totalPages={employeesListData.metadata.totalPages} currentPage={employeesListData.metadata.currentPage} onPageChange={handlePageChange} />
+    {/if}
+
 </div>
