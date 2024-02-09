@@ -3,6 +3,6 @@
     import { user } from "../../../../stores/userStore";
 </script>
 
-{#if $user.role === 'admin' || $user.role === 'superadmin'}
+{#if $user && ($user.role === 'admin' || $user.role === 'superadmin')}
     <EmployeeProfile />
 {/if}
