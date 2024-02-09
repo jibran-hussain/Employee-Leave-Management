@@ -40,7 +40,7 @@
             }
             
         }catch(error){
-            // console.log(error)
+            console.log(error)
         }
     }
 
@@ -49,24 +49,4 @@
     }
 </script>
 
-<Toaster />
-<Navbar />
-<div class="main-container">
-    <Sidebar />
-    <div class="display-area">
-        <Form options={formFields} formHeading="Reset Password" buttonLabel='Reset Password' {error} {success} width='45%' />
-    </div>
-</div>
-
-
-<style>
-    .main-container{
-        display: flex;
-        height: 100vh;
-    }
-
-    .display-area{
-        flex: 1;
-        padding:3%;
-    }
-</style>
+<Form options={formFields} formHeading="Reset Password" buttonLabel='Reset Password' {handleSubmit} {error} {success} width='45%' />
