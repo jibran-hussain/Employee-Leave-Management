@@ -66,6 +66,8 @@
             <td class="align-middle">{leave.id}</td>
             {#if leave.Employee}
               <td class="align-middle">{leave.Employee.name}</td>
+            {:else}
+              <td class="align-middle">Anonymous</td>
             {/if}
             <td class="align-middle">{leave.reason}</td>
             <td class="align-middle">{leave.dates[0]}</td>

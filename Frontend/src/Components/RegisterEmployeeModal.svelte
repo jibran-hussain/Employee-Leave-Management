@@ -65,7 +65,7 @@ const handleSubmit=async(formData)=>{
 </script>
 
 
-<div class="container-fluid  outer-model-container">
+<div class="container-fluid outer-model-container">
   <div class="modal-content">
       <button class="close-button" on:click={closeModal}>×</button>
       <Form options={formFields}  formHeading="Register Employee" buttonLabel="Register Employee" {handleSubmit} {isError} {isSuccess} {error} {success} />
@@ -73,7 +73,6 @@ const handleSubmit=async(formData)=>{
 </div>
 
 <style>
-  /* Add your modal styles here */
   .outer-model-container {
       position: fixed;
       top: 0;
@@ -88,7 +87,7 @@ const handleSubmit=async(formData)=>{
 
   .modal-content {
       background-color: white;
-      max-width: 50%;
+      max-width: 70%;
       max-height: 80%;
       overflow-y: auto;
       padding: 20px;
@@ -133,4 +132,11 @@ const handleSubmit=async(formData)=>{
     .close-button:hover {
       color: #333;
     }
+
+    @media (max-width: 585px) {
+    .modal-content {
+      max-width: 100%;
+    }
+  }
+
 </style>

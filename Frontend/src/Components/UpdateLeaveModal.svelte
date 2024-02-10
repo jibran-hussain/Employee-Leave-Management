@@ -73,7 +73,6 @@
   </div>
   
   <style>
-    /* Add your modal styles here */
     .outer-model-container {
       position: fixed;
       top: 0;
@@ -88,7 +87,7 @@
   
     .modal-content {
       background-color: white;
-      max-width: 50%;
+      max-width: 70%;
       max-height: 80%;
       overflow-y: auto;
       padding: 20px;
@@ -133,5 +132,11 @@
     .close-button:hover {
       color: #333;
     }
+
+    @media (max-width: 768px) {
+    .modal-content {
+      max-width: 100%;
+    }
+  }
   </style>
   

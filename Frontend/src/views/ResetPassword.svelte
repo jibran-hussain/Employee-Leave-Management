@@ -1,9 +1,6 @@
 <script>
-    import Navbar from "../Components/Navbar.svelte";
-    import Sidebar from "../Components/Sidebar.svelte";
     import Form from "../Components/Form.svelte";
     import { user } from "../stores/userStore";
-    import toast, { Toaster } from 'svelte-french-toast';
 
 
     const formFields=[
