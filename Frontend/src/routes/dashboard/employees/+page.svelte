@@ -9,5 +9,7 @@
         <AdminDashboard />
     {:else if $user && $user.role === 'employee'}
         {goto('/')}
+    {:else if !$user}
+        {goto('/')}
     {/if}
 </body>
