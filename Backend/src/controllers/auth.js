@@ -11,11 +11,11 @@ import Employee from '../models/employee.js';
 
 export const createUser=async(req,res)=>{
     try{
-        const {name,password,role,mobileNumber,salary}=req.body;
+        const {name,password,role,mobileNumber,salary,designation}=req.body;
 
         let{email}=req.body;
 
-        if(!name ||!email || !password || !role) return res.status(400).json({error:'All fields are mandatory'})
+        if(!name ||!email || !password || !role || !designation) return res.status(400).json({error:'All fields are mandatory'})
 
         if(name.length < 3) return res.status(400).json({error:'Name should be of atleast 3 characters'})
 
@@ -54,7 +54,7 @@ export const createUser=async(req,res)=>{
         // Hashing the password
         const hashedPassword=generateHashedPassword(password);
 
-        await Employee.create({name,email,hashedPassword,mobileNumber,salary,role});
+        await Employee.create({name,email,hashedPassword,designation,mobileNumber,salary,role});
 
         return res.status(201).json({message:`Employee created successfully`});
         

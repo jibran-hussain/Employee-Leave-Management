@@ -42,6 +42,7 @@ export const listAllEmployees = async (req, res) => {
                 {name:{[Op.iLike]:`%${search}%`}},
                 {email:{[Op.iLike]:`%${search}%`}},
                 {role:{[Op.iLike]:`%${search}%`}},
+                {designation:{[Op.iLike]:`%${search}%`}},
                 sequelize.literal(`CAST ("Employee"."id" AS TEXT) ILIKE '%${search}%'`),
                 sequelize.literal(`CAST ("mobileNumber" AS TEXT) ILIKE '%${search}%'`),
                 sequelize.literal(`CAST ("salary" AS TEXT) ILIKE '%${search}%'`),
@@ -264,7 +265,9 @@ export const updateEmployeeProfile=async(req,res)=>{
 
         if(Object.keys(req.body).length === 0) return res.status(400).json({error:`You have not provided any details to update`});
         
-        const {name,mobileNumber,role,password,salary,profilePictureURL}=req.body;
+        const {name,mobileNumber,role,designation,password,salary,profilePictureURL}=req.body;
+
+        if(name && name.length < 3) return res.status(400).json({error:'Name should be of atleast 3 characters'})
 
         if(mobileNumber && !isValidNumber(mobileNumber))  return res.status(400).json({error:`Please enter a valid mobile number`});
 
@@ -283,7 +286,8 @@ export const updateEmployeeProfile=async(req,res)=>{
 
         if(name) updatedObject.name=name;
         if(mobileNumber) updatedObject.mobileNumber=mobileNumber;
-        if(role) updatedObject.role=role
+        if(role) updatedObject.role=role;
+        if(designation) updatedObject.designation=designation;
         if(password) updatedObject.hashedPassword=generateHashedPassword(password);
         if(salary) updatedObject.salary=salary
         if(profilePictureURL) updatedObject.profilePictureURL=profilePictureURL;
@@ -306,13 +310,15 @@ export const updateEmployeeProfile=async(req,res)=>{
 export const updateEmployeeProfileByPut=async(req,res)=>{
     try{
         const employeeId=Number(req.params.employeeId);
-        const {name,mobileNumber,role,password,salary}=req.body;
+        const {name,mobileNumber,role,designation,password,salary}=req.body;
         
         if(!name) return res.status(400).json({error:`Please provide name`});
 
         if(!password) return res.status(400).json({error:`Please provide password`});
 
         if(!role) return res.status(400).json({error:`Please provide role`});
+
+        if(!designation) return res.status(400).json({error:`Please provide designation`});
 
         if(name.length < 3) return res.status(400).json({error:`Name should be of atleast 3 characters`})
 
@@ -338,6 +344,7 @@ export const updateEmployeeProfileByPut=async(req,res)=>{
             hashedPassword:employee.hashedPassword,
             mobileNumber:null,
             salary:null,
+            designation:employee.designation,
             role:employee.role,
             leavesLeft:null,
             active:null
@@ -347,6 +354,7 @@ export const updateEmployeeProfileByPut=async(req,res)=>{
         if(password) updatedObject.hashedPassword=generateHashedPassword(password);
         if(mobileNumber) updatedObject.mobileNumber=mobileNumber;
         if(role) updatedObject.role=role;
+        if(designation) updatedObject.designation=designation;
         if(salary) updatedObject.salary=salary;
 
         await Employee.update(updatedObject,{
