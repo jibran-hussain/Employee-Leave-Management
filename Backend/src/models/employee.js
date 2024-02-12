@@ -21,6 +21,11 @@ const Employee= sequelize.define('Employee',{
             type:DataTypes.STRING,
             allowNull:false
         },
+        designation:{
+            type:DataTypes.STRING,
+            defaultValue:'Software Engineer',
+            allowNull:false
+        },
         mobileNumber:{
             type:DataTypes.BIGINT,
         },
