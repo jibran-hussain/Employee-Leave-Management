@@ -23,12 +23,12 @@
 {/if}
 
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+<nav class="navbar navbar-expand-lg navbar-light" style="background-color:#00A9FF">
     <div class="container-fluid">
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
-      <a class="navbar-brand d-flex justify-content-center align-items-center flex-wrap-wrap text-wrap text-sm-left text-md-left text-lg-left text-xl-left" href="#">Employee Leave Management System</a>
+      <a class="navbar-brand d-flex justify-content-center align-items-center flex-wrap-wrap text-wrap text-sm-left text-md-left text-lg-left text-xl-left" style="color: #FEFBF6;" href="#">Employee Leave Management System</a>
       <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
             {#if $user.role != 'employee'}
@@ -46,8 +46,8 @@
 
 
 <style>
-    .nav-link{
-        color: #40A2E3;
+    .nav-link{  
+        color:white;
     }
 
     .navbar-brand{
