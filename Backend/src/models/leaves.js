@@ -8,7 +8,7 @@ const Leave=sequelize.define('Leave',{
         primaryKey:true
     },
     reason:{
-        type:DataTypes.STRING,
+        type:DataTypes.TEXT,
         allowNull:false
     },
     dates:{
