@@ -16,7 +16,7 @@ export let buttonLabel;
 
 $:{
     if(isSuccess){
-    formData={...formData,name:'',email:'',password:'',mobileNumber:'',salary:'',role:'',oldPassword:'',newPassword:'',confirmPassword:'',profilePictureURL:'',fromDate:'',toDate:'',reason:''}
+    formData={...formData,name:'',email:'',password:'',mobileNumber:'',salary:'',designation:'',role:'',oldPassword:'',newPassword:'',confirmPassword:'',profilePictureURL:'',fromDate:'',toDate:'',reason:''}
     isSuccess=false
 }
 }

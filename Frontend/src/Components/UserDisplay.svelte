@@ -29,6 +29,7 @@
                         <li class="list-group-item mb-3"><strong>Mobile Number:</strong> {employee?.mobileNumber}</li>
                         <li class="list-group-item mb-3"><strong>Profile Picture Link:</strong> {employee?.profilePictureURL}</li>
                         <li class="list-group-item mb-3"><strong>Salary:</strong> {employee?.salary}</li>
+                        <li class="list-group-item" mb-3><strong>Designation:</strong> {employee?.designation}</li>
                         <li class="list-group-item" mb-3><strong>Role:</strong> {employee?.role}</li>
                         <li class="list-group-item" mb-3 ><strong>Leaves left:</strong> {employee?.leavesLeft}</li>
                     </ul>

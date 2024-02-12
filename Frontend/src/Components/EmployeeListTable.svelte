@@ -12,6 +12,7 @@
         <tr>
           <th scope="col">Id</th>
           <th scope="col">Name</th>
+          <th scope="col">Designation</th>
           <th scope="col">Email</th>
           <th scope="col">Mobile Number</th>
           <th scope="col">Salary</th>
@@ -29,6 +30,7 @@
           <tr>
             <td class="align-middle">{employee.id}</td>
             <td class="align-middle">{employee.name}</td>
+            <td class="align-middle">{employee.designation}</td>
             <td class="align-middle">{employee.email}</td>
             <td class="align-middle">{employee.mobileNumber}</td>
             <td class="align-middle">{employee.salary}</td>

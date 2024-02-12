@@ -23,6 +23,7 @@
       { type: 'number', name: 'mobileNumber', label: 'Mobile Number', placeholder: 'Enter Mobile Number' },
       { type: 'password', name: 'password', label: 'Password', placeholder: 'Enter Password' },
       { type: 'number', name: 'salary', label: 'Salary', placeholder: 'Enter salary' },
+      { type: 'text', name: 'designation', label: 'Designation', placeholder: 'Enter designation' },
       { type: 'text', name: 'profilePictureURL', label: 'Profile Picture URL', placeholder: 'Enter URL' },
     ];
 
