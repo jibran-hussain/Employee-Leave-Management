@@ -4,12 +4,18 @@ const getTotalLeaveDays=async(employeeId)=>{
     try{
        const allLeaves= await Leave.findAll({
             where:{
-                employeeId
+                employeeId,
+                status:'approved'
             }
         })
         
+        const {count:timesApplied}= await Leave.findAndCountAll({
+            where:{
+                employeeId,
+            }
+        })
+
         let totalLeaveDays=0;
-        const timesApplied=allLeaves.length;
         allLeaves.forEach(leave=>totalLeaveDays=totalLeaveDays+leave.dates.length)
 
         return {totalLeaveDays,timesApplied};
