@@ -101,8 +101,9 @@
     <UpdateLeaveModal {leaveToUpdate} on:modalClosed={handleCloseModal} />
 {/if}
 
-<input type="search" class="form-control form-control-sm w-25 mb-3" bind:value={searchInput} on:keyup={async()=>leaves=await fetchLeaves()} placeholder="Search a leave....."/>
-
+<div class="mx-5">
+<input type="search" class="form-control form-control-sm w-25 mb-3 mt-4" bind:value={searchInput} on:keyup={async()=>leaves=await fetchLeaves()} placeholder="Search a leave....."/>
+</div>
 <div  style="margin-bottom: 3em;">
     <LeavesStatusComponent on:setLeaveStatus={handleStatusChange} selectedStatus={leaveStatus} />
 </div>

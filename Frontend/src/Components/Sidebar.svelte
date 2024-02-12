@@ -39,7 +39,7 @@
     <img src={employeeInfo?.data.profilePictureURL} alt="Profile Picture" class="profile-pic img-fluid rounded-circle mt-3 mb-2" width="100" height="100" />
     <div class="d-flex flex-column justify-content-center align-items-center">
       <h5 class="mb-0">{employeeInfo?.data.name}</h5>
-      <p class="text-muted m-0 p-0">Software Engineer</p>
+      <p class="text-muted m-0 p-0">{employeeInfo?.data.designation}</p>
     </div>
   </div>
 

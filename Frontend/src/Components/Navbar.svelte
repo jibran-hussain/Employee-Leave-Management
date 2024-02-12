@@ -28,7 +28,7 @@
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
-      <a class="navbar-brand" href="#">Employee Leave Management System</a>
+      <a class="navbar-brand d-flex justify-content-center align-items-center flex-wrap-wrap" href="#">Employee Leave Management System</a>
       <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
             {#if $user.role != 'employee'}

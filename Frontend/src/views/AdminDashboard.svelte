@@ -246,7 +246,7 @@ const handleActivateEmployee=async(employeeId)=>{
 }} />
 {/if}
 
-<div class="pt-4">
+<div class="pt-4 mx-2">
     <div class="mb-3">
         <div class="row  align-items-center justify-content-end">
             <div class="col-4 d-flex  justify-content-center">

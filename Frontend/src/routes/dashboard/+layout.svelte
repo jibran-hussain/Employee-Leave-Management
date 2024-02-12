@@ -11,7 +11,7 @@
 <div class="container-fluid">
     <div class="row vh-100">
         <Sidebar />
-        <div class="col-md-9 ml-sm-auto col-lg-10 px-md-4 bg-light">
+        <div class="col-md-9 ml-sm-auto col-lg-10 px-md-4 px-lg-4 bg-light">
             <slot />
         </div>    
     </div>

@@ -12,7 +12,7 @@
     }
 </script>
 
-<div class="container bg-light">
+<div class="container" style="background-color: white;">
     <div class="custom-container m-0 ">
         <div class="custom-box">
             <p class={selectedStatus === 'Under Process'?"selected":""} on:click={()=>setLeaveStatus('Under Process')}>Pending</p>
