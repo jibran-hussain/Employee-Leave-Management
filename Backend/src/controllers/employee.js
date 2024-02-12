@@ -31,7 +31,7 @@ export const listAllEmployees = async (req, res) => {
         const startIndex = (offset - 1)*limit;
 
         const whereClause={
-            role:['admin','employee']
+            role:['admin','employee','superadmin']
         }
 
         if(deleted !== 'false' &&  deleted !== 'true' && deleted !== undefined) return res.status(400).json({error:`Invalid option for listing deleted employees`})
@@ -157,7 +157,9 @@ export const deleteEmployee=async (req,res)=>{
         const employeeToDelete=await Employee.findByPk(employeeId);
         if(!employeeToDelete) return res.status(404).json({error:'Employee with this id does not exist'});
 
-        if(req.auth.role === 'superadmin'){
+        if(employeeToDelete.role === 'superadmin') return res.status(403).json({error:`You are not authorized to delete this employee`})
+
+        else if(req.auth.role === 'superadmin'){
             await Employee.destroy({
                 where:{
                     id:employeeId
@@ -272,6 +274,8 @@ export const updateEmployeeProfile=async(req,res)=>{
 
         if(!employeeToUpdate) return res.status(404).json({error:`Employee with this id does not exist`});
 
+
+        if(employeeToUpdate.role === 'superadmin') return res.status(403).json({error:'You are not authorized to update the details of this employee (Forbidden)'})
 
         if(req.auth.role === 'admin' && (employeeToUpdate.role === 'admin' || employeeToUpdate.role === 'superadmin')) return res.status(403).json({error:'You are not authorized to update the details of this employee (Forbidden)'})
 
