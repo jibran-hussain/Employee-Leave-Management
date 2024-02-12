@@ -30,8 +30,7 @@
                 localStorage.setItem('jwt',`${JSON.stringify(token)}`)
                 const decodedToken=decodeJwtToken(token);
                 user.set(decodedToken)
-                if($user.role === 'employee') goto('/dashboard/me/leaves');
-                else if($user.role === 'admin' || $user.role === 'superadmin') goto('/dashboard/employees')
+                goto('/dashboard')
             }
             else{
                 isError=true;
