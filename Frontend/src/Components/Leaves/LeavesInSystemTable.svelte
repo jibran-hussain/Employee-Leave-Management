@@ -51,6 +51,7 @@
           <th scope="col">Id</th>
           {#if leavesData.data[0].Employee}
             <th scope="col">Name</th>
+            <th scope="col">Designation</th>
           {/if}
           <th scope="col">Reason</th>
           <th scope="col">From</th>
@@ -67,12 +68,14 @@
             <td class="align-middle">{leave.id}</td>
             {#if leave.Employee}
               <td class="align-middle">{leave.Employee.name}</td>
+              <td class="align-middle">{leave.Employee.designation}</td>
             {:else}
               <td class="align-middle">Anonymous</td>
             {/if}
             <td class="align-middle text-wrap">{leave.reason}</td>
             <td class="align-middle">{leave.dates[0]}</td>
             <td class="align-middle">{leave.dates[leave.dates.length-1]}</td>
+            <td class="align-middle">{leave.dates.length}</td>
             {#if leave.status === 'rejected'}
               <td class="align-middle">{leave.rejectionReason}</td>
             {/if}
