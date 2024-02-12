@@ -55,9 +55,8 @@ const handleSubmit=async(formData)=>{
             success='Employee registered successfully'
             isError=false
             error=''
-          document.querySelector('.modal-content').scrollTop = 0;
         }
-        
+        document.querySelector('.modal-content').scrollTop = 0;
     }catch(error){
         console.log(error)
     }
