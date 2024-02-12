@@ -45,7 +45,6 @@
           body: JSON.stringify(formData),
           });
            data=await response.json()
-          // show the error
           if(data.error){
               isError=true;
               error=data.error
@@ -56,9 +55,8 @@
             success='Employee Updated Successfully'
             error=false
             isError=false;
-            document.querySelector('.modal-content').scrollTop = 0;
           }
-          
+          document.querySelector('.modal-content').scrollTop = 0;
       }catch(error){
           console.log(error)
       }
