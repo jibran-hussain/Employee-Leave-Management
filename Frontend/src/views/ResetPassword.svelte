@@ -46,4 +46,4 @@
     }
 </script>
 
-<Form options={formFields} formHeading="Reset Password" buttonLabel='Reset Password' {handleSubmit} {error} {success} width='45%' />
+<Form options={formFields} formHeading="Reset Password" buttonLabel='Reset Password' {handleSubmit} {isSuccess} {isError} {error} {success} width='45%' />
