@@ -2,8 +2,10 @@
     import Sidebar from "../../Components/Sidebar.svelte";
     import Navbar from "../../Components/Navbar.svelte";
     import toast, { Toaster } from 'svelte-french-toast';
+    import { user } from "../../stores/userStore";
 </script>
 
+{#if $user}
 <Toaster />
 <Navbar />
 <div class="container-fluid">
@@ -14,3 +16,17 @@
         </div>    
     </div>
 </div>
+{:else}
+    <div class="container-fluid d-flex justify-content-center align-items-center" style="height: 100vh;">
+        <div class="spinner-border text-info custom" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+{/if}
+
+<style>
+    .custom{
+        width: 10rem;
+        height: 10rem;
+    }
+</style>

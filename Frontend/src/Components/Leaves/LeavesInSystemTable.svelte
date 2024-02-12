@@ -55,6 +55,7 @@
           <th scope="col">Reason</th>
           <th scope="col">From</th>
           <th scope="col">To</th>
+          <th scope="col">Leave Days</th>
           {#if leavesData?.data[0].status === 'rejected'}
             <th scope="col">Rejection Reason</th>
           {/if}
@@ -69,7 +70,7 @@
             {:else}
               <td class="align-middle">Anonymous</td>
             {/if}
-            <td class="align-middle">{leave.reason}</td>
+            <td class="align-middle text-wrap">{leave.reason}</td>
             <td class="align-middle">{leave.dates[0]}</td>
             <td class="align-middle">{leave.dates[leave.dates.length-1]}</td>
             {#if leave.status === 'rejected'}
