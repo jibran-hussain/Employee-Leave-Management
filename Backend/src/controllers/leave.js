@@ -104,10 +104,6 @@ export const listAllEmployeeLeaves=async (req,res)=>{
 
         if(count === 0) return res.json({message:`The employee has not taken any leave yet`});
 
-        let totalLeaves=0;
-
-        allLeaves.forEach(leave=> totalLeaves=totalLeaves+leave.dates.length)
-
         if(limit && offset){
             const totalPages=Math.ceil(count/ limit);
 
@@ -434,20 +430,17 @@ export const listLeaves=async(req,res)=>{
 
         if(count === 0) return res.status(404).json({message:`There are no leaves in the system`});
 
-        let totalLeaves=0;
-
-        allLeaves.forEach(leave=> totalLeaves=totalLeaves+leave.dates.length)
-
         if(limit && offset){
             const totalPages=Math.ceil(count/ limit);
 
             if(offset > totalPages) return res.status(404).json({error:`This page does not exist`});
 
-            
+            const {totalLeaveDays}=await getTotalLeaveDays(employeeId)
 
+            
             return res.json({data:allLeaves,metadata:{
                 totalLeaveApplications:count,
-                totalLeaveDays:totalLeaves,
+                totalLeaveDays,
                 page:offset,
                 totalPages
             }})
@@ -611,7 +604,9 @@ export const getAllLeaves = async (req, res) => {
        if(count === 0) return res.status(404).json({message:`There are no leaves in the system`})
        let totalLeaves=0;
 
-       allLeaves.forEach(leave=> totalLeaves=totalLeaves+leave.dates.length)
+       allLeaves.forEach(leave=> {
+        if(leave.status === approved) totalLeaves=totalLeaves+leave.dates.length
+       })
 
        if(limit && offset){
         const totalPages=Math.ceil(count/limit)
@@ -630,7 +625,7 @@ export const getAllLeaves = async (req, res) => {
     }
 };
 
-export const LeaveTypesInfo=async(req,res)=>{
+export const LeavesSummary=async(req,res)=>{
     try{
         const approvedLeaves = await Leave.count({
             where: {
@@ -647,6 +642,74 @@ export const LeaveTypesInfo=async(req,res)=>{
         const rejectedLeaves = await Leave.count({
             where: {
                 status: 'rejected',
+            },
+        });
+
+        return res.json({data:{approvedLeaves,underProcessLeaves,rejectedLeaves}})
+    }catch(e){
+        console.log(e);
+        return res.status(500).json({ error: e.message });  
+    }
+}
+
+export const EmployeeLeavesSummary=async(req,res)=>{
+    try{
+        const employeeId=Number(req.params.employeeId)
+        const employee=await Employee.findByPk(employeeId);
+
+        if(!employee) return res.status(400).json({message:`Employee with this id does not exist`})
+
+        const approvedLeaves = await Leave.count({
+            where: {
+                status: 'approved',
+                employeeId
+            },
+        });
+
+        const underProcessLeaves = await Leave.count({
+            where: {
+                status: 'Under Process',
+                employeeId
+            },
+        });
+
+        const rejectedLeaves = await Leave.count({
+            where: {
+                status: 'rejected',
+                employeeId
+            },
+        });
+
+        return res.json({data:{approvedLeaves,underProcessLeaves,rejectedLeaves}})
+    }catch(e){
+        console.log(e);
+        return res.status(500).json({ error: e.message });  
+    }
+}
+
+export const myLeavesSummary=async(req,res)=>{
+    try{
+        const employeeId=req.auth.id;
+        console.log(employeeId,typeof employeeId,'allah is with jibran')
+
+        const approvedLeaves = await Leave.count({
+            where: {
+                status: 'approved',
+                employeeId
+            },
+        });
+
+        const underProcessLeaves = await Leave.count({
+            where: {
+                status: 'Under Process',
+                employeeId
+            },
+        });
+
+        const rejectedLeaves = await Leave.count({
+            where: {
+                status: 'rejected',
+                employeeId
             },
         });
 
