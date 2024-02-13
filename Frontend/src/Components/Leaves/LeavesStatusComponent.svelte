@@ -15,15 +15,15 @@
     }
 </script>
 
-<div class="container" style="background-color: white;">
-    <div class="custom-container m-0 ">
-        <div class="custom-box">
+<div class="container mb-3 px-0 rounded-3" style="background-color: white;">
+    <div class="custom-container m-0  d-flex justify-content-around h-100">
+        <div class="custom-box d-flex justify-content-center align-items-center flex-grow-1 position-relative ">
             <p class={selectedStatus === 'Under Process'?"selected":""} on:click={()=>setLeaveStatus('Under Process')}>Pending ({leaveTypesSummary?.data.underProcessLeaves})</p>
         </div>
-        <div class="custom-box">
+        <div class="custom-box d-flex justify-content-center align-items-center flex-grow-1 position-relative ">
             <p class={selectedStatus === 'approved'?"selected":""} on:click={()=>setLeaveStatus('approved')}>Approved ({leaveTypesSummary?.data.approvedLeaves})</p>
         </div>
-        <div class="custom-box">
+        <div class="custom-box d-flex justify-content-center align-items-center flex-grow-1 position-relative ">
             <p class={selectedStatus === 'rejected'?"selected":""} on:click={()=>setLeaveStatus('rejected')}>Rejected ({leaveTypesSummary?.data.rejectedLeaves})</p>
         </div>
     </div>
@@ -31,25 +31,10 @@
 
 <style>
   .container{
-      padding-left: 0px;
-      padding-right: 0px;
-      height: 10vh;
-      border-radius: 5px;
-  }
-
-  .custom-container {
-    display: flex;
-    justify-content: space-around;
-    height: 100%;
+      height: 7vh;
   }
 
   .custom-box {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        position: relative;
-        flex: 1;
-        padding: 10px;
         border-right: 1px solid #ccc;
     }
 
