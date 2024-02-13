@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import { getDateForDB } from '../Date/getDate.js';
 import Leave from '../../models/leaves.js';
 
@@ -5,10 +6,12 @@ import Leave from '../../models/leaves.js';
 
 export const isAlreadyLeave=async(employeeId,date,leaveConsider,leaveId)=>{
     try{
-        console.log(leaveConsider,leaveId,'dddddddddddjjjjjjjjjjjjjjjjjjjjjjjjjjjjuuuuuuuuuuuuuuuuuuuuuuu')
         const allLeaves= await Leave.findAll({
             where:{
-                employeeId
+                employeeId,
+                status:{
+                    [Op.not]:'rejected'
+                }
             }
         })
         let isAlreadyLeave=false;
