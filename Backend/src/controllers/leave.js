@@ -147,6 +147,9 @@ export const updateLeave=async(req,res)=>{
             fromDate=getDate(fromDate);
             toDate=getDate(toDate);
 
+            if(fromDate > toDate) return res.status(400).json({error:`Please enter a valid range`})
+
+            isDateInPast(fromDate)
             isDateInPast(toDate)
 
             const currentDate=new Date();
@@ -273,6 +276,8 @@ export const deleteLeave=async(req,res)=>{
             await Leave.destroy({
                 where:{id:leaveId}
             })
+
+            return res.json({message:' Leave deleted successfully'})
         }
 
         if(leave.status === 'rejected' || (leave.status === 'approved' &&  new Date(leave.dates[leave.dates.length-1]).getTime() <= currentDate.getTime())) return res.status(403).json({message:`This leave cannot be deleted`})
