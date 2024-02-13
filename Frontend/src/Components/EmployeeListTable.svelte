@@ -22,7 +22,9 @@
             <th scope="col">Deleted At</th>
           {/if}
           <th scope="col"></th>
-          <th scope="col"></th>
+          {#if !showDeletedEmployees}
+            <th scope="col"></th>
+          {/if}
         </tr>
       </thead>
       <tbody class="text-center">
@@ -40,14 +42,13 @@
             <td class="align-middle">{employee.deletedAt}</td>
             {/if}
               
-            <td class="align-middle">
-              {#if showDeletedEmployees}
-                <button type="button" class="btn btn-success" on:click={() => handleActivateEmployee(employee.id)}>Activate</button>
-              {:else}
-                <button type="button" class="btn btn-danger" on:click={() => handleDeleteEmployee(employee.id)}>Delete</button>
-              {/if}
-            </td>
+            {#if showDeletedEmployees}
+            <td class="align-middle"><button type="button" class="btn btn-success" on:click={() => handleActivateEmployee(employee.id)}>Activate</button></td>
+            {:else}
+            <td class="align-middle"><button type="button" class="btn btn-danger" on:click={() => handleDeleteEmployee(employee.id)}>Delete</button></td>
             <td class="align-middle"><button type="button" class="btn btn-primary" on:click={() => handleUpdateEmployee(employee.id)}>Update</button></td>
+            {/if}
+
           </tr>
         {/each}
       </tbody>
