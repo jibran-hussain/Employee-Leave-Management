@@ -206,7 +206,7 @@ export const updateProfile= async(req,res)=>{
         const employeeId=req.auth.id;
         if(Object.keys(req.body).length == 0) return res.status(400).json({error:`You have not provided any details to update`})
 
-        const {name,mobileNumber}=req.body;
+        const {name,mobileNumber,profilePictureURL}=req.body;
 
         if(name && name.length < 3) return res.status(400).json({error:'Name should be of atleast 3 characters'})
 
@@ -215,6 +215,7 @@ export const updateProfile= async(req,res)=>{
         const updatedObject={};
         if(name) updatedObject.name=name;
         if(mobileNumber) updatedObject.mobileNumber=mobileNumber;
+        if(profilePictureURL) updatedObject.profilePictureURL=profilePictureURL;
 
         const updatedEmployee=await Employee.update(updatedObject,{
             where:{
