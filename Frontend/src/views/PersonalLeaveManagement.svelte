@@ -9,6 +9,7 @@
 
     let leaves;
     let leaveStatus='approved';
+    let leaveTypesSummary;
     let showUpdateLeaveModal=false;
     let leaveToUpdate;
     let searchInput='';
@@ -33,9 +34,25 @@
         }
     }
 
+    const fetchLeaveSummary=async()=>{
+        try{
+            const response=await fetch(`http://localhost:3000/api/v1/me/leaves/summary`,{
+                method:'GET',
+                headers:{
+                    Authorization:`Bearer ${$user.token}`
+                }
+            });
+            const data=await response.json();
+            return data;
+        }catch(error){
+            console.log(error.message)
+        }
+    }
+
     const handleStatusChange=async(event)=>{
         leaveStatus=event.detail.status;
         leaves=await fetchLeaves()
+        leaveTypesSummary=await fetchLeaveSummary();
     }
 
     const handleDeleteLeaveButton=async (leaveId)=>{ 
@@ -53,6 +70,7 @@
                         position: 'top-center',
                     });
             leaves=await fetchLeaves()
+            leaveTypesSummary=await fetchLeaveSummary();
             }
             else{
                 toast.error(data.error || data.message,{
@@ -90,10 +108,12 @@
     const handleCloseModal=async()=>{
         showUpdateLeaveModal=false
         leaves=await fetchLeaves();
+        leaveTypesSummary=await fetchLeaveSummary();
     }
 
     onMount(async()=>{
         leaves=await fetchLeaves();
+        leaveTypesSummary=await fetchLeaveSummary();
     })
 </script>
 
@@ -105,7 +125,7 @@
 <input type="search" class="form-control form-control-sm w-25 mb-3 mt-4" bind:value={searchInput} on:keyup={async()=>leaves=await fetchLeaves()} placeholder="Search a leave....."/>
 </div>
 <div  style="margin-bottom: 3em;">
-    <LeavesStatusComponent on:setLeaveStatus={handleStatusChange} selectedStatus={leaveStatus} />
+    <LeavesStatusComponent on:setLeaveStatus={handleStatusChange} {leaveTypesSummary} selectedStatus={leaveStatus} />
 </div>
 
 {#if leaves}

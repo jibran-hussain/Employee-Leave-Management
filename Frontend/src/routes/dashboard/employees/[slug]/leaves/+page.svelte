@@ -11,6 +11,7 @@
 
     let employeeId;
     let leaves;
+    let leaveTypesSummary;
     let leaveStatus='Under Process';
     let searchInput='';
 
@@ -29,6 +30,21 @@
                 return data;
             }
             else return 'undefined';
+        }catch(error){
+            console.log(error.message)
+        }
+    }
+
+    const fetchLeaveSummary=async()=>{
+        try{
+            const response=await fetch(`http://localhost:3000/api/v1/leaves/employees/${employeeId}/summary`,{
+                method:'GET',
+                headers:{
+                    Authorization:`Bearer ${$user.token}`
+                }
+            });
+            const data=await response.json();
+            return data;
         }catch(error){
             console.log(error.message)
         }
@@ -55,6 +71,7 @@
     const handleStatusChange=async(event)=>{
         leaveStatus=event.detail.status;
         leaves=await fetchLeaves()
+        leaveTypesSummary=await fetchLeaveSummary()
     }
 
     const handleAcceptLeaveButton=async (leaveId)=>{
@@ -77,6 +94,7 @@
                 });
                 console.log('boya')
                 leaves=await fetchLeaves()
+                leaveTypesSummary=await fetchLeaveSummary()
             }
 
             console.log(response)
@@ -103,6 +121,7 @@
                 position: 'top-center',
             });
             leaves=await fetchLeaves();
+            leaveTypesSummary=await fetchLeaveSummary()
       }
       else{
         toast.error(data.error || data.message,{
@@ -118,6 +137,7 @@
     onMount(async()=>{
         employeeId=$page.params.slug;
         leaves=await fetchLeaves();
+        leaveTypesSummary=await fetchLeaveSummary()
     })
 
 
@@ -125,7 +145,7 @@
 
 <input type="search" class="form-control form-control-sm w-25 mb-3" bind:value={searchInput} on:keyup={async()=>leaves=await fetchLeaves()} placeholder="Search a leave....."/>
 <div  style="margin-bottom: 3em;">
-    <LeavesStatusComponent on:setLeaveStatus={handleStatusChange} selectedStatus={leaveStatus} />
+    <LeavesStatusComponent on:setLeaveStatus={handleStatusChange} {leaveTypesSummary} selectedStatus={leaveStatus} />
 </div>
 {#if leaves}
      <LeavesInSystemTable leavesData={leaves} {handleAcceptLeaveButton}  {handleRejectionSubmit} {handlePageChange} />

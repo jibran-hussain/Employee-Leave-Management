@@ -3,6 +3,9 @@
     const dispatch=createEventDispatcher();
 
     export let selectedStatus;
+    export let leaveTypesSummary;
+
+    console.log(leaveTypesSummary,'skfjslkjf')
 
     const setLeaveStatus=(status)=>{
         console.log('status changed to ', status)
@@ -15,13 +18,13 @@
 <div class="container" style="background-color: white;">
     <div class="custom-container m-0 ">
         <div class="custom-box">
-            <p class={selectedStatus === 'Under Process'?"selected":""} on:click={()=>setLeaveStatus('Under Process')}>Pending</p>
+            <p class={selectedStatus === 'Under Process'?"selected":""} on:click={()=>setLeaveStatus('Under Process')}>Pending ({leaveTypesSummary?.data.underProcessLeaves})</p>
         </div>
         <div class="custom-box">
-            <p class={selectedStatus === 'approved'?"selected":""} on:click={()=>setLeaveStatus('approved')}>Approved</p>
+            <p class={selectedStatus === 'approved'?"selected":""} on:click={()=>setLeaveStatus('approved')}>Approved ({leaveTypesSummary?.data.approvedLeaves})</p>
         </div>
         <div class="custom-box">
-            <p class={selectedStatus === 'rejected'?"selected":""} on:click={()=>setLeaveStatus('rejected')}>Rejected</p>
+            <p class={selectedStatus === 'rejected'?"selected":""} on:click={()=>setLeaveStatus('rejected')}>Rejected ({leaveTypesSummary?.data.rejectedLeaves})</p>
         </div>
     </div>
 </div>
