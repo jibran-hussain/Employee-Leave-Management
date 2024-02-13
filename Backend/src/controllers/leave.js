@@ -25,6 +25,7 @@ export const applyForLeave=async (req,res)=>{
         
         if(isValidDate(fromDate) || isValidDate(toDate)) return res.status(400).json({error:'Please enter valid date'})
 
+        isDateInPast(fromDate)
         isDateInPast(toDate)
 
         const {dates,leaveDuration}=await getDatesArray(id,fromDate,toDate,true);
@@ -45,7 +46,7 @@ export const applyForLeave=async (req,res)=>{
         
     }catch(e){
         console.log(e)
-        res.json({error:e.message})
+        res.status(500).json({error:e.message})
     }
 }
 
