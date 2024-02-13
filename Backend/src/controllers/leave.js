@@ -136,8 +136,9 @@ export const updateLeave=async(req,res)=>{
          const employee=await Employee.findByPk(employeeId)
             
          const leave=await Leave.findByPk(leaveId);
-         if(leave.status != 'Under Process') return res.status(403).json({message:`You cannot update this leave`})
          if(!leave || (leave && leave.employeeId !=  employeeId)) return res.status(404).json({error:`Leave not found`});
+
+         if(leave.status != 'Under Process') return res.status(403).json({message:`You cannot update this leave`})
 
         let updatedLeave={};
         let {fromDate,toDate,reason}=req.body;
@@ -151,7 +152,7 @@ export const updateLeave=async(req,res)=>{
             const currentDate=new Date();
             currentDate.setUTCHours(0,0,0,0)
 
-            if(getDateForDB(leave.dates[leave.dates.length-1]) < currentDate) return res.status(403).json({error:'You cannot update this leave'})
+            if(getDateForDB(leave.dates[leave.dates.length-1]) < currentDate) return res.status(403).json({error:'You cannot update this leave. Try deleting it and apply for fresh leave.'})
            
             const {dates,leaveDuration}=await getDatesArray(employeeId,fromDate,toDate,false,leaveId);
 
@@ -159,8 +160,7 @@ export const updateLeave=async(req,res)=>{
 
             let dateRange=[...dates];
 
-
-            if(dateRange.length === 0) return res.status(403).json({error:`You cannot update this leaving. Try deleting it and creating a new one`})
+            if(dateRange.length === 0) return res.status(403).json({error:`You are already on leave on these dates`})
 
             updatedLeave.dates=[...dateRange]
 
@@ -605,7 +605,7 @@ export const getAllLeaves = async (req, res) => {
        let totalLeaves=0;
 
        allLeaves.forEach(leave=> {
-        if(leave.status === approved) totalLeaves=totalLeaves+leave.dates.length
+        if(leave.status === 'approved') totalLeaves=totalLeaves+leave.dates.length
        })
 
        if(limit && offset){
@@ -690,7 +690,6 @@ export const EmployeeLeavesSummary=async(req,res)=>{
 export const myLeavesSummary=async(req,res)=>{
     try{
         const employeeId=req.auth.id;
-        console.log(employeeId,typeof employeeId,'allah is with jibran')
 
         const approvedLeaves = await Leave.count({
             where: {
