@@ -84,7 +84,7 @@ const handleActivateEmployee=async(employeeId)=>{
  <UpdateEmployeeModal userToUpdate={employee} on:modalClosed={()=>showUpdateModal=false} />
 {/if}
 
-<form on:submit={handleSearchEmployee} class="d-flex">
+<form on:submit={handleSearchEmployee} class="d-flex mt-4">
     <input class="form-control me-2 w-25" type="search" bind:value={employeeId} placeholder="Search" aria-label="Search">
     <button class="btn btn-outline-primary" type="submit">Search</button>
 </form>

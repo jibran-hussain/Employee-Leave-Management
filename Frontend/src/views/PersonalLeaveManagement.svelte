@@ -121,7 +121,7 @@
     <UpdateLeaveModal {leaveToUpdate} on:modalClosed={handleCloseModal} />
 {/if}
 
-<div class="my-5">
+<div class="mt-3 mb-4">
 <input type="search" class="form-control form-control-sm w-25 mb-3 mt-4" bind:value={searchInput} on:keyup={async()=>leaves=await fetchLeaves()} placeholder="Search a leave....."/>
 </div>
 <div  style="margin-bottom: 3em;">

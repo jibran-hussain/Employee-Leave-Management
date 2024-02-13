@@ -136,8 +136,8 @@
 
 
 </script>
-<input type="search" class="form-control form-control-sm w-25 mb-3" bind:value={searchInput} on:keyup={async()=>leaves=await fetchLeaves()} placeholder="Search a leave....."/>
-    <div  style="margin-bottom: 3em;">
+<input type="search" class="form-control form-control-sm w-25 my-3" bind:value={searchInput} on:keyup={async()=>leaves=await fetchLeaves()} placeholder="Search a leave....."/>
+    <div>
         <LeavesStatusComponent on:setLeaveStatus={handleStatusChange} selectedStatus={leaveStatus}  {leaveTypesSummary} />
     </div>
     {#if leaves}
