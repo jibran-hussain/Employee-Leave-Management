@@ -242,7 +242,8 @@ const handleActivateEmployee=async(employeeId)=>{
 
 {#if showUpdateModal}
  <UpdateEmployeeModal {userToUpdate} on:modalClosed={async()=>{showUpdateModal=false
-    employeesListData=await fetchActiveEmployees();
+    if(showDeletedEmployees) employeesListData=await fetchDeletedEmployees();
+    else employeesListData=await fetchActiveEmployees();
 }} />
 {/if}
 
