@@ -5,6 +5,7 @@
     import UpdateEmployeeModal from "../Components/UpdateEmployeeModal.svelte";
     import EmployeeListTable from "../Components/EmployeeListTable.svelte";
     import Pagination from "../Components/Pagination.svelte";
+    import debounce from '../utils/debounce.js'
 
 
     let employeesListData;
@@ -16,6 +17,7 @@
     let userToUpdate;
 
     const {id,email,role,token}=$user;
+
 
     $: {
         if (showDeletedEmployees) {
@@ -92,6 +94,8 @@
             console.log(error.message)
         }
     }
+
+    const debouncedSearch=debounce(handleSearch,500);
 
     const handleSortBy=async()=>{
         try{
@@ -251,7 +255,7 @@ const handleActivateEmployee=async(employeeId)=>{
     <div class="mb-3">
         <div class="row  align-items-center justify-content-end">
             <div class="col-4 d-flex  justify-content-center">
-                <input type="text" id="searchInput" class="form-control input-lg" bind:value={searchInput} on:keyup={()=>handleSearch()} placeholder="Search" style="height: 50%;">
+                <input type="text" id="searchInput" class="form-control input-lg" bind:value={searchInput} on:keyup={()=>debouncedSearch()} placeholder="Search" style="height: 50%;">
             </div>
             <div class="col-5 d-flex  justify-content-center align-items-center">
                 <div class="col-4 d-flex  justify-content-center align-items-center">
