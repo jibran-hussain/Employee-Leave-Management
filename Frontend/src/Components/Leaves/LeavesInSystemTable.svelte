@@ -24,6 +24,13 @@
   };
 
   onMount(() => {
+    var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+  var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+    return new bootstrap.Popover(popoverTriggerEl, {
+      trigger: 'hover',
+      delay: { show:  0, hide:  0 } // Optional: Adjust the delay if needed
+    });
+  });
     showRejectionPopup = false;
   });
 
@@ -75,7 +82,8 @@
             <td class="align-middle text-wrap">{leave.reason}</td>
             <td class="align-middle">{leave.dates[0]}</td>
             <td class="align-middle">{leave.dates[leave.dates.length-1]}</td>
-            <td class="align-middle">{leave.dates.length}</td>
+            <td class="align-middle"><p data-bs-toggle="popover" title="Leave Dates" data-bs-content={leave.dates}>{leave.dates.length}</p>
+            </td>
             {#if leave.status === 'rejected'}
               <td class="align-middle">{leave.rejectionReason}</td>
             {/if}
