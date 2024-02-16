@@ -11,7 +11,7 @@ import Employee from '../models/employee.js';
 
 export const createUser=async(req,res)=>{
     try{
-        const {name,password,role,mobileNumber,salary,designation}=req.body;
+        const {name,password,role,mobileNumber,profilePictureURL,salary,designation}=req.body;
 
         let{email}=req.body;
 
@@ -54,7 +54,7 @@ export const createUser=async(req,res)=>{
         // Hashing the password
         const hashedPassword=generateHashedPassword(password);
 
-        await Employee.create({name,email,hashedPassword,designation,mobileNumber,salary,role});
+        await Employee.create({name,email,hashedPassword,designation,mobileNumber,profilePictureURL,salary,role});
 
         return res.status(201).json({message:`Employee created successfully`});
         
@@ -71,7 +71,7 @@ export const userSignin=async(req,res)=>{
         const {password}=req.body; 
         let {email}=req.body
 
-        if(!email || !password) return res.status(400).json({message:`All fields are necassary`})  
+        if(!email || !password) return res.status(400).json({error:`All fields are necassary`})  
 
         // Trim the email and convert it into lowercase
         email=email.trim().toLowerCase();

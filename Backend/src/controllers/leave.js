@@ -103,7 +103,7 @@ export const listAllEmployeeLeaves=async (req,res)=>{
             ]
         })
 
-        if(count === 0) return res.json({message:`The employee has not taken any leave yet`});
+        if(count === 0) return res.status(404).json({message:`The employee has not taken any leave yet`});
 
         if(limit && offset){
             const totalPages=Math.ceil(count/ limit);
@@ -391,7 +391,7 @@ export const listLeaves=async(req,res)=>{
         const status = req.query.status;
         const search=req.query.search;
 
-        if(status && (status != 'approved' && status != 'Under Process' && status != "rejected")) return res.status(400).json({message:`Please enter a valid status`})
+        if(status && (status != 'approved' && status != 'Under Process' && status != "rejected")) return res.status(400).json({error:`Please enter a valid status`})
 
         if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
 
@@ -498,7 +498,7 @@ export const getLeaveById = async (req, res) => {
 export const rejectLeave=async(req,res)=>{
     try{
         const {rejectionReason}=req.body;
-        if(!rejectionReason) return res.status(400).json({message:`Please provide the reason for rejecing this leave`})
+        if(!rejectionReason) return res.status(400).json({error:`Please provide the reason for rejecing this leave`})
         const leaveId = Number(req.params.leaveId);
 
         const leave=await Leave.findByPk(leaveId)
@@ -572,7 +572,7 @@ export const getAllLeaves = async (req, res) => {
         const status=req.query.status;
         const search=req.query.search;
 
-        if(status && (status != 'approved' && status != 'Under Process' && status != "rejected")) return res.status(400).json({message:`Please enter a valid status`})
+        if(status && (status != 'approved' && status != 'Under Process' && status != "rejected")) return res.status(400).json({error:`Please enter a valid status`})
 
         if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
 
@@ -663,7 +663,7 @@ export const EmployeeLeavesSummary=async(req,res)=>{
         const employeeId=Number(req.params.employeeId)
         const employee=await Employee.findByPk(employeeId);
 
-        if(!employee) return res.status(400).json({message:`Employee with this id does not exist`})
+        if(!employee) return res.status(400).json({error:`Employee with this id does not exist`})
 
         const approvedLeaves = await Leave.count({
             where: {
