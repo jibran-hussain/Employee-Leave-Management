@@ -55,9 +55,9 @@
     <table class="table table-bordered table-hover">
       <thead class="text-center">
         <tr>
-          <th scope="col">Id</th>
+          <th scope="col">Leave Id</th>
           {#if leavesData.data[0].Employee}
-            <th scope="col">Name</th>
+            <th scope="col">Employee Name</th>
             <th scope="col">Designation</th>
           {/if}
           <th scope="col">Reason</th>
@@ -82,7 +82,7 @@
             <td class="align-middle text-wrap">{leave.reason}</td>
             <td class="align-middle">{leave.dates[0]}</td>
             <td class="align-middle">{leave.dates[leave.dates.length-1]}</td>
-            <td class="align-middle"><p data-bs-toggle="popover" title="Leave Dates" data-bs-content={leave.dates}>{leave.dates.length}</p>
+            <td class="align-middle"><p class="mb-0" data-bs-toggle="popover" title="Leave Dates" data-bs-content={leave.dates}>{leave.dates.length}</p>
             </td>
             {#if leave.status === 'rejected'}
               <td class="align-middle">{leave.rejectionReason}</td>

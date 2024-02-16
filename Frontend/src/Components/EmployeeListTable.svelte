@@ -10,7 +10,7 @@
     <table class="table table-bordered table-hover">
       <thead class="text-center">
         <tr>
-          <th scope="col">Id</th>
+          <th scope="col">Employee Id</th>
           <th scope="col">Name</th>
           <th scope="col">Designation</th>
           <th scope="col">Email</th>
