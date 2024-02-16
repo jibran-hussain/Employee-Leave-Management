@@ -29,7 +29,7 @@
                 console.log(data)
                 return data;
             }
-            else return 'undefined';
+            else return undefined;
         }catch(error){
             console.log(error.message)
         }
@@ -62,7 +62,7 @@
       if(response.ok){
             leaves= data;
             }
-            else return 'undefined';
+            else return undefined;
     }catch(error){
         console.log(error.message)
     }
