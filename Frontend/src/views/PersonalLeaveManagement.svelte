@@ -4,13 +4,16 @@
     import LeavesInSystemTable from '../Components/Leaves/LeavesInSystemTable.svelte'
     import UpdateLeaveModal from "../Components/UpdateLeaveModal.svelte";
     import Pagination from "../Components/Pagination.svelte";
+    import debounce from "../utils/debounce";
     import { user } from "../stores/userStore";
     import toast from 'svelte-french-toast';
+    import {goto} from '$app/navigation'
 
     let leaves;
     let leaveStatus='approved';
     let leaveTypesSummary;
     let showUpdateLeaveModal=false;
+    let leaveIdToFetch;
     let leaveToUpdate;
     let searchInput='';
 
@@ -25,14 +28,15 @@
             });
             if(response.ok){
                 let data=await response.json();
-                console.log(data)
-                return data;
+                leaves=data;
             }
-            else return undefined;
+            else leaves=undefined;
         }catch(error){
             console.log(error.message)
         }
     }
+
+    const debouncedSearch=debounce(fetchLeaves,500);
 
     const fetchLeaveSummary=async()=>{
         try{
@@ -43,7 +47,7 @@
                 }
             });
             const data=await response.json();
-            return data;
+            leaveTypesSummary=data;
         }catch(error){
             console.log(error.message)
         }
@@ -51,8 +55,8 @@
 
     const handleStatusChange=async(event)=>{
         leaveStatus=event.detail.status;
-        leaves=await fetchLeaves()
-        leaveTypesSummary=await fetchLeaveSummary();
+        await fetchLeaves()
+        await fetchLeaveSummary();
     }
 
     const handleDeleteLeaveButton=async (leaveId)=>{ 
@@ -69,8 +73,8 @@
                         duration: 5000,
                         position: 'top-center',
                     });
-            leaves=await fetchLeaves()
-            leaveTypesSummary=await fetchLeaveSummary();
+            await fetchLeaves()
+            await fetchLeaveSummary();
             }
             else{
                 toast.error(data.error || data.message,{
@@ -107,13 +111,13 @@
 
     const handleCloseModal=async()=>{
         showUpdateLeaveModal=false
-        leaves=await fetchLeaves();
-        leaveTypesSummary=await fetchLeaveSummary();
+        await fetchLeaves();
+        await fetchLeaveSummary();
     }
 
     onMount(async()=>{
-        leaves=await fetchLeaves();
-        leaveTypesSummary=await fetchLeaveSummary();
+        await fetchLeaves();
+        await fetchLeaveSummary();
     })
 </script>
 
@@ -121,8 +125,12 @@
     <UpdateLeaveModal {leaveToUpdate} on:modalClosed={handleCloseModal} />
 {/if}
 
-<div class="mt-3 mb-4">
-<input type="search" class="form-control form-control-sm w-25 mb-3 mt-4" bind:value={searchInput} on:keyup={async()=>leaves=await fetchLeaves()} placeholder="Search a leave....."/>
+<div class="my-3 d-flex justify-content-between">
+    <input type="search" class="form-control form-control-sm w-25 " bind:value={searchInput} on:keyup={debouncedSearch} placeholder="Search a leave....."/>
+    <div class="d-flex justify-content-between">
+        <input type="number" min="1" class="form-control form-control-sm w-25 flex-grow-1" bind:value={leaveIdToFetch} placeholder="Enter leave id"/>
+        <button type="button" class="btn btn-primary" on:click={()=>goto(`/dashboard/me/leaves/${leaveIdToFetch}`)}>Get</button>
+    </div>
 </div>
 <div  style="margin-bottom: 3em;">
     <LeavesStatusComponent on:setLeaveStatus={handleStatusChange} {leaveTypesSummary} selectedStatus={leaveStatus} />
