@@ -5,10 +5,13 @@
     import toast from 'svelte-french-toast';
     import { user } from "../stores/userStore";
     import { onMount } from "svelte";
+    import debounce from "../utils/debounce";
+    import {goto} from '$app/navigation'
 
     let leaves;
     let leaveStatus='Under Process';
     let searchInput='';
+    let leaveIdToFetch;
     let leaveTypesSummary;
 
     const fetchLeaves=async()=>{
@@ -23,13 +26,16 @@
             if(response.ok){
                 let data=await response.json();
                 console.log(data)
-                return data;
+                leaves=data;
             }
-            else return undefined;
+            else leaves= undefined;
         }catch(error){
             console.log(error.message)
         }
     }
+
+    const debouncedSearch=debounce(fetchLeaves,500);
+
 
     const fetchLeaveSummary=async()=>{
         try{
@@ -40,7 +46,7 @@
                 }
             });
             const data=await response.json();
-            return data;
+            leaveTypesSummary= data;
         }catch(error){
             console.log(error.message)
         }
@@ -66,8 +72,8 @@
 
     const handleStatusChange=async(event)=>{
         leaveStatus=event.detail.status;
-        leaves=await fetchLeaves()
-        leaveTypesSummary=await fetchLeaveSummary()
+        await fetchLeaves()
+        await fetchLeaveSummary()
     }
 
     const handleAcceptLeaveButton=async (leaveId)=>{
@@ -88,8 +94,8 @@
                     duration: 5000,
                     position: 'top-center',
                 });
-                leaves=await fetchLeaves()
-                leaveTypesSummary= await fetchLeaveSummary()
+                await fetchLeaves()
+                await fetchLeaveSummary()
             }
 
             console.log(response)
@@ -115,8 +121,8 @@
                 duration: 5000,
                 position: 'top-center',
             });
-            leaves=await fetchLeaves();
-            leaveTypesSummary= await fetchLeaveSummary()
+            await fetchLeaves();
+            await fetchLeaveSummary()
       }
       else{
         toast.error(data.error || data.message,{
@@ -130,13 +136,19 @@
   };
 
     onMount(async()=>{
-        leaves=await fetchLeaves();
-        leaveTypesSummary= await fetchLeaveSummary()
+        await fetchLeaves();
+        await fetchLeaveSummary()
     })
 
 
 </script>
-<input type="search" class="form-control form-control-sm w-25 my-3" bind:value={searchInput} on:keyup={async()=>leaves=await fetchLeaves()} placeholder="Search a leave....."/>
+    <div class="my-3 d-flex justify-content-between">
+        <input type="search" class="form-control form-control-sm w-25 " bind:value={searchInput} on:keyup={debouncedSearch} placeholder="Search a leave....."/>
+        <div class="d-flex justify-content-between">
+            <input type="number" min="1" class="form-control form-control-sm w-25 flex-grow-1" bind:value={leaveIdToFetch} placeholder="Enter leave id"/>
+            <button type="button" class="btn btn-primary" on:click={()=>goto(`/dashboard/employees/leaves/${leaveIdToFetch}`)}>Get</button>
+        </div>
+    </div>
     <div>
         <LeavesStatusComponent on:setLeaveStatus={handleStatusChange} selectedStatus={leaveStatus}  {leaveTypesSummary} />
     </div>
