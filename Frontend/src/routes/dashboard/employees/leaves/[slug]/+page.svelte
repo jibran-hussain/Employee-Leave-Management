@@ -25,7 +25,6 @@
             });
             if(response.ok){
                 let data=await response.json();
-                console.log(data,'hahahaha')
                 leave=data;
             }
             else leave= undefined;
@@ -36,7 +35,6 @@
 
     $: {
         leaveIdToFetch = $page.params.slug
-        console.log($page.params.slug,'hi')
     }
 
     const handleAcceptLeaveButton=async (leaveId)=>{
