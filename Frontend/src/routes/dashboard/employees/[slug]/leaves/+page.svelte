@@ -1,13 +1,10 @@
 <script>
     import { onMount } from "svelte";
-    import Sidebar from "../../../../../Components/Sidebar.svelte";
-    import Navbar from "../../../../../Components/Navbar.svelte";
     import LeavesStatusComponent from "../../../../../Components/Leaves/LeavesStatusComponent.svelte";
     import LeavesInSystemTable from "../../../../../Components/Leaves/LeavesInSystemTable.svelte";
-    import UpdateLeaveModal from "../../../../../Components/Leaves/LeavesInSystemTable.svelte"
     import { user } from "../../../../../stores/userStore";
     import {page} from '$app/stores';
-    import toast, { Toaster } from 'svelte-french-toast';
+    import toast from 'svelte-french-toast';
 
     let employeeId;
     let leaves;
