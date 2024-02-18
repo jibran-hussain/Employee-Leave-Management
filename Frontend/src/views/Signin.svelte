@@ -6,7 +6,7 @@
     import {user} from '../stores/userStore.js'
 
     const formFields=[
-               {type:'email',name:'email',label:'Email',placeholder:'Enter email'},
+               {type:'text',name:'email',label:'Email',placeholder:'Enter email'},
                {type:'password',name:'password',label:'Password',placeholder:'Password'},
             ]
 
