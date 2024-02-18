@@ -57,11 +57,6 @@
            Leaves in System
         </a>
       </li>
-      <li class="nav-item">
-        <a href="#" on:click={() => goto(`/dashboard/employees/search`)} class="nav-link">
-           Get Employee Details
-        </a>
-      </li>
     {/if}
 
     <li class="nav-item">
