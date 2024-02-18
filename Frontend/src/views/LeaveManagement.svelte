@@ -52,7 +52,7 @@
         }
     }
 
-    const handlePageChange=async(event,offset)=>{
+    const handlePageChange=async(offset)=>{
     try{
       const response=await fetch(`http://localhost:3000/api/v1/leaves?status=${leaveStatus}&offset=${offset}&search=${searchInput}`,{
                 method:'GET',
@@ -64,7 +64,7 @@
       if(response.ok){
             leaves= data;
             }
-            else return undefined;
+            else leaves= undefined;
     }catch(error){
         console.log(error.message)
     }
@@ -143,7 +143,7 @@
 
 </script>
     <div class="my-3 d-flex justify-content-between">
-        <input type="search" class="form-control form-control-sm w-25 " bind:value={searchInput} on:keyup={debouncedSearch} placeholder="Search a leave....."/>
+        <input type="search" class="form-control form-control-sm w-25 " bind:value={searchInput} on:keyup={debouncedSearch} placeholder="Search leave"/>
         <div class="d-flex justify-content-between">
             <input type="number" min="1" class="form-control form-control-sm w-25 flex-grow-1" bind:value={leaveIdToFetch} placeholder="Enter leave id"/>
             <button type="button" class="btn btn-primary" on:click={()=>goto(`/dashboard/employees/leaves/${leaveIdToFetch}`)}>Get</button>
