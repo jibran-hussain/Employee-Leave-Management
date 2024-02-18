@@ -30,11 +30,11 @@ export const applyForLeave=async (req,res)=>{
 
         const {dates,leaveDuration}=await getDatesArray(id,fromDate,toDate,true);
 
-        if(dates.length === 0 ) return res.status(403).json({message:`You are already on leave on these days`})
+        if(dates.length === 0 ) return res.status(403).json({error:`You are already on leave on these days or it is a weekend`})
 
         // Check if leaves are exhausted or not
         const employee=await Employee.findByPk(id);
-        if(employee.leavesLeft <= 0) return res.status(403).json({message:"You have exhausted all your leaves"})
+        if(employee.leavesLeft <= 0) return res.status(403).json({error:"You have exhausted all your leaves"})
 
         if(dates.length > employee.leavesLeft) return res.status(403).json({error: `You have only ${employee.leavesLeft} leaves left and you are applying for  ${dates.length} days`})
 
@@ -97,13 +97,13 @@ export const listAllEmployeeLeaves=async (req,res)=>{
                 {
                     model:Employee,
                     attributes:{
-                        exclude:['employeeId','deletedAt']
+                        exclude:['employeeId','hashedPassword','deletedAt']
                     }
                 }
             ]
         })
 
-        if(count === 0) return res.status(404).json({message:`The employee has not taken any leave yet`});
+        if(count === 0) return res.status(404).json({error:`The employee has not taken any leave yet`});
 
         if(limit && offset){
             const totalPages=Math.ceil(count/ limit);
@@ -139,7 +139,7 @@ export const updateLeave=async(req,res)=>{
          const leave=await Leave.findByPk(leaveId);
          if(!leave || (leave && leave.employeeId !=  employeeId)) return res.status(404).json({error:`Leave not found`});
 
-         if(leave.status != 'Under Process') return res.status(403).json({message:`You cannot update this leave`})
+         if(leave.status != 'Under Process') return res.status(403).json({error:`You cannot update this leave`})
 
         let updatedLeave={};
         let {fromDate,toDate,reason}=req.body;
@@ -179,7 +179,7 @@ export const updateLeave=async(req,res)=>{
             }
         })
 
-        return res.json({message:'Leave updated successfully'})          
+        return res.json({error:'Leave updated successfully'})          
 
     }catch(e){
         console.log(e)
@@ -281,7 +281,7 @@ export const deleteLeave=async(req,res)=>{
             return res.json({message:' Leave deleted successfully'})
         }
 
-        if(leave.status === 'rejected' || (leave.status === 'approved' &&  new Date(leave.dates[leave.dates.length-1]).getTime() <= currentDate.getTime())) return res.status(403).json({message:`This leave cannot be deleted`})
+        if(leave.status === 'rejected' || (leave.status === 'approved' &&  new Date(leave.dates[leave.dates.length-1]).getTime() <= currentDate.getTime())) return res.status(403).json({error:`This leave cannot be deleted`})
 
         if(getDateForDB(leave.dates[leave.dates.length-1]) < currentDate) return res.status(403).json({error:'You cannot delete this leave as it is of past'})
 
@@ -434,7 +434,7 @@ export const listLeaves=async(req,res)=>{
         })
 
 
-        if(count === 0) return res.status(404).json({message:`There are no leaves in the system`});
+        if(count === 0) return res.status(404).json({error:`There are no leaves in the system`});
 
         if(limit && offset){
             const totalPages=Math.ceil(count/ limit);
@@ -482,9 +482,7 @@ export const getLeaveById = async (req, res) => {
     try {
         const leaveId = Number(req.params.leaveId);
 
-        const leave = await Leave.findByPk(leaveId,{
-            paranoid:false
-        });
+        const leave = await Leave.findByPk(leaveId);
 
         if(!leave) return res.status(404).json({error:`Leave not found`});
 
@@ -607,7 +605,7 @@ export const getAllLeaves = async (req, res) => {
         ]
        });
 
-       if(count === 0) return res.status(404).json({message:`There are no leaves in the system`})
+       if(count === 0) return res.status(404).json({error:`There are no leaves in the system`})
        let totalLeaves=0;
 
        allLeaves.forEach(leave=> {
