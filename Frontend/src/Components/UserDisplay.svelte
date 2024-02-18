@@ -39,7 +39,7 @@
                 {#if $page.route.id === '/dashboard/me/profile' }
                     <button type="button" class="btn btn-danger" on:click={handleDeleteAccount(employee.id)}>Delete account</button>
                     <button type="button" class="btn btn-primary" on:click={() => dispatch('showUpdateModal')}>Update Profile</button>
-                {:else if $page.route.id === `/dashboard/employees/search`}
+                {:else if $page.route.id === `/dashboard/employees/[employeeId]`}
                     {#if ($user.role === 'superadmin' || $user.role === 'admin')}
                         {#if employee && employee.deletedAt === null}
                             <button type="button" class="btn btn-danger" on:click={handleDeleteEmployee(employee.id)}>Delete account</button>
