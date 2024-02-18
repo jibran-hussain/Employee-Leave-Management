@@ -3,7 +3,9 @@
     import UserDisplay from '../Components/UserDisplay.svelte';
     import { user } from "../stores/userStore";
     import toast, { Toaster } from 'svelte-french-toast';
-    import { goto } from '$app/navigation';
+    import {page} from '$app/stores';
+    import {goto} from '$app/navigation';
+    import { onMount } from 'svelte';
 
     let employeeId;
     let employee;
@@ -60,7 +62,7 @@ const handleActivateEmployee=async(employeeId)=>{
     }
 }
 
-    const handleSearchEmployee=async()=>{
+    const fetchEmployeeDetails=async()=>{
         try{
             const response = await fetch(`http://localhost:3000/api/v1/employees/${employeeId}`,{
                 method:"GET",
@@ -78,13 +80,23 @@ const handleActivateEmployee=async(employeeId)=>{
         }
     }
 
+const handleSubmit=async ()=>{
+    goto(`/dashboard/employees/${employeeId}`)
+    await fetchEmployeeDetails()
+}
+
+ onMount(async ()=>{
+    employeeId=$page.params.employeeId;
+    await fetchEmployeeDetails()
+ })
+
 </script>
 
 {#if showUpdateModal}
  <UpdateEmployeeModal userToUpdate={employee} on:modalClosed={()=>showUpdateModal=false} />
 {/if}
 
-<form on:submit={handleSearchEmployee} class="d-flex mt-4">
+<form on:submit={handleSubmit} class="d-flex mt-4">
     <input class="form-control me-2 w-25" type="search" bind:value={employeeId} placeholder="Search" aria-label="Search">
     <button class="btn btn-outline-primary" type="submit">Search</button>
 </form>
@@ -98,6 +110,6 @@ const handleActivateEmployee=async(employeeId)=>{
     {handleActivateEmployee}
 />
 {:else}
-<h3 class="text-center" style="margin-top:15%; color:#B4B4B8">No Employee found</h3>
+<h3 class="text-center" style="margin-top:15%; color:#B4B4B8">Employee with this id not found</h3>
 
 {/if}
