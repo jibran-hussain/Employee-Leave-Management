@@ -1,6 +1,6 @@
 <script>
   import RejectLeaveForm from "./RejectLeaveForm.svelte";
-  import { onMount } from "svelte";
+  import { afterUpdate, onMount } from "svelte";
   import { page } from '$app/stores';
 
 
@@ -23,16 +23,25 @@
     showRejectionPopup = true;
   };
 
-  onMount(() => {
+  const initializePopovers=()=>{
     var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-  var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+    var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
     return new bootstrap.Popover(popoverTriggerEl, {
       trigger: 'hover',
       delay: { show:  0, hide:  0 } // Optional: Adjust the delay if needed
     });
   });
+  }
+
+  onMount(() => {
+    initializePopovers();
     showRejectionPopup = false;
   });
+
+  afterUpdate(() => {
+    initializePopovers();
+  });
+
 
   const handleRejectionCancel = () => {
     showRejectionPopup = false;
