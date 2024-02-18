@@ -9,13 +9,11 @@
 
   let pagesToShow = [];
 
-  // Reactive statement to calculate the range of pages to display
   $: {
-    const range =  1; // Adjust this value to change the number of pages to show on each side of the current page
+    const range =  1;
     const start = Math.max(1, currentPage - range);
     const end = Math.min(totalPages, currentPage + range);
 
-    // Generate the list of pages to show
     pagesToShow = Array.from({ length: end - start +  1 }, (_, i) => start + i);
   }
 
