@@ -18,7 +18,7 @@ router.get('/me/leaves/:leaveId',isAuth,getLeaveDetails)
 
 // Routes which superadmin and admin can access
 router.get('/employees/:employeeId/leaves',isAuth,isAdminOrSuperadmin,listAllEmployeeLeaves)
-router.get('/employees/leaves/:leaveId',isAuth,isAdminOrSuperadmin,getLeaveById)
+router.get('/leaves/:leaveId',isAuth,isAdminOrSuperadmin,getLeaveById)
 router.get('/leaves',isAuth,isAdminOrSuperadmin,getAllLeaves)
 router.post('/leaves/:leaveId/accept',isAuth,isAdminOrSuperadmin,approveLeave)
 router.post('/leaves/:leaveId/reject',isAuth,isAdminOrSuperadmin,rejectLeave)
