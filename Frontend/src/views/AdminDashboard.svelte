@@ -6,6 +6,7 @@
     import EmployeeListTable from "../Components/EmployeeListTable.svelte";
     import Pagination from "../Components/Pagination.svelte";
     import debounce from '../utils/debounce.js'
+    import {goto} from '$app/navigation';
 
 
     let employeesListData;
@@ -15,6 +16,7 @@
     let orderOption;
     let showUpdateModal=false;
     let userToUpdate;
+    let employeeToFetch;
 
     const {id,email,role,token}=$user;
 
@@ -252,41 +254,44 @@ const handleActivateEmployee=async(employeeId)=>{
 {/if}
 
 <div class="pt-4 mx-2" style="height: 100vh;">
-    <div class="mb-3">
-        <div class="row  align-items-center justify-content-end">
-            <div class="col-4 d-flex  justify-content-center">
-                <input type="text" id="searchInput" class="form-control input-lg" bind:value={searchInput} on:keyup={()=>debouncedSearch()} placeholder="Search" style="height: 50%;">
-            </div>
-            <div class="col-5 d-flex  justify-content-center align-items-center">
-                <div class="col-4 d-flex  justify-content-center align-items-center">
-                    <label for="sortBySelect" class="col-form-label"><span style="white-space: nowrap; padding-right:10px">Sort By</span></label>
-                    <select id="sortBySelect" class="form-select custom-select" bind:value={selectedOption} on:change={handleSortBy} style="height: 50%;">
-                        <option value=''>none</option>
-                        <option value="id">Id</option>
-                        <option value="name">Name</option>
-                        <option value="salary">Salary</option>
-                        <option value="mobileNumber">Mobile Number</option>
-                        <option value="role">Role</option>
-                    </select>
+    <div class="d-flex flex-column">
+        <div class="mb-3 d-flex">
+            <input type="number" min="1" class="form-control form-control-sm w-25" bind:value={employeeToFetch} placeholder="Enter employee id"/>
+            <button type="button" class="mx-5 btn btn-primary" on:click={()=>goto(`/dashboard/employees/${employeeToFetch}`)}>Fetch Details</button>
+        </div>
+        <div class="mb-3">
+            <div class="row  align-items-center">
+                <div class="col-4 d-flex  justify-content-center">
+                    <input type="text" id="searchInput" class="form-control input-lg" bind:value={searchInput} on:keyup={()=>debouncedSearch()} placeholder="Search" style="height: 50%;">
                 </div>
-                <div class="col-4 d-flex justify-content-center align-items-center">
-                    <label for="orderSelect" class="col-form-label"><span style="white-space: nowrap; padding-right:10px; padding-left:10px">Order</span></label>
-                    <select id="orderSelect" class="form-select custom-select" bind:value={orderOption} on:change={handleOrder} style="height: 50%;">
-                        <option value=''>none</option>
-                        <option value="asc">Ascending</option>
-                        <option value="desc">Descending</option>
-                    </select>
+                <div class="col-5 d-flex  justify-content-center align-items-center">
+                    <div class="col-4 d-flex  justify-content-center align-items-center">
+                        <label for="sortBySelect" class="col-form-label"><span style="white-space: nowrap; padding-right:10px">Sort By</span></label>
+                        <select id="sortBySelect" class="form-select custom-select" bind:value={selectedOption} on:change={handleSortBy} style="height: 50%;">
+                            <option value=''>none</option>
+                            <option value="id">Id</option>
+                            <option value="name">Name</option>
+                            <option value="salary">Salary</option>
+                            <option value="mobileNumber">Mobile Number</option>
+                            <option value="role">Role</option>
+                        </select>
+                    </div>
+                    <div class="col-4 d-flex justify-content-center align-items-center">
+                        <label for="orderSelect" class="col-form-label"><span style="white-space: nowrap; padding-right:10px; padding-left:10px">Order</span></label>
+                        <select id="orderSelect" class="form-select custom-select" bind:value={orderOption} on:change={handleOrder} style="height: 50%;">
+                            <option value=''>none</option>
+                            <option value="asc">Ascending</option>
+                            <option value="desc">Descending</option>
+                        </select>
+                    </div>
                 </div>
-            </div>
-
-            
-
-            <div class="col-3">
-                <div class="form-check d-flex  justify-content-center">
-                    <input class="form-check-input" type="checkbox" id="deletedCheckbox" bind:checked={showDeletedEmployees}>
-                    <label class="form-check-label" for="deletedCheckbox" style="margin-left: 3%;">
-                        Deleted
-                    </label>
+                <div class="col-3">
+                    <div class="form-check d-flex  justify-content-center">
+                        <input class="form-check-input" type="checkbox" id="deletedCheckbox" bind:checked={showDeletedEmployees}>
+                        <label class="form-check-label" for="deletedCheckbox" style="margin-left: 3%;">
+                            Deleted
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>
