@@ -1,4 +1,6 @@
 <script>
+  import debounce from "../utils/debounce";
+
   export let totalPages;
   export let currentPage;
   export let onPageChange;
@@ -28,24 +30,30 @@
       handlePageClick(currentPage -  1);
     }
   };
+
+  const debouncedNextClick=debounce(handleNextClick,500);
+  const debouncedPreviousClick=debounce(handlePreviousClick,500);
+  const debouncedPageClick=debounce(handlePageClick,500);
+
+
 </script>
 
 <nav aria-label="Pagination" class="d-flex justify-content-center align-items-center">
   <ul class="pagination">
     <li class="page-item {currentPage ===  1 ? 'disabled' : ''}">
-      <a class="page-link" href="#" on:click|preventDefault={handlePreviousClick} aria-label="Previous">
+      <a class="page-link" href="#" on:click|preventDefault={debouncedPreviousClick} aria-label="Previous">
         <span aria-hidden="true">&laquo;</span>
       </a>
     </li>
 
     {#each pagesToShow as page (page)}
       <li class="{currentPage === page ? 'page-item active' : 'page-item'}">
-        <a class="page-link" href="#" on:click|preventDefault={() => handlePageClick(page)}>{page}</a>
+        <a class="page-link" href="#" on:click|preventDefault={() => debouncedPageClick(page)}>{page}</a>
       </li>
     {/each}
 
     <li class="page-item {currentPage === totalPages ? 'disabled' : ''}">
-      <a class="page-link" href="#" on:click|preventDefault={handleNextClick} aria-label="Next">
+      <a class="page-link" href="#" on:click|preventDefault={debouncedNextClick} aria-label="Next">
         <span aria-hidden="true">&raquo;</span>
       </a>
     </li>
