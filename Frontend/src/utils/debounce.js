@@ -3,7 +3,7 @@ const debounce=(func,waitTime)=>{
     return function(){
         clearTimeout(timerId)
         timerId=setTimeout(()=>{
-            func();
+            func(...arguments);
         },waitTime)
     }
 }
