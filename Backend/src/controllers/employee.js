@@ -26,7 +26,7 @@ export const listAllEmployees = async (req, res) => {
             return res.status(400).json({ error: 'Either limit or offset is necessary' });
         }
 
-        if(sortBy && (sortBy != 'id' && sortBy != 'name' && sortBy != 'email' && sortBy != 'mobileNumber' && sortBy != 'salary' && sortBy != 'role' && sortBy != 'leavesLeft' && sortBy != 'createdAt' && sortBy != 'updatedAt')) return res.status(401).json({error:`Please enter a valid field for using sorting`})
+        if(sortBy && (sortBy != 'id' && sortBy != 'name' && sortBy != 'email' && sortBy != 'mobileNumber' && sortBy != 'salary' && sortBy != 'role' && sortBy != 'leavesLeft' && sortBy != 'createdAt' && sortBy != 'updatedAt')) return res.status(400).json({error:`Please enter a valid field for using sorting`})
 
         const startIndex = (offset - 1)*limit;
 
@@ -131,7 +131,7 @@ export const getLoggedUsersDetails=async(req,res)=>{
         const {id}=req.auth;
 
         const employee= await Employee.findByPk(id,{
-            attributes:{exclude:['hashedPassword','active','deletedAt']},
+            attributes:{exclude:['hashedPassword','deletedAt']},
             include:[
                 {
                     model:Leave,
@@ -375,7 +375,7 @@ export const updateEmployeeProfileByPut=async(req,res)=>{
 export const updatedProfileByPutMethod= async(req,res)=>{
     try{
         const employeeId=req.auth.id;
-        const {name,mobileNumber}=req.body;
+        const {name,mobileNumber,profilePictureURL}=req.body;
 
         if(!name) return res.status(400).json({error:`Please provide name`});
 
@@ -394,9 +394,11 @@ export const updatedProfileByPutMethod= async(req,res)=>{
             salary:null,
             role:employee.role,
             leavesLeft:null,
+            profilePictureURL:null
         };
         if(mobileNumber) updatedObject.mobileNumber=mobileNumber;
-
+        if(profilePictureURL) updatedObject.profilePictureURL=profilePictureURL;
+        
 
         const updatedEmployee=await Employee.update(updatedObject,{
             where:{
