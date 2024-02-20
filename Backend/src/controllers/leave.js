@@ -422,15 +422,7 @@ export const listLeaves=async(req,res)=>{
                 exclude:['employeeId','deletedAt']
             },
             offset:startIndex || undefined,
-            limit:limit ||undefined,
-            include:[
-                {
-                    model:Employee,
-                    attributes:{
-                        exclude:['employeeId','deletedAt']
-                    }
-                }
-            ]
+            limit:limit ||undefined
         })
 
 
@@ -464,7 +456,11 @@ export const getLeaveDetails=async(req,res)=>{
         const employeeId=req.auth.id
         const leaveId=Number(req.params.leaveId);
 
-        const leave=await Leave.findByPk(leaveId);
+        const leave=await Leave.findByPk(leaveId,{
+            attributes:{
+                exclude: ['deletedAt']
+            }
+        });
         
         if(!leave || leave.employeeId != employeeId) return res.status(404).json({error:`Leave with this id does not exist`})
 
