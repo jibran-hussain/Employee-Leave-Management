@@ -2,6 +2,7 @@
     import { onMount } from "svelte";
     import LeavesStatusComponent from "../../../../../Components/Leaves/LeavesStatusComponent.svelte";
     import LeavesInSystemTable from "../../../../../Components/Leaves/LeavesInSystemTable.svelte";
+    import Pagination from "../../../../../Components/Pagination.svelte";
     import { user } from "../../../../../stores/userStore";
     import {page} from '$app/stores';
     import toast from 'svelte-french-toast';
@@ -145,7 +146,8 @@
     <LeavesStatusComponent on:setLeaveStatus={handleStatusChange} {leaveTypesSummary} selectedStatus={leaveStatus} />
 </div>
 {#if leaves}
-     <LeavesInSystemTable leavesData={leaves} {handleAcceptLeaveButton}  {handleRejectionSubmit} {handlePageChange} />
+     <LeavesInSystemTable leavesData={leaves} {handleAcceptLeaveButton}  {handleRejectionSubmit} />
+     <Pagination totalPages={leaves.metadata.totalPages} currentPage={leaves.metadata.currentPage} onPageChange={handlePageChange} />
 {:else}
 <h4 class="text-center" style="margin-top:15%; color:#B4B4B8">No such leaves in the system</h4>
 
