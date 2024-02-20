@@ -9,7 +9,6 @@
   export let handleDeleteLeaveButton;
   export let handleRejectionSubmit;
   export let handleUpdateLeaveButton;
-  export let handlePageChange;
   let selectedLeaveId;
   let showRejectionPopup=false;
 
@@ -85,7 +84,7 @@
             {#if leave.Employee}
               <td class="align-middle">{leave.Employee.name}</td>
               <td class="align-middle">{leave.Employee.designation}</td>
-            {:else}
+            {:else if !leave.Employee && $page.route.id != '/dashboard/me/leaves'}
               <td class="align-middle">Anonymous</td>
             {/if}
             <td class="align-middle text-wrap">{leave.reason}</td>
