@@ -111,7 +111,7 @@ export const listAllEmployeeLeaves=async (req,res)=>{
             if(offset > totalPages) return res.status(404).json({error:`This page does not exist`})
 
             const {totalLeaveDays,timesApplied}=await getTotalLeaveDays(employeeId)
-
+            
             return res.json({data:allLeaves,metadata:{
                 totalLeaveDays:totalLeaveDays,
                 timesApplied:count,
@@ -595,7 +595,7 @@ export const getAllLeaves = async (req, res) => {
             {
                 model:Employee,
                 attributes:{
-                    exclude:['employeeId','deletedAt']
+                    exclude:['employeeId','hashedPassword','deletedAt']
                 }
             }
         ]
