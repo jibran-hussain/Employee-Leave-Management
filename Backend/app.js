@@ -1,4 +1,7 @@
 import express from 'express';
+import path from 'path'
+import { fileURLToPath } from 'url';
+import * as OpenApiValidator from 'express-openapi-validator';
 import 'dotenv/config';
 import cors from 'cors'
 import authRoute from './src/routes/auth.js'
@@ -9,12 +12,36 @@ import {connectToDB} from './db/connection.js'
 const app=express();
 const PORT=process.env.port || 8000
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const openAPIFilePath=path.join(__dirname,'src','openapi','OpenAPI_doc.yml');
+console.log(openAPIFilePath,'here is the openAPI file path')
+
+
 app.use(connectToDB)
 app.use(cors())
 app.use(express.json())
+app.use(
+    OpenApiValidator.middleware({
+      apiSpec: openAPIFilePath,
+      validateRequests: true, // (default)
+      validateResponses: true, // false by default
+    }),
+  );
+
+  app.use((err, req, res, next) => {
+    // format error
+    res.status(err.status || 500).json({
+      message: err.message,
+      errors: err.errors,
+    });
+  });
 app.use(`/api/${process.env.API_VERSION}/auth`,authRoute)
 app.use(`/api/${process.env.API_VERSION}`,employeeRoute)
 app.use(`/api/${process.env.API_VERSION}`,leaveRoute)
+
+
 
 
 app.listen(PORT,()=>{
