@@ -18,36 +18,44 @@
 
 const handleSubmit=async(formData)=>{
     try{
-        let formatedFromDate=formatDate(formData.fromDate);
-       let  formatedToDate=formatDate(formData.toDate);
-
-       const response = await fetch(`http://localhost:3000/api/v1/me/leaves`, {
-        method: "POST",
-        headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-            'Authorization':`Bearer ${$user.token}`
-        },
-        body: JSON.stringify({
-            fromDate:formatedFromDate,
-            toDate:formatedToDate,
-            reason:formData.reason
-        }),
-        });
-
-        const data=await response.json();
-        console.log(data)
-        if(response.ok){
-            isSuccess=true;
-            success='Leave applied successfully';
-            isError=false;
-            error=''
-        }else{
+        const {fromDate,toDate, reason} = formData;
+        if(!fromDate || !toDate || !reason){
             isError=true;
-            error=data.error || data.message;
+            error= 'All fields are mandatory'
             isSuccess=false
             success=''
-        }
+        }else{
+            let formatedFromDate=formatDate(fromDate);
+        let  formatedToDate=formatDate(toDate);
+
+        const response = await fetch(`http://localhost:3000/api/v1/me/leaves`, {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                'Authorization':`Bearer ${$user.token}`
+            },
+            body: JSON.stringify({
+                fromDate:formatedFromDate,
+                toDate:formatedToDate,
+                reason:formData.reason
+            }),
+            });
+
+            const data=await response.json();
+            console.log(data)
+            if(response.ok){
+                isSuccess=true;
+                success='Leave applied successfully';
+                isError=false;
+                error=''
+            }else{
+                isError=true;
+                error=data.error || data.message;
+                isSuccess=false
+                success=''
+            }
+            }
         
     }catch(error){
         console.log(error)
