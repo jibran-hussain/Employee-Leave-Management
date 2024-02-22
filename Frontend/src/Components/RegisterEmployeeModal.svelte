@@ -35,6 +35,39 @@ const handleSubmit=async(formData)=>{
     try{
       console.log($user)
       console.log(formData,'here is the register data')
+      const {name, email, password, role, designation} = formData;
+      if(!name){
+          isError=true;
+          error=`Name is mandatory`
+          success=false;
+          isSuccess=false;
+      }
+      else if(!email){
+          isError=true;
+          error=`Email is mandatory`
+          success=false;
+          isSuccess=false;
+      }
+      else if(!password){
+          isError=true;
+          error=`Password is mandatory`
+          success=false;
+          isSuccess=false;
+      }
+      else if(!designation){
+          isError=true;
+          error=`Designation is mandatory`
+          success=false;
+          isSuccess=false;
+      }
+      else if(!role){
+          isError=true;
+          error=`Role is mandatory`
+          success=false;
+          isSuccess=false;
+      }
+
+      else{
         const response = await fetch(`http://localhost:3000/api/v1/auth/signup`, {
         method: "POST",
         headers: {
@@ -46,17 +79,19 @@ const handleSubmit=async(formData)=>{
         });
          data=await response.json()
         // show the error
-        if(data.error){
-              isError=true;
-              error=data.error
-              success=false;
-              isSuccess=false;
-        }else{
+        if(response.ok){
             isSuccess=true;
             success='Employee registered successfully'
             isError=false
             error=''
         }
+        else{
+            isError=true;
+            error=data.error||data.message
+            success=false;
+            isSuccess=false;
+        }
+      }
         document.querySelector('.modal-content').scrollTop = 0;
     }catch(error){
         console.log(error)
