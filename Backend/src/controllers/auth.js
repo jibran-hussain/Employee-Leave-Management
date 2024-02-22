@@ -37,7 +37,7 @@ export const createUser=async(req,res)=>{
         if(passwordValidation(password)) return res.status(400).json({error:`Password cannot be empty and should have more than 3 characters`})
 
         // checks if a number is valid or not
-        if(!isValidNumber(mobileNumber)) return res.status(400).json({error:`Please enter a valid mobile number`})
+        if(mobileNumber && !isValidNumber(mobileNumber)) return res.status(400).json({error:`Please enter a valid mobile number`})
 
         // Validatin salary
         if(salary && (!Number(salary) || salary < 0)) return res.status(400).json({error:"Please enter a valid salary"})
