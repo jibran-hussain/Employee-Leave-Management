@@ -179,7 +179,7 @@ export const updateLeave=async(req,res)=>{
             }
         })
 
-        return res.json({error:'Leave updated successfully'})          
+        return res.json({message:'Leave updated successfully'})          
 
     }catch(e){
         console.log(e)
@@ -497,6 +497,8 @@ export const rejectLeave=async(req,res)=>{
 
         const leave=await Leave.findByPk(leaveId)
 
+        if(!leave) return res.status(400).json({error:`Leave with this id not found`});
+
         const employee=await Employee.findByPk(leave.employeeId)
         if(!employee) return res.status(400).json({error:`Employee with this id not found`});
         
@@ -512,7 +514,7 @@ export const rejectLeave=async(req,res)=>{
         return res.json({message:`Leave rejected`})
 
     }catch(e){
-        console.log(e.message)
+        console.log(e)
         return res.status(500).json({ error: e.message });
     }
 }
@@ -655,6 +657,9 @@ export const LeavesSummary=async(req,res)=>{
 export const EmployeeLeavesSummary=async(req,res)=>{
     try{
         const employeeId=Number(req.params.employeeId)
+
+        if(isNaN(employeeId)) return res.status(400).json({error:`Employee Id should be an integer`})
+
         const employee=await Employee.findByPk(employeeId);
 
         if(!employee) return res.status(400).json({error:`Employee with this id does not exist`})
