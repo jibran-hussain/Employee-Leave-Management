@@ -25,6 +25,16 @@ const handleInputChange=()=>{
     success=''
 }
 
+const handleFormOnSubmit=()=>{
+    const nonEmtpyFormFields={};
+    for(const key in formData){
+        if(formData[key]){
+            nonEmtpyFormFields[key]=formData[key]
+        }
+    }
+    handleSubmit(nonEmtpyFormFields);
+}
+
 </script>
 
 <Toaster />
@@ -39,7 +49,7 @@ const handleInputChange=()=>{
             <p class="text-center text-success mb-5">{success}</p>
             {/if}
 
-            <form class="form" on:submit|preventDefault={()=>handleSubmit(formData)}>
+            <form class="form" on:submit|preventDefault={()=>handleFormOnSubmit()}>
                 
                 {#each options as option(option)}
                     {#if option.type === 'text'}
