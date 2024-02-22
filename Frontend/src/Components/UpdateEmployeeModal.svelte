@@ -46,17 +46,18 @@
           body: JSON.stringify(formData),
           });
            data=await response.json()
-          if(data.error){
+           if(response.ok){
+              isSuccess=true;
+              success='Employee Updated Successfully'
+              error=false
+              isError=false;
+           }else{
               isError=true;
-              error=data.error
+              error=data.error||data.message;
               success=false;
               isSuccess=false;
-          }else{
-            isSuccess=true;
-            success='Employee Updated Successfully'
-            error=false
-            isError=false;
-          }
+           }
+
           document.querySelector('.modal-content').scrollTop = 0;
       }catch(error){
           console.log(error)
