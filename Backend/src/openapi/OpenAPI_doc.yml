@@ -32,7 +32,6 @@ paths:
               properties:
                 email:
                   type: string
-                  format: email
                 password:
                   type: string
               required:
@@ -50,6 +49,9 @@ paths:
                   token:
                     type: string
                     description: Authentication token
+              example:
+                email: admin1@gmail.com
+                password: admin1password
         '400':
           description: Client error due to invalid input data.
           content:
@@ -60,6 +62,8 @@ paths:
                   error:
                     type: string
                     description: Details about the error in the request body
+                example:
+                  error: Please enter valid email address
         '401':
           description: Unauthorized - Invalid credentials
           content:
@@ -70,6 +74,8 @@ paths:
                   error:
                     type: string
                     description: Details about the unauthorized access
+                example:
+                  error: Invalid credentials
         '500':
           description: Internal Server Error
           content:
@@ -80,6 +86,8 @@ paths:
                   error:
                     type: string
                     description: Details about the internal server error
+                example:
+                  error: Internal Server Error
   /auth/signup:
     post:
       tags:
@@ -125,6 +133,15 @@ paths:
               additionalProperties: false
               minProperties: 5
               maxProperties: 8
+            example:
+              name: Employee99
+              eamil: employee99@gmail.com
+              password: employee99
+              role: employee
+              mobileNumber: 8899994325
+              profilePictureURL: https://dentalia.orionthemes.com/demo-1/wp-content/uploads/2016/10/dentalia-demo-deoctor-3-1-750x750.jpg
+              salary: 20000
+              designation: Devops
       responses:
         '201':
           description: Employee created successfully
@@ -147,6 +164,7 @@ paths:
                   error:
                     type: string
                     description: Details about the error in the request body
+                    example: Password cannot be empty and should have more than 3 characters
         '403':
           description: Forbidden - User does not have permission to perform the operation
           content:
@@ -157,6 +175,7 @@ paths:
                   error:
                     type: string
                     description: Details about the forbidden action
+                    example: You are not authorized to create a superadmin
         '409':
           description: Conflict - Employee with the provided email already exists
           content:
@@ -203,19 +222,22 @@ paths:
             name: sortBy
             schema:
               type: string
-              enum: [id, name, email, mobileNumber, salary, role, leavesLeft, createdAt, updatedAt]
+              enum: [id, name, email, mobileNumber, salary, role, leavesLeft, createdAt, updatedAt,'']
             description: Field to sort employees by (e.g., id, name, salary, mobile number, role)
+            allowEmptyValue: true
           - in: query
             name: order
             schema:
               type: string
-              enum: [asc, desc]
+              enum: [asc, desc,'']
+            allowEmptyValue: true
             description: Sort order (ascending or descending)
           - in: query
             name: search
             schema:
               type: string
             allowReserved: true
+            allowEmptyValue: true
             description: Search query to filter employees
           - in: query
             name: deleted
@@ -243,7 +265,9 @@ paths:
                         email:
                           type: string
                         mobileNumber:
-                          type: string
+                          type: integer
+                          format: int64
+                          nullable: true
                         role:
                           type: string
                         designation:
@@ -420,8 +444,10 @@ paths:
                   type: string
                   minLength: 3
                 mobileNumber:
-                  type: string
-                  pattern: '^[0-9]{10}$'
+                  type: number
+                  minimum: 1000000000 
+                  maximum: 9999999999
+                  description: Mobile number of the employee (must be exactly 10 digits)
                 designation:
                   type: string
                 password:
@@ -602,15 +628,15 @@ paths:
                     description: Details about the internal server error
   /me:
     get:
-      summary: Get details of the logged-in user
-      description: Retrieves the details of the currently logged-in user.
+      summary: Get details of the logged-in employee
+      description: Retrieves the details of the currently logged-in employee.
       tags:
         - Me
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: Logged-in user details retrieved successfully
+          description: Logged-in employee's details retrieved successfully
           content:
             application/json:
               schema:
@@ -618,29 +644,39 @@ paths:
                 properties: 
                   id:
                     type: integer
-                    example: 1
+                    example: 44
                   name:
                     type: string
+                    example: "Admin 1"
                   email:
                     type: string
+                    example: "admin1@gmail.com"
                   mobileNumber:
                     type: string
+                    example: "2233333333"
                   role:
                     type: string
+                    example: "admin"
                   designation:
                     type: string
+                    example: "Software Engineer"
                   salary:
                     type: number
+                    example: 12000
                   profilePictureURL:
                     type: string
+                    example: "https://dentalia.orionthemes.com/demo-1/wp-content/uploads/2016/10/dentalia-demo-deoctor-3-1-750x750.jpg"
                   leavesLeft:
                     type: number
+                    example: 17
                   createdAt:
                     type: string
                     format: date-time
-                  udpatedAt:
+                    example: "2024-01-19T07:27:28.506Z"
+                  updatedAt:
                     type: string
                     format: date-time
+                    example: "2024-02-22T10:26:06.984Z"
                   Leaves:
                     type: array
                     items:
@@ -649,29 +685,35 @@ paths:
                         id:
                           type: integer
                           description: The unique identifier for the leave
-                          example: 1
+                          example: 133
                         reason:
                           type: string
                           description: The reason for taking the leave
+                          example: "testing first leave from admin1"
                         dates:
                           type: array
                           items:
                             type: string
                             format: date
                           description: The dates for which leave is requested
+                          example: ["2024-02-23"]
                         status:
                           type: string
-                          enum: [approved, rejected, Under Process]
+                          enum: ["approved", "rejected", "Under Process"]
                           description: The status of the leave request
+                          example: "Under Process"
                         rejectionReason:
                           type: string
                           description: The reason for rejection (if status is 'rejected')
+                          example: null
                         createdAt:
                           type: string
                           format: date-time
-                        udpatedAt:
+                          example: "2024-02-18T05:04:54.968Z"
+                        updatedAt:
                           type: string
                           format: date-time
+                          example: "2024-02-18T05:04:54.968Z"
 
         '500':
           description: Internal Server Error
@@ -683,9 +725,10 @@ paths:
                   error:
                     type: string
                     description: Details about the internal server error
+                    example: Internal Server Error
     patch:
-      summary: Update the details of the logged-in user
-      description: Updates specific fields of the logged-in user's profile.
+      summary: Update the details of the logged-in employee
+      description: Updates specific fields of the logged-in employee's profile.
       tags:
         - Me
       security:
@@ -700,18 +743,20 @@ paths:
                 name:
                   type: string
                   minLength: 3
+                  example: Administrator 1
                 mobileNumber:
-                  type: string
-                  pattern: '^[0-9]{10}$'
+                  type: number
+                  minimum: 1000000000 
+                  maximum: 9999999999
+                  description: Mobile number of the employee (must be exactly 10 digits)
+                  example: 9496484456
                 profilePictureURL:
                   type: string
-              required:
-                - name
-                - mobileNumber
-                - profilePictureURL
+                  example: https://dentalia.orionthemes.com/demo-1/wp-content/uploads/2016/10/dentalia-demo-deoctor-3-1-750x750.jpg
+              additionalProperties: false
       responses:
         '200':
-          description: User profile updated successfully
+          description: Employee profile updated successfully
           content:
             application/json:
               schema:
@@ -719,7 +764,8 @@ paths:
                 properties:
                   message:
                     type: string
-                    description: User updated successfully
+                    description: Employee updated successfully
+                    example: Employee updated Successfully
         '400':
           description: Client error due to invalid input data
           content:
@@ -730,8 +776,9 @@ paths:
                   error:
                     type: string
                     description: Details about the error in the request body or unauthorized access
+                    example: Please enter a valid mobile number
         '403':
-          description: Forbidden - User does not have permission to perform the operation
+          description: Forbidden - User does not have permission to udpate the other fields.
           content:
             application/json:
               schema:
@@ -740,6 +787,7 @@ paths:
                   error:
                     type: string
                     description: Details about the forbidden action
+                    example: Employee did not udpate
         '500':
           description: Internal Server Error
           content:
@@ -750,11 +798,12 @@ paths:
                   error:
                     type: string
                     description: Details about the internal server error
+                    example: Internal Server Error
     put:
       tags:
         - Me
-      summary: Update user profile with PUT method
-      description: Updates the user's profile identified by the authenticated user's ID using the PUT method.
+      summary: Update employee profile with PUT method
+      description: Updates the employee's profile identified by the authenticated user's ID using the PUT method.
       security:
         - bearerAuth: []
       requestBody:
@@ -768,15 +817,17 @@ paths:
                   type: string
                   minLength: 3
                 mobileNumber:
-                  type: string
-                  pattern: '^[0-9]{10}$'
+                  type: number
+                  minimum: 1000000000 
+                  maximum: 9999999999
+                  description: Mobile number of the user (must be exactly 10 digits)
                 profilePictureURL:
                   type: string
-              required:
-                - name
+            example:
+              name: Administrator 1
       responses:
         '200':
-          description: User profile updated successfully
+          description: Employee profile updated successfully
           content:
             application/json:
               schema:
@@ -784,7 +835,8 @@ paths:
                 properties:
                   message:
                     type: string
-                    description: User updated successfully
+                    description: Employee updated successfully
+                    example: User updated Successfully
         '400':
           description: Client error due to invalid input data
           content:
@@ -795,16 +847,7 @@ paths:
                   error:
                     type: string
                     description: Details about the error in the request body
-        '403':
-          description: Forbidden - User does not have permission to perform the operation
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    description: Details about the forbidden action
+                    example: Please provide name
         '500':
           description: Internal Server Error
           content:
@@ -815,16 +858,17 @@ paths:
                   error:
                     type: string
                     description: Details about the internal server error
+                    example: Internal Server Error
     delete:
       tags:
         - Me
-      summary: Deactivate user account
-      description: Deactivates the account of the authenticated user.
+      summary: Deactivate personal account
+      description: Deactivates the account of the authenticated employee
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: User account deactivated successfully
+          description: Employee account deactivated successfully
           content:
             application/json:
               schema:
@@ -844,6 +888,7 @@ paths:
                   error:
                     type: string
                     description: Details about the internal server error
+                    example: Internal Server Error
   /me/password:
     patch:
       tags:
@@ -869,6 +914,10 @@ paths:
                 - oldPassword
                 - newPassword
                 - confirmPassword
+            example:
+              oldPassword: admin1password
+              newPassword: admin1
+              confirmPassword: admin1
       responses:
         '200':
           description: Password changed successfully
@@ -891,6 +940,7 @@ paths:
                   error:
                     type: string
                     description: Details about the error in the request body
+                    example: New Password and confirm password should be same
         '500':
           description: Internal Server Error
           content:
@@ -901,6 +951,7 @@ paths:
                   error:
                     type: string
                     description: Details about the internal server error
+                    example: Internal server error
   /me/leaves:
     post:
       summary: Apply for leave
@@ -918,11 +969,11 @@ paths:
               properties:
                 fromDate:
                   type: string
-                  format: date
+                  pattern: '^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$'
                   description: Start date of the leave (dd-mm -yyyy)
                 toDate:
                   type: string
-                  format: date
+                  pattern: '^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$'
                   description: End date of the leave (dd-mm-yyyy)
                 reason:
                   type: string
@@ -931,6 +982,10 @@ paths:
                 - fromDate
                 - toDate
                 - reason
+            example:
+              fromDate: 24-04-2024
+              toDate: 27-04-2024
+              reason: Home Visit
       responses:
         '201':
           description: Applied for leave successfully
@@ -942,6 +997,7 @@ paths:
                   message:
                     type: string
                     description: Leave created successfully
+                    example: Leave created successfully
         '400':
           description: Bad request due to missing or invalid parameters
           content:
@@ -952,6 +1008,7 @@ paths:
                   error:
                     type: string
                     description: Details about the error in the request body
+                    example: Please enter a valid range
         '403':
           description: Forbidden - User does not have sufficient leaves or is already on leave on specified days
           content:
@@ -962,6 +1019,7 @@ paths:
                   error:
                     type: string
                     description: Details about the forbidden action
+                    example: You have only 3 leaves left and you are applying for 7 days
         '500':
           description: Internal Server Error
           content:
@@ -972,6 +1030,7 @@ paths:
                   error:
                     type: string
                     description: Details about the internal server error
+                    example: Internal server error
     get:
       summary: List leaves
       description: Endpoint used to list leaves for the logged-in employee
@@ -985,22 +1044,26 @@ paths:
           schema:
             type: integer
             minimum: 1
+          example: 10
           description: Maximum number of leaves to return
         - in: query
           name: offset
           schema:
             type: integer
+          example: 3
           description: Page number to show
         - in: query
           name: status
           schema:
             type: string
             enum: [approved, Under Process, rejected]
+          example: approved
           description: Filter leaves by status
         - in: query
           name: search
           schema:
             type: string
+          allowEmptyValue: true
           description: Search query to filter leaves
       responses:
         '200':
@@ -1034,19 +1097,17 @@ paths:
                           description: The status of the leave request
                         rejectionReason:
                           type: string
+                          nullable: true
                           description: The reason for rejection (if status is 'rejected')
                         employeeId:
                           type: integer
                           description: Id of employee to which this leave belongs to.
                           example: 1
                         createdAt:
-                          type: string
-                          format: date-time
+                          type: object
                         udpatedAt:
-                          type: string
-                          format: date-time
-                        
-                
+                          type: object
+      
                   metadata:
                     type: object
                     properties:
@@ -1062,6 +1123,57 @@ paths:
                       totalPages:
                         type: integer
                         description: Total number of pages
+              examples:
+                Leaves:
+                  value:
+                    data:
+                      - id: 133
+                        reason: testing first leave from admin1
+                        dates: ["2024-02-23"]
+                        status: Under Process
+                        rejectionReason: null
+                        createdAt: "2024-02-18T05:04:54.968Z"
+                        updatedAt: "2024-02-18T05:04:54.968Z"
+                      - id: 134
+                        reason: second leave from admin 2
+                        dates: ["2024-03-01", "2024-03-04"]
+                        status: rejected
+                        rejectionReason: Deadline is near
+                        createdAt: "2024-02-18T05:07:54.169Z"
+                        updatedAt: "2024-02-20T08:03:14.694Z"
+                      - id: 141
+                        reason: string
+                        dates: ["2024-02-19"]
+                        status: approved
+                        rejectionReason: null
+                        createdAt: "2024-02-20T07:34:11.824Z"
+                        updatedAt: "2024-02-20T08:03:05.730Z"
+                      - id: 142
+                        reason: Home Visit
+                        dates: ["2024-10-22", "2024-10-23", "2024-10-24"]
+                        status: Under Process
+                        rejectionReason: null
+                        createdAt: "2024-02-22T07:39:54.055Z"
+                        updatedAt: "2024-02-22T08:03:08.022Z"
+                      - id: 143
+                        reason: Testing
+                        dates: ["2024-03-04"]
+                        status: Under Process
+                        rejectionReason: null
+                        createdAt: "2024-02-22T11:36:39.063Z"
+                        updatedAt: "2024-02-22T11:36:39.063Z"
+                      - id: 144
+                        reason: testing
+                        dates: ["2024-03-05"]
+                        status: Under Process
+                        rejectionReason: null
+                        createdAt: "2024-02-22T11:44:51.872Z"
+                        updatedAt: "2024-02-22T11:44:51.872Z"
+                    metadata:
+                      totalLeaveApplications: 6
+                      totalLeaveDays: 1
+                      page: 1
+                      totalPages: 1          
         '400':
           description: Bad request due to invalid parameters
           content:
@@ -1072,6 +1184,7 @@ paths:
                   error:
                     type: string
                     description: Details about the error in the request query parameters
+                    example: Start date and End date is mandatory
         '404':
           description: Leaves not found
           content:
@@ -1082,6 +1195,7 @@ paths:
                   error:
                     type: string
                     description: There are no leaves in the system
+                    example: Leave not found
         '500':
           description: Internal server error
           content:
@@ -1092,6 +1206,7 @@ paths:
                   error:
                     type: string
                     description: Details about the internal server error
+                    example: Internal server error
   /me/leaves/{leaveId}:
     get:
       summary: Get details of a specific leave
@@ -1148,9 +1263,7 @@ paths:
                   deletedAt:
                     type: string
                     format: date-time
-                required:
-                  - reason
-                  - dates
+
         '404':
           description: Leave not found
           content:
@@ -1194,18 +1307,16 @@ paths:
               properties:
                 fromDate:
                   type: string
-                  format: date
+                  pattern: '^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$'
                   description: Start date of the leave (dd-mm-yyyy)
                 toDate:
                   type: string
-                  format: date
+                  pattern: '^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$'
                   description: End date of the leave (dd-mm-yyyy)
                 reason:
                   type: string
                   description: Reason for modifying the leave
-              required:
-                - fromDate
-                - toDate
+
       responses:
         '200':
           description: Leave updated successfully
@@ -1472,6 +1583,7 @@ paths:
           name: search
           schema:
             type: string
+          allowEmptyValue: true
           description: Filter leaves by search keyword
       responses:
         '200':
@@ -1691,6 +1803,8 @@ paths:
           description: Search leaves by reason, status, rejection reason, dates, or ID
           schema:
             type: string
+          allowReserved: true
+          allowEmptyValue: true
       responses:
         '200':
           description: Leaves retrieved successfully
@@ -1735,6 +1849,7 @@ paths:
                           type: object
                         Employee:
                           type: object
+                          nullable: true
                           properties:
                             id:
                               type: integer
@@ -1940,6 +2055,96 @@ paths:
                   error:
                     type: string
                     description: Details about the internal server error
+  /leaves/system/summary:
+    get:
+      tags:
+        - Leaves
+      summary: Get details of a specific employee
+      description: Retrieves the details of a specific employee by their ID.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Employee details retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      approvedLeaves:
+                        type: integer
+                        example: 1
+                      underProcessLeaves:
+                        type: integer
+                        example: 1
+                      rejectedLeaves:
+                        type: integer
+                        example: 2
+
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Details about the internal server error
+                    example: Internal Server Error
+          
+  /leaves/employees/{employeeId}/summary:
+    get:
+      tags:
+        - Leaves
+      summary: Get details of a specific employee
+      description: Retrieves the details of a specific employee by their ID.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: employeeId
+          description: Employee Id of the employees whoose leave summary is to be fetched
+          schema:
+            type: integer
+            minimum: 1
+          required: true
+    
+      responses:
+        '200':
+          description: Employee details retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      approvedLeaves:
+                        type: integer
+                        example: 1
+                      underProcessLeaves:
+                        type: integer
+                        example: 1
+                      rejectedLeaves:
+                        type: integer
+                        example: 2
+
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Details about the internal server error
+                    example: Internal Server Error
 
                     
                     
