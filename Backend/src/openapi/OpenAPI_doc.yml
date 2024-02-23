@@ -286,7 +286,69 @@ paths:
                         deletedAt:
                           type: object
                           nullable: true
-
+                  metadata:
+                    type: object
+                    properties:
+                      totalEmployees:
+                        type: integer
+                      currentPage:
+                        type: integer
+                      totalPages:
+                        type: integer
+              example:
+                data:
+                  - id: 2
+                    name: DummyName 1
+                    email: dummyname1@example.com
+                    mobileNumber: "3086058248"
+                    role: admin
+                    designation: Software Engineer
+                    salary: 1573
+                    profilePictureURL: "https://images.ctfassets.net/h6goo9gw1hh6/2sNZtFAWOdP1lmQ33VwRN3/24e953b920a9cd0ff2e1d587742a2472/1-intro-photo-final.jpg?w=1200&h=992&q=70&fm=webp"
+                    leavesLeft: 20
+                    createdAt: "2024-01-19T07:12:27.744Z"
+                    updatedAt: "2024-02-18T05:23:37.808Z"
+                    deletedAt: null
+                  - id: 44
+                    name: Admin 1
+                    email: admin1@gmail.com
+                    mobileNumber: "2233333333"
+                    role: admin
+                    designation: Software Engineer
+                    salary: 12000
+                    profilePictureURL: "https://dentalia.orionthemes.com/demo-1/wp-content/uploads/2016/10/dentalia-demo-deoctor-3-1-750x750.jpg"
+                    leavesLeft: 17
+                    createdAt: "2024-01-19T07:27:28.506Z"
+                    updatedAt: "2024-02-22T10:26:06.984Z"
+                    deletedAt: null
+                  - id: 94
+                    name: abc
+                    email: abc@gmail.com
+                    mobileNumber: null
+                    role: employee
+                    designation: abc
+                    salary: null
+                    profilePictureURL: null
+                    leavesLeft: 20
+                    createdAt: "2024-02-22T10:59:58.871Z"
+                    updatedAt: "2024-02-22T10:59:58.871Z"
+                    deletedAt: null
+                  - id: 89
+                    name: swiggy
+                    email: jd@gmail.com
+                    mobileNumber: "1234512345"
+                    role: admin
+                    designation: Swagger
+                    salary: 1000
+                    profilePictureURL: "abcd"
+                    leavesLeft: 20
+                    createdAt: "2024-02-16T08:03:36.458Z"
+                    updatedAt: "2024-02-21T16:50:12.340Z"
+                    deletedAt: null
+                metadata:
+                  totalEmployees: 53
+                  currentPage: 1
+                  totalPages: 6
         '400':
           description: Client Side error while fetching employees
           content:
@@ -297,6 +359,7 @@ paths:
                   error:
                     type: string
                     description: Invalid option for listing deleted employees
+                    example: Please enter a valid field for using sorting
         '404':
           description: Employee list is empty
           content:
@@ -307,6 +370,18 @@ paths:
                   message:
                     type: string
                     description: The list is empty
+                    example: The list is empty
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Details about the internal server error
+                    example: Internal server error
   /employees/{employeeId}:
     get:
       tags:
@@ -394,6 +469,58 @@ paths:
                               type: object
                             udpatedAt:
                               type: object
+              examples:
+                EmployeeExample:
+                  value:
+                    data:
+                      id: 56
+                      name: Employee 1
+                      email: employee1@gmail.com
+                      designation: Software Engineer
+                      mobileNumber: "9596246988"
+                      salary: 50254
+                      role: employee
+                      profilePictureURL: "https://images.ctfassets.net/h6goo9gw1hh6/2sNZtFAWOdP1lmQ33VwRN3/24e953b920a9cd0ff2e1d587742a2472/1-intro-photo-final.jpg?w=1200&h=992&q=70&fm=webp"
+                      leavesLeft: 20
+                      createdAt: "2024-01-22T04:59:46.295Z"
+                      updatedAt: "2024-02-18T03:35:12.799Z"
+                      deletedAt: null
+                      Leaves:
+                        - id: 126
+                          reason: Updated the leave
+                          dates:
+                            - "2024-02-23"
+                          status: Under Process
+                          rejectionReason: null
+                          createdAt: "2024-02-18T03:39:24.496Z"
+                          updatedAt: "2024-02-18T03:44:58.878Z"
+                        - id: 130
+                          reason: testing the leave from employee 2
+                          dates:
+                            - "2024-02-26"
+                            - "2024-02-27"
+                            - "2024-02-28"
+                            - "2024-02-29"
+                          status: Under Process
+                          rejectionReason: null
+                          createdAt: "2024-02-18T04:48:55.842Z"
+                          updatedAt: "2024-02-18T04:48:55.842Z"
+                        - id: 139
+                          reason: Sick leave
+                          dates:
+                            - "2024-03-21"
+                          status: Under Process
+                          rejectionReason: null
+                          createdAt: "2024-02-18T05:35:32.373Z"
+                          updatedAt: "2024-02-18T05:35:32.373Z"
+                        - id: 140
+                          reason: Personal resaon
+                          dates:
+                            - "2024-04-02"
+                          status: Under Process
+                          rejectionReason: null
+                          createdAt: "2024-02-18T05:35:54.518Z"
+                          updatedAt: "2024-02-18T05:35:54.518Z"
                               
                             
                           
@@ -407,6 +534,7 @@ paths:
                   error:
                     type: string
                     description: Details about the error (e.g., "Employee with this id does not exist")
+                    example: Employee with this id does not exist
         '500':
           description: Internal Server Error
           content:
@@ -417,6 +545,7 @@ paths:
                   error:
                     type: string
                     description: Details about the internal server error
+                    example: Internal server error
 
     patch:
       tags:
@@ -433,6 +562,7 @@ paths:
             type: integer
             minimum: 1
           description: The ID of the employee to update.
+          example: 42
       requestBody:
         required: true
         content:
@@ -461,6 +591,12 @@ paths:
                   type: string
                   enum: [admin, employee, superadmin]
               additionalProperties: false
+            example:
+              name: New Name
+              mobileNumber: 1234598767
+              designation: Sr.Devops Engineer
+              password: password
+              salary: 20999
       responses:
         '200':
           description: Employee profile updated successfully
@@ -472,6 +608,7 @@ paths:
                   message:
                     type: string
                     description: Employee updated successfully
+                    example: Employee updated successfully
         '400':
           description: Client error due to invalid input data
           content:
@@ -482,6 +619,7 @@ paths:
                   error:
                     type: string
                     description: Details about the error in the request body or unauthorized access
+                    example: Name should be of atleast 3 characters
         '403':
           description: Forbidden - User does not have permission to perform the operation
           content:
@@ -492,6 +630,7 @@ paths:
                   error:
                     type: string
                     description: Details about the forbidden action
+                    example: You are not authorized to update the details of this employee (Forbidden)
         '404':
           description: Employee not found
           content:
@@ -502,6 +641,7 @@ paths:
                   error:
                     type: string
                     description: Employee with this id does not exist
+                    example: Employee with this id does not exist
         '500':
           description: Internal Server Error
           content:
@@ -512,6 +652,117 @@ paths:
                   error:
                     type: string
                     description: Details about the internal server error
+                    example: Internal server error
+    put:
+      tags:
+        - Employees
+      summary: Update an employee's profile partially
+      description: Updates specific fields of an employee's profile identified by the given ID. Admin's cannot udpate superadmin's and fellow admin's profile.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: employeeId
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The ID of the employee to update.
+          example: 42
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 3
+                mobileNumber:
+                  type: number
+                  minimum: 1000000000 
+                  maximum: 9999999999
+                  description: Mobile number of the employee (must be exactly 10 digits)
+                designation:
+                  type: string
+                password:
+                  type: string
+                  minLength: 4
+                salary:
+                  type: number
+                profilePictureURL:
+                  type: string
+                role:
+                  type: string
+                  enum: [admin, employee, superadmin]
+              additionalProperties: false
+              required:
+                - name
+                - password
+                - role
+                - designation
+            example:
+              name: New Name
+              designation: Sr.Devops Engineer
+              password: password
+              role: employee
+      responses:
+        '200':
+          description: Employee profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Employee updated successfully
+                    example: Employee updated successfully
+        '400':
+          description: Client error due to invalid input data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Details about the error in the request body or unauthorized access
+                    example: Name should be of atleast 3 characters
+        '403':
+          description: Forbidden - User does not have permission to perform the operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Details about the forbidden action
+                    example: You are not authorized to update the details of this employee (Forbidden)
+        '404':
+          description: Employee not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Employee with this id does not exist
+                    example: Employee with this id does not exist
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Details about the internal server error
+                    example: Internal server error
 
     delete:
       tags:
@@ -528,6 +779,7 @@ paths:
             type: integer
             minimum:   1
           description: The ID of the employee to delete.
+          example: 45
       responses:
         '200':
           description: Employee account deactivated successfully
@@ -539,6 +791,7 @@ paths:
                   message:
                     type: string
                     description: Employee account deactivated successfully
+                    example: Employee's account has been deactivated succesfully
         '403':
           description: Forbidden - User does not have permission to perform the operation
           content:
@@ -549,6 +802,7 @@ paths:
                   error:
                     type: string
                     description: Details about the forbidden action
+                    example: You are not authorized to delete this employee
         '404':
           description: Employee not found
           content:
@@ -559,6 +813,7 @@ paths:
                   error:
                     type: string
                     description: Employee with this id does not exist
+                    example: Employee with this id does not exist
         '500':
           description: Internal Server Error
           content:
@@ -569,6 +824,7 @@ paths:
                   error:
                     type: string
                     description: Details about the internal server error
+                    example: Internal server error
   /employees/{employeeId}/activate:
     post:
       tags:
@@ -585,6 +841,7 @@ paths:
             type: integer
             minimum: 1
           description: The ID of the employee to activate.
+          example: 45
       responses:
         '200':
           description: Employee account activated successfully
@@ -596,6 +853,7 @@ paths:
                   message:
                     type: string
                     description: Employee account activated successfully
+                    example: Employee account activated Successfully
         '403':
           description: Forbidden - User does not have permission to perform the operation
           content:
@@ -606,6 +864,7 @@ paths:
                   error:
                     type: string
                     description: Details about the forbidden action
+                    example: You are not authorized to activate this employee's account
         '404':
           description: Employee not found
           content:
@@ -616,6 +875,7 @@ paths:
                   error:
                     type: string
                     description: Employee with this id does not exist
+                    example: Employee with this id does not exist
         '500':
           description: Internal Server Error
           content:
@@ -626,6 +886,7 @@ paths:
                   error:
                     type: string
                     description: Details about the internal server error
+                    example: Internal server error
   /me:
     get:
       summary: Get details of the logged-in employee
@@ -823,6 +1084,8 @@ paths:
                   description: Mobile number of the user (must be exactly 10 digits)
                 profilePictureURL:
                   type: string
+              required:
+                - name
             example:
               name: Administrator 1
       responses:
@@ -1222,6 +1485,7 @@ paths:
           description: ID of the leave to retrieve
           schema:
             type: integer
+          example: 142
       responses:
         '200':
           description: Leave details retrieved successfully
@@ -1263,6 +1527,19 @@ paths:
                   deletedAt:
                     type: string
                     format: date-time
+              example:
+                data:
+                  id: 142
+                  reason: Home Visit
+                  dates:
+                    - "2024-10-22"
+                    - "2024-10-23"
+                    - "2024-10-24"
+                  status: Under Process
+                  rejectionReason: null
+                  createdAt: "2024-02-22T07:39:54.055Z"
+                  updatedAt: "2024-02-22T08:03:08.022Z"
+                  employeeId: 44
 
         '404':
           description: Leave not found
@@ -1274,6 +1551,7 @@ paths:
                   error:
                     type: string
                     description: Details about the error
+                    example: Leave with this id does not exist
         '500':
           description: Internal server error
           content:
@@ -1284,6 +1562,7 @@ paths:
                   error:
                     type: string
                     description: Details about the internal server error
+                    example: Internal server error
     patch:
       summary: Update leave
       description: Modify the details of a leave application.
@@ -1298,6 +1577,7 @@ paths:
           schema:
             type: integer
           description: The ID of the leave application to update
+          example: 142
       requestBody:
         required: true
         content:
@@ -1309,13 +1589,16 @@ paths:
                   type: string
                   pattern: '^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$'
                   description: Start date of the leave (dd-mm-yyyy)
+                  example: 14-05-2024
                 toDate:
                   type: string
                   pattern: '^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$'
                   description: End date of the leave (dd-mm-yyyy)
+                  example: 17-05-2024
                 reason:
                   type: string
                   description: Reason for modifying the leave
+                  example: Personal Reason
 
       responses:
         '200':
@@ -1328,6 +1611,7 @@ paths:
                   message:
                     type: string
                     description: Leave updated successfully
+                    example: Leave updated successfully
         '400':
           description: Bad request due to missing or invalid parameters
           content:
@@ -1338,6 +1622,7 @@ paths:
                   error:
                     type: string
                     description: Details about the error in the request body
+                    example: Please enter a valid range
         '403':
           description: Forbidden - User cannot update the leave
           content:
@@ -1348,6 +1633,7 @@ paths:
                   error:
                     type: string
                     description: Details about the forbidden action
+                    example: You are already on leave on these dates or it's a weekend
         '404':
           description: Leave not found or does not belong to the logged-in employee
           content:
@@ -1358,6 +1644,7 @@ paths:
                   error:
                     type: string
                     description: Leave not found
+                    example: Leave not found
         '500':
           description: Internal server error
           content:
@@ -1368,6 +1655,7 @@ paths:
                   error:
                     type: string
                     description: Details about the internal server error
+                    example: Internal Server Error
     put:
       summary: Update leave
       description: Modify the details of a leave application using PUT method
@@ -1400,9 +1688,6 @@ paths:
                 reason:
                   type: string
                   description: Reason for modifying the leave
-              required:
-                - fromDate
-                - toDate
       responses:
         '200':
           description: Leave updated successfully
@@ -1468,6 +1753,7 @@ paths:
           schema:
             type: integer
           description: The ID of the leave application to delete
+          example: 142
       responses:
         '200':
           description: Leave deleted successfully
@@ -1479,6 +1765,7 @@ paths:
                   message:
                     type: string
                     description: Leave deleted successfully
+                    example: Leave deleted successfully
         '403':
           description: Forbidden - Cannot delete the leave
           content:
@@ -1489,6 +1776,7 @@ paths:
                   error:
                     type: string
                     description: Details about the forbidden action
+                    example: You cannot delete this leave as it is of past
         '404':
           description: Leave not found or does not belong to the logged-in employee
           content:
@@ -1499,6 +1787,7 @@ paths:
                   error:
                     type: string
                     description: Leave does not exist
+                    example: Leave does not exist
         '500':
           description: Internal server error
           content:
@@ -1509,6 +1798,7 @@ paths:
                   error:
                     type: string
                     description: Details about the internal server error
+                    example: Internal server errro
   /me/leaves/summary:
     get:
       summary: Get summary of my leaves
@@ -1547,6 +1837,7 @@ paths:
                   error:
                     type: string
                     description: Details about the internal server error
+                    example: Internal server error
   /employees/{employeeId}/leaves:
     get:
       summary: Get leaves of a specific employee
@@ -1653,10 +1944,6 @@ paths:
                               type: object
                             updatedAt:
                               type: object
-
-                      required:
-                        - reason
-                        - dates
                       
                   metadata:
                     type: object
@@ -1673,16 +1960,112 @@ paths:
                       totalPages:
                         type: integer
                         description: Total number of pages
+              example:
+                data:
+                  - id: 133
+                    reason: testing first leave from admin1
+                    dates:
+                      - "2024-02-23"
+                    status: Under Process
+                    rejectionReason: null
+                    createdAt: "2024-02-18T05:04:54.968Z"
+                    updatedAt: "2024-02-18T05:04:54.968Z"
+                    Employee:
+                      id: 44
+                      name: Admin 1
+                      email: admin1@gmail.com
+                      designation: Software Engineer
+                      mobileNumber: "9596246948"
+                      salary: 12000
+                      role: admin
+                      profilePictureURL: "https://dentalia.orionthemes.com/demo-1/wp-content/uploads/2016/10/dentalia-demo-deoctor-3-1-750x750.jpg"
+                      leavesLeft: 17
+                      createdAt: "2024-01-19T07:27:28.506Z"
+                      updatedAt: "2024-02-20T08:03:05.737Z"
+                  - id: 134
+                    reason: second leave from admin 2
+                    dates:
+                      - "2024-03-01"
+                      - "2024-03-04"
+                    status: rejected
+                    rejectionReason: Deadline is near
+                    createdAt: "2024-02-18T05:07:54.169Z"
+                    updatedAt: "2024-02-20T08:03:14.694Z"
+                    Employee:
+                      id: 44
+                      name: Admin 1
+                      email: admin1@gmail.com
+                      designation: Software Engineer
+                      mobileNumber: "9596246948"
+                      salary: 12000
+                      role: admin
+                      profilePictureURL: "https://dentalia.orionthemes.com/demo-1/wp-content/uploads/2016/10/dentalia-demo-deoctor-3-1-750x750.jpg"
+                      leavesLeft: 17
+                      createdAt: "2024-01-19T07:27:28.506Z"
+                      updatedAt: "2024-02-20T08:03:05.737Z"
+                  - id: 141
+                    reason: string
+                    dates:
+                      - "2024-02-19"
+                    status: approved
+                    rejectionReason: null
+                    createdAt: "2024-02-20T07:34:11.824Z"
+                    updatedAt: "2024-02-20T08:03:05.730Z"
+                    Employee:
+                      id: 44
+                      name: Admin 1
+                      email: admin1@gmail.com
+                      designation: Software Engineer
+                      mobileNumber: "9596246948"
+                      salary: 12000
+                      role: admin
+                      profilePictureURL: "https://dentalia.orionthemes.com/demo-1/wp-content/uploads/2016/10/dentalia-demo-deoctor-3-1-750x750.jpg"
+                      leavesLeft: 17
+                      createdAt: "2024-01-19T07:27:28.506Z"
+                      updatedAt: "2024-02-20T08:03:05.737Z"
+                  - id: 142
+                    reason: Have to attend a conference
+                    dates:
+                      - "2024-10-21"
+                      - "2024-10-22"
+                      - "2024-10-23"
+                      - "2024-10-24"
+                    status: Under Process
+                    rejectionReason: null
+                    createdAt: "2024-02-22T07:39:54.055Z"
+                    updatedAt: "2024-02-22T07:39:54.055Z"
+                    Employee:
+                      id: 44
+                      name: Admin 1
+                      email: admin1@gmail.com
+                      designation: Software Engineer
+                metadata:
+                  totalLeaveDays: 1
+                  timesApplied: 4
+                  currentPage: 1
+                  totalPages: 1
+        '400':
+            description: Bad request due to invalid parameters
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      description: Details about the error in the request query parameters
+                      example: Start date and End date is mandatory
         '404':
-          description: No leaves found for the employee
+          description: Please enter a valid status
           content:
-            application/json:
+            application/json: 
               schema:
                 type: object
                 properties:
                   error:
                     type: string
                     description: Details about the error
+                    example: The employee has not taken any leave yet
         '500':
           description: Internal server error
           content:
@@ -1693,6 +2076,7 @@ paths:
                   error:
                     type: string
                     description: Details about the internal server error
+                    example: Internal server error
   /leaves/{leaveId}:
     get:
       summary: Retrieves a leave from the system by it's id.
@@ -1709,6 +2093,7 @@ paths:
           schema:
             type: integer
             minimum: 1
+          example: 142
       responses:
         '200':
           description: Leave retrieved successfully
@@ -1749,6 +2134,19 @@ paths:
                         type: object
                       udpatedAt:
                         type: object
+                  
+              example:
+                data:
+                  id: 134
+                  reason: second leave from admin 2
+                  dates:
+                    - "2024-03-01"
+                    - "2024-03-04"
+                  status: rejected
+                  rejectionReason: Deadline is near
+                  employeeId: 44
+                  createdAt: "2024-02-18T05:07:54.169Z"
+                  updatedAt: "2024-02-20T08:03:14.694Z"
                     
         '404':
           description: Leave not found
@@ -1760,6 +2158,7 @@ paths:
                   error:
                     type: string
                     description: Details about the error
+                    example: Leave not found
         '500':
           description: Internal server error
           content:
@@ -1770,6 +2169,7 @@ paths:
                   error:
                     type: string
                     description: Details about the internal server error
+                    example: Internal server error
   /leaves:
     get:
       summary: Get all leaves
@@ -1891,6 +2291,91 @@ paths:
                       totalPages:
                         type: integer
                         description: Total number of pages
+              
+              example:
+                data:
+                  - id: 133
+                    reason: testing first leave from admin1
+                    dates:
+                      - "2024-02-23"
+                    status: Under Process
+                    rejectionReason: null
+                    createdAt: "2024-02-18T05:04:54.968Z"
+                    updatedAt: "2024-02-18T05:04:54.968Z"
+                    Employee:
+                      id: 44
+                      name: Admin 1
+                      email: admin1@gmail.com
+                      designation: Software Engineer
+                      mobileNumber: "9596246948"
+                      salary: 12000
+                      role: admin
+                      profilePictureURL: "https://dentalia.orionthemes.com/demo-1/wp-content/uploads/2016/10/dentalia-demo-deoctor-3-1-750x750.jpg"
+                      leavesLeft: 17
+                      createdAt: "2024-01-19T07:27:28.506Z"
+                      updatedAt: "2024-02-20T08:03:05.737Z"
+                  - id: 134
+                    reason: second leave from admin 2
+                    dates:
+                      - "2024-03-01"
+                      - "2024-03-04"
+                    status: rejected
+                    rejectionReason: Deadline is near
+                    createdAt: "2024-02-18T05:07:54.169Z"
+                    updatedAt: "2024-02-20T08:03:14.694Z"
+                    Employee:
+                      id: 44
+                      name: Admin 1
+                      email: admin1@gmail.com
+                      designation: Software Engineer
+                      mobileNumber: "9596246948"
+                      salary: 12000
+                      role: admin
+                      profilePictureURL: "https://dentalia.orionthemes.com/demo-1/wp-content/uploads/2016/10/dentalia-demo-deoctor-3-1-750x750.jpg"
+                      leavesLeft: 17
+                      createdAt: "2024-01-19T07:27:28.506Z"
+                      updatedAt: "2024-02-20T08:03:05.737Z"
+                  - id: 141
+                    reason: string
+                    dates:
+                      - "2024-02-19"
+                    status: approved
+                    rejectionReason: null
+                    createdAt: "2024-02-20T07:34:11.824Z"
+                    updatedAt: "2024-02-20T08:03:05.730Z"
+                    Employee:
+                      id: 44
+                      name: Admin 1
+                      email: admin1@gmail.com
+                      designation: Software Engineer
+                      mobileNumber: "9596246948"
+                      salary: 12000
+                      role: admin
+                      profilePictureURL: "https://dentalia.orionthemes.com/demo-1/wp-content/uploads/2016/10/dentalia-demo-deoctor-3-1-750x750.jpg"
+                      leavesLeft: 17
+                      createdAt: "2024-01-19T07:27:28.506Z"
+                      updatedAt: "2024-02-20T08:03:05.737Z"
+                  - id: 142
+                    reason: Have to attend a conference
+                    dates:
+                      - "2024-10-21"
+                      - "2024-10-22"
+                      - "2024-10-23"
+                      - "2024-10-24"
+                    status: Under Process
+                    rejectionReason: null
+                    createdAt: "2024-02-22T07:39:54.055Z"
+                    updatedAt: "2024-02-22T07:39:54.055Z"
+                    Employee:
+                      id: 44
+                      name: Admin 1
+                      email: admin1@gmail.com
+                      designation: Software Engineer
+                metadata:
+                  totalLeaveDays: 1
+                  timesApplications: 4
+                  currentPage: 1
+                  totalPages: 1
         '404':
           description: No leaves found in the system
           content:
@@ -1901,6 +2386,7 @@ paths:
                   error:
                     type: string
                     description: Details about the error
+                    example: There are no leaves in the system
         '500':
           description: Internal server error
           content:
@@ -1911,6 +2397,7 @@ paths:
                   error:
                     type: string
                     description: Details about the internal server error
+                    example: Internal server error
   /leaves/{leaveId}/accept:
     post:
       summary: Approve leave
@@ -1926,6 +2413,7 @@ paths:
           required: true
           schema:
             type: integer
+          example: 142
       responses:
         '200':
           description: Leave approved successfully
@@ -1937,16 +2425,8 @@ paths:
                   message:
                     type: string
                     description: Leave approved successfully
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    description: Details about the bad request
+                    example: Leave Approved
+
         '403':
           description: Forbidden
           content:
@@ -1957,6 +2437,7 @@ paths:
                   error:
                     type: string
                     description: Details about the forbidden action
+                    example: You are not authorized to approve this leave
         '404':
           description: Leave not found
           content:
@@ -1967,6 +2448,7 @@ paths:
                   error:
                     type: string
                     description: Details about the not found error
+                    example: Leave with this id not found
         '500':
           description: Internal server error
           content:
@@ -1977,6 +2459,7 @@ paths:
                   error:
                     type: string
                     description: Details about the internal server error
+                    example: Internal server error
   /leaves/{leaveId}/reject:
     post:
       summary: Reject leave
@@ -1992,6 +2475,7 @@ paths:
           required: true
           schema:
             type: integer
+          example: 144
       requestBody:
         required: true
         content:
@@ -2015,6 +2499,7 @@ paths:
                   message:
                     type: string
                     description: Leave rejected successfully
+                    example: Leave rejected
         '400':
           description: Bad request
           content:
@@ -2025,6 +2510,7 @@ paths:
                   error:
                     type: string
                     description: Details about the bad request
+                    example: Please provide the reason for rejecing this leave
         '403':
           description: Forbidden
           content:
@@ -2035,6 +2521,7 @@ paths:
                   error:
                     type: string
                     description: Details about the forbidden action
+                    example: You are not authorized to reject this leave
         '404':
           description: Leave not found
           content:
@@ -2045,6 +2532,7 @@ paths:
                   error:
                     type: string
                     description: Details about the not found error
+                    example: Leave with this id not found
         '500':
           description: Internal server error
           content:
@@ -2055,6 +2543,7 @@ paths:
                   error:
                     type: string
                     description: Details about the internal server error
+                    example: Internal server error
   /leaves/system/summary:
     get:
       tags:
