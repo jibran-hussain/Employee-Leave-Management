@@ -29,8 +29,7 @@
   
   const handleSubmit=async(formData)=>{
       try{
-        console.log($user)
-        console.log(formData,'here is the UDPATED data')
+
           const response = await fetch(`http://localhost:3000/api/v1/me`, {
           method: "PATCH",
           headers: {
@@ -41,16 +40,17 @@
           body: JSON.stringify(formData),
           });
            data=await response.json()
-          if(data.error){
+           if(response.ok){
+              isSuccess=true;
+              success='Profile Updated Successfully'
+              error=false
+              isError=false;
+           }else{
               isError=true;
-              error=data.error
+              error=data.error||data.message;
               success=false;
-          }else{
-            isSuccess=true;
-            success='Employee Updated Successfully'
-            isError=false
-            error=''
-          }
+              isSuccess=false;
+           }
           document.querySelector('.modal-content').scrollTop = 0;
       }catch(error){
           console.log(error)

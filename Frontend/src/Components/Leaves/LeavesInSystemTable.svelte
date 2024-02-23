@@ -86,6 +86,7 @@
               <td class="align-middle">{leave.Employee.designation}</td>
             {:else if !leave.Employee && $page.route.id != '/dashboard/me/leaves'}
               <td class="align-middle">Anonymous</td>
+              <td class="align-middle">NA</td>
             {/if}
             <td class="align-middle text-wrap">{leave.reason}</td>
             <td class="align-middle">{leave.dates[0]}</td>

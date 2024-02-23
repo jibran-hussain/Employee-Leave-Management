@@ -16,7 +16,12 @@
 
     const handleSubmit=async(formData)=>{
         try{
-            const response = await fetch(`http://localhost:3000/api/v1/auth/signin`, {
+            const {email,password}=formData
+            if(!email || !password){
+                isError=true;
+                error= 'All fields are mandatory'
+            }else{
+                const response = await fetch(`http://localhost:3000/api/v1/auth/signin`, {
             method: "POST",
             headers: {
                 Accept: "application/json",
@@ -34,15 +39,13 @@
             }
             else{
                 isError=true;
+                error=data.error || data.message
+            }
             }
             
         }catch(error){
             console.log(error)
         }
-    }
-
-    $:{
-        if(isError) error=data.error || data.message;
     }
 
 </script>
@@ -51,7 +54,7 @@
     <p class="mb-0">EMPLOYEE LEAVE MANAGEMENT SYSTEM</p>
 </header>
 
-    <Form options={formFields} formHeading="Signin" buttonLabel='Signin' {handleSubmit} {error} width='30%'/>
+    <Form options={formFields} formHeading="Signin" buttonLabel='Signin' {handleSubmit} {isError} {error} width='30%'/>
 
 <style>
     header{

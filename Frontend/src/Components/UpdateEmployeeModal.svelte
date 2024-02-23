@@ -34,8 +34,6 @@
   
   const handleSubmit=async(formData)=>{
       try{
-        console.log($user)
-        console.log(formData,'here is the UDPATED data')
           const response = await fetch(`http://localhost:3000/api/v1/employees/${userToUpdate.id}`, {
           method: "PATCH",
           headers: {
