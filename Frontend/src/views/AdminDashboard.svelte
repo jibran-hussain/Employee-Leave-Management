@@ -1,10 +1,11 @@
 <script>
     import { onMount } from "svelte";
     import { user } from "../stores/userStore";
-    import toast, { Toaster } from 'svelte-french-toast';
+    import toast from 'svelte-french-toast';
     import UpdateEmployeeModal from "../Components/UpdateEmployeeModal.svelte";
     import EmployeeListTable from "../Components/EmployeeListTable.svelte";
     import Pagination from "../Components/Pagination.svelte";
+    import LimitDropdown from "../Components/LimitDropdown.svelte";
     import debounce from '../utils/debounce.js'
     import {goto} from '$app/navigation';
 
@@ -17,6 +18,8 @@
     let showUpdateModal=false;
     let userToUpdate;
     let employeeToFetch;
+    let limit=10;
+
 
     const {id,email,role,token}=$user;
 
@@ -34,11 +37,26 @@
         }
 }
 
+$:{
+    if(limit){
+        if (showDeletedEmployees) {
+            fetchDeletedEmployees().then(data => {
+                if(data.message) employeesListData='';
+                else employeesListData=data
+            });
+        } else {
+            fetchActiveEmployees().then(data => {
+                employeesListData = data;
+            });
+        }
+    }
+}
+
 
 
     const fetchActiveEmployees=async()=>{
         try{
-            let url= `http://localhost:3000/api/v1/employees`;
+            let url= `http://localhost:3000/api/v1/employees?limit=${limit}`;
 
             if(searchInput) url += `?search=${searchInput}`;
             if(selectedOption) searchInput?url += `&sortBy=${selectedOption}`:url += `?sortBy=${selectedOption}`
@@ -59,7 +77,7 @@
 
     const fetchDeletedEmployees=async()=>{
         try{
-            let url=`http://localhost:3000/api/v1/employees?deleted=true`;
+            let url=`http://localhost:3000/api/v1/employees?limit=${limit}&&deleted=true`;
             if(searchInput) url += `&search=${searchInput}`;
             if(selectedOption) url += `&sortBy=${selectedOption}`
             if(selectedOption && orderOption) url += `&order=${orderOption}`
@@ -79,7 +97,7 @@
     const handleSearch=async ()=>{
         try{
             
-            let url=`http://localhost:3000/api/v1/employees?search=${searchInput}`;
+            let url=`http://localhost:3000/api/v1/employees?limit=${limit}&&search=${searchInput}`;
             if(showDeletedEmployees) url += `&deleted=true`
             if(selectedOption) url += `&sortBy=${selectedOption}`
             if(selectedOption && orderOption) url += `&order=${orderOption}`
@@ -101,7 +119,7 @@
 
     const handleSortBy=async()=>{
         try{
-            let url=`http://localhost:3000/api/v1/employees?sortBy=${selectedOption}`;
+            let url=`http://localhost:3000/api/v1/employees?limit=${limit}&&sortBy=${selectedOption}`;
             if(showDeletedEmployees) url += `&deleted=true`
             if(searchInput) url += `&search=${searchInput}`
             if(orderOption) url += `&order=${orderOption}`
@@ -125,7 +143,7 @@
             return;
         }
 
-        let url = `http://localhost:3000/api/v1/employees?sortBy=${selectedOption}&order=${orderOption}`;
+        let url = `http://localhost:3000/api/v1/employees?limit=${limit}&&sortBy=${selectedOption}&order=${orderOption}`;
 
         if (showDeletedEmployees) url += `&deleted=true`;
         if (searchInput) url += `&search=${searchInput}`;
@@ -221,24 +239,31 @@ const handleActivateEmployee=async(employeeId)=>{
 
     const handlePageChange=async(offset)=>{
         try{
-            let url=`http://localhost:3000/api/v1/employees?offset=${offset}`;
+            if(offset > employeesListData.metadata.totalPages){
+                toast.error('This page number does not exist.',{
+                    duration:3000
+                });
+            }
+            else{
+                let url=`http://localhost:3000/api/v1/employees?offset=${offset}&&limit=${limit}`;
 
             if (searchInput.trim() !== '') {
             url += `&search=${encodeURIComponent(searchInput.trim())}`;
-        }
+            }
 
-        if (selectedOption.trim() !== '') {
-            url += `&sortBy=${encodeURIComponent(selectedOption.trim())}`;
-        }
+            if (selectedOption.trim() !== '') {
+                url += `&sortBy=${encodeURIComponent(selectedOption.trim())}`;
+            }
 
-        if(selectedOption && orderOption) url += `&order=${orderOption}`
-            const response=await fetch(url,{
-                headers:{
-                    'Authorization':`Bearer ${token}`
+            if(selectedOption && orderOption) url += `&order=${orderOption}`
+                const response=await fetch(url,{
+                    headers:{
+                        'Authorization':`Bearer ${token}`
+                    }
+                })
+                const data=await response.json();
+                employeesListData=data;
                 }
-            })
-            const data=await response.json();
-            employeesListData=data;
         }catch(error){
             console.log( e.message)
         }
@@ -306,7 +331,13 @@ const handleActivateEmployee=async(employeeId)=>{
     <!-- Pagination -->
 
     {#if employeesListData}
-    <Pagination totalPages={employeesListData.metadata.totalPages} currentPage={employeesListData.metadata.currentPage} onPageChange={handlePageChange} />
+      <div class="d-flex justify-content-between align-items-center px-3">
+        <div>
+          <LimitDropdown {limit} on:limitChange={(event)=>limit=event.detail.limit}  />
+        </div>
+        <div><Pagination totalPages={employeesListData.metadata.totalPages} currentPage={employeesListData.metadata.currentPage} onPageChange={handlePageChange} /></div>
+        <div>{(employeesListData.metadata.currentPage-1)*limit+1} - {(employeesListData.metadata.currentPage-1)*limit+1 + (employeesListData.data.length -1)} of {employeesListData.metadata.totalEmployees}</div>
+      </div>
     {/if}
 
 </div>

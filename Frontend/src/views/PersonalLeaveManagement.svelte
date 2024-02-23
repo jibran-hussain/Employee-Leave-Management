@@ -4,6 +4,7 @@
     import LeavesInSystemTable from '../Components/Leaves/LeavesInSystemTable.svelte'
     import UpdateLeaveModal from "../Components/UpdateLeaveModal.svelte";
     import Pagination from "../Components/Pagination.svelte";
+    import LimitDropdown from "../Components/LimitDropdown.svelte";
     import debounce from "../utils/debounce";
     import { user } from "../stores/userStore";
     import toast from 'svelte-french-toast';
@@ -16,10 +17,19 @@
     let leaveIdToFetch;
     let leaveToUpdate;
     let searchInput='';
+    let limit=10;
+
+    $:{
+        if(limit){
+            fetchLeaves()
+            fetchLeaveSummary()
+        }
+    }
+
 
     const fetchLeaves=async()=>{
         try{
-            let url=`http://localhost:3000/api/v1/me/leaves?status=${leaveStatus}&search=${searchInput}`;
+            let url=`http://localhost:3000/api/v1/me/leaves?limit=${limit}&status=${leaveStatus}&search=${searchInput}`;
             const response=await fetch(url,{
                 method:'GET',
                 headers:{
@@ -88,7 +98,12 @@
 
     const handlePageChange=async(offset)=>{
     try{
-      const response=await fetch(`http://localhost:3000/api/v1/me/leaves/${leaveId}&offset=${offset}&search=${searchInput}`,{
+      if(offset > leaves.metadata.totalPages){
+        toast.error('This page number does not exist.',{
+                    duration:3000
+                });
+      }else{
+        const response=await fetch(`http://localhost:3000/api/v1/me/leaves/${leaveId}&offset=${offset}&limit=${limit}&search=${searchInput}`,{
                 method:'GET',
                 headers:{
                     Authorization:`Bearer ${$user.token}`
@@ -99,6 +114,7 @@
             leaves= data;
             }
             else return undefined;
+      }
     }catch(error){
         console.log(error.message)
     }
@@ -138,7 +154,14 @@
 
 {#if leaves}
     <LeavesInSystemTable leavesData={leaves} {handleDeleteLeaveButton} {handleUpdateLeaveButton} />
-    <Pagination totalPages={leaves.metadata.totalPages} currentPage={leaves.metadata.page} onPageChange={handlePageChange} />
+    <div class="d-flex justify-content-between align-items-center px-3">
+        <div>
+          <LimitDropdown {limit} on:limitChange={(event)=>limit=event.detail.limit}  />
+        </div>
+        <div><Pagination totalPages={leaves.metadata.totalPages} currentPage={leaves.metadata.page} onPageChange={handlePageChange} /></div>
+        <div>{(leaves.metadata.page-1)*limit+1} - {(leaves.metadata.page-1)*limit+1 + (leaves.data.length -1)} of {leaves.metadata.totalLeaveApplications}</div>
+      </div>
+    
 {:else}
     <h4 class="text-center" style="margin-top:15%; color:#B4B4B8">No such leaves in the system</h4>
 {/if}
