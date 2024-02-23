@@ -64,7 +64,7 @@ export const listAllEmployeeLeaves=async (req,res)=>{
         const status = req.query.status;
         const search=req.query.search;
 
-        if(status && (status != 'approved' && status != 'Under Process' && status != "rejected")) return res.status(400).json({message:`Please enter a valid status`})
+        if(status && (status != 'approved' && status != 'Under Process' && status != "rejected")) return res.status(400).json({error:`Please enter a valid status`})
 
         if((limit && !offset) || (!limit && offset)) return res.status(400).json({error:'Either limit or offset is necassary'});
 
@@ -164,7 +164,7 @@ export const updateLeave=async(req,res)=>{
 
             let dateRange=[...dates];
 
-            if(dateRange.length === 0) return res.status(403).json({error:`You are already on leave on these dates`})
+            if(dateRange.length === 0) return res.status(403).json({error:`You are already on leave on these dates or it's a weekend`})
 
             updatedLeave.dates=[...dateRange]
 
@@ -492,7 +492,7 @@ export const getLeaveById = async (req, res) => {
 export const rejectLeave=async(req,res)=>{
     try{
         const {rejectionReason}=req.body;
-        if(!rejectionReason) return res.status(400).json({error:`Please provide the reason for rejecing this leave`})
+        if(!rejectionReason) return res.status(400).json({error:`Please provide the reason for rejecting this leave`})
         const leaveId = Number(req.params.leaveId);
 
         const leave=await Leave.findByPk(leaveId)
@@ -523,7 +523,7 @@ export const approveLeave=async(req,res)=>{
     try{
         const leaveId = Number(req.params.leaveId);
         const leave=await Leave.findByPk(leaveId);
-        if(!leave) return res.status(400).json({error:`Leave with this id not found`});
+        if(!leave) return res.status(404).json({error:`Leave with this id not found`});
 
         const employee=await Employee.findByPk(leave.employeeId);
         
