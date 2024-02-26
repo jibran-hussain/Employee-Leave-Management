@@ -17,7 +17,7 @@
     </div>
 </div>
 {:else}
-    <div class="container-fluid d-flex justify-content-center align-items-center" style="height: 100vh;">
+    <div class="container-fluid d-flex justify-content-center align-items-center" style="min-height: 100vh;">
         <div class="spinner-border text-info custom" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>

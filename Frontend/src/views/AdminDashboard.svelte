@@ -278,7 +278,7 @@ const handleActivateEmployee=async(employeeId)=>{
 }} />
 {/if}
 
-<div class="pt-4 mx-2" style="height: 100vh;">
+<div class="pt-4 mx-2" style="min-height: 100vh;">
     <div class="d-flex flex-column">
         <div class="mb-3 d-flex">
             <input type="number" min="1" class="form-control form-control-sm w-25" bind:value={employeeToFetch} placeholder="Enter employee id"/>
